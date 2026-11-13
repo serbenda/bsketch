@@ -4,6 +4,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y 
 
 ## [Sin publicar]
 ### Añadido
+- **Pizarra de dibujo** a pantalla completa, sin cuentas y sin red (la CSP prohíbe cualquier conexión):
+  - Herramientas: seleccionar, mover el lienzo, rectángulo, rombo, elipse, flecha, línea, lápiz, texto y borrar, con atajos de una tecla (V, H, R, D, O, A, L, P, T, E).
+  - Trazo «a mano» propio (temblor con semilla: cada figura se dibuja siempre igual), relleno rayado o sólido, grosor, línea discontinua y tres niveles de trazo a mano.
+  - Seleccionar con clic o recuadro, mover, redimensionar (Mayús mantiene la proporción), duplicar, copiar y pegar, traer al frente o al fondo, borrar, y deshacer y rehacer.
+  - Zoom con la rueda y Ctrl, con los botones o pellizcando en el móvil; «Ver todo».
+  - Abrir y guardar ficheros `.sketch` (JSON), abrir los `.excalidraw` y exportar a PNG y SVG.
+  - El dibujo en curso se guarda en el navegador para no perderlo al cerrar la pestaña.
+  - Tema claro y oscuro (en oscuro el lienzo se ve invertido, sin cambiar los colores reales ni lo que se exporta).
+- El editor (`js/editor.js`) se puede montar en otras páginas: no usa `innerHTML` y funciona con Trusted Types.
+- Tests del motor (`npm test`, sin dependencias) y su paso en la CI.
 - Estructura inicial: Definition of Done, flujo development → main, CI (Gitleaks, formato, HTML, enlaces), CodeQL, Dependabot, publicación en GitHub Pages y script de configuración.
 - Skill `security-audit` de Cloudflare en `.claude/skills/`, fijada al commit `c1c8a8c`.
 - Skills `web-perf` (Cloudflare, `cbf893b`) y `repo-security-posture` (superagent-ai, `0da315b`).
