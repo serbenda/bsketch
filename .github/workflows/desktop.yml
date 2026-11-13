@@ -1,0 +1,89 @@
+# Versión de escritorio con Tauri: una ventana propia con la web dentro, sin navegador.
+# Compila un ejecutable para cada sistema y los deja como artefactos de la ejecución:
+#   Windows: sketch-windows.exe (se abre sin instalar; usa el motor de Edge que trae Windows)
+#   macOS:   sketch-macos.zip con sketch.app para Intel y Apple Silicon (sin firmar)
+#   Linux:   sketch-linux.AppImage
+name: Escritorio
+
+on:
+  push:
+    branches: [development]
+    paths:
+      - 'desktop/**'
+      - 'js/**'
+      - 'css/**'
+      - 'fonts/**'
+      - 'index.html'
+      - 'scripts/build-portable.mjs'
+      - '.github/workflows/desktop.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compilar:
+    name: ${{ matrix.nombre }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - nombre: Windows
+            os: windows-latest
+            args: --no-bundle
+          - nombre: macOS
+            os: macos-latest
+            args: --bundles app --target universal-apple-darwin
+          - nombre: Linux
+            os: ubuntu-22.04
+            args: --bundles appimage
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: lts/*
+
+      - name: Librerías de Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Rust para Intel y Apple Silicon
+        if: runner.os == 'macOS'
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+      # La web va dentro en un solo fichero (la versión portátil, sin red)
+      - name: Web dentro de la app
+        run: node scripts/build-portable.mjs desktop/app/index.html
+
+      - name: Iconos
+        working-directory: desktop
+        run: npx --yes @tauri-apps/cli@2.12.4 icon icon.png
+
+      - name: Compilar
+        working-directory: desktop
+        run: npx --yes @tauri-apps/cli@2.12.4 build ${{ matrix.args }}
+
+      - name: Preparar el ejecutable
+        shell: bash
+        run: |
+          mkdir -p salida
+          T=desktop/src-tauri/target
+          case "${{ runner.os }}" in
+            Windows) cp "$T/release/sketch.exe" salida/sketch-windows.exe ;;
+            macOS) ditto -c -k --keepParent "$T/universal-apple-darwin/release/bundle/macos/sketch.app" salida/sketch-macos.zip ;;
+            Linux) cp "$T"/release/bundle/appimage/*.AppImage salida/sketch-linux.AppImage ;;
+          esac
+          ls -la salida
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: sketch-${{ matrix.nombre }}
+          path: salida/*
+          if-no-files-found: error
+          retention-days: 30

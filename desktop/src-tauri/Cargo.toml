@@ -1,0 +1,25 @@
+# Versión de escritorio de sketch: una ventana propia (sin navegador) con la misma web dentro.
+# La compila GitHub Actions (.github/workflows/desktop.yml) para Windows, macOS y Linux.
+[package]
+name = "sketch"
+version = "0.3.0"
+description = "Pizarra para dibujar a mano alzada"
+authors = ["Sergio Santiago Bendaña Quesada"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.77"
+publish = false
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+# Ejecutable pequeño
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
