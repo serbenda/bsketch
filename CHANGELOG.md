@@ -4,6 +4,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y 
 
 ## [Sin publicar]
 ### Añadido
+- **Letra a mano** (Caveat, licencia OFL) para los textos, servida desde el propio sitio. Los textos se miden con la letra real.
+- **Texto dentro de las formas:** doble clic (o Intro) en un rectángulo, rombo o elipse para escribir dentro. Va centrado, se parte al ancho de la forma y la sigue al moverla, redimensionarla o girarla.
+- **Flechas pegadas a las formas:** si una flecha empieza o acaba sobre una forma, queda unida a su borde y lo sigue al mover la forma. Se pueden mover sus puntas para pegarlas o despegarlas.
+- **Girar** formas, textos y grupos con el tirador redondo (Mayús: de 15 en 15 grados).
+- **Agrupar y desagrupar** (Ctrl+G, Ctrl+Mayús+G), **alinear** (izquierda, centro, derecha, arriba, medio, abajo) y **repartir** con el mismo hueco.
+- Se abre **sin conexión** (service worker) y se puede instalar como aplicación.
+- Un lector de pantalla anuncia lo seleccionado.
+- **Recorridos en Chrome** (`npm run test:e2e`, también en la CI): flechas pegadas, texto dentro, girar, deshacer, agrupar, alinear, abrir un `.excalidraw`, abrir sin conexión y que en el móvil quepa todo.
+- Al abrir `.excalidraw` se conservan el texto dentro de las formas, las flechas pegadas, los grupos y el giro.
 - **Pizarra de dibujo** a pantalla completa, sin cuentas y sin red (la CSP prohíbe cualquier conexión):
   - Herramientas: seleccionar, mover el lienzo, rectángulo, rombo, elipse, flecha, línea, lápiz, texto y borrar, con atajos de una tecla (V, H, R, D, O, A, L, P, T, E).
   - Trazo «a mano» propio (temblor con semilla: cada figura se dibuja siempre igual), relleno rayado o sólido, grosor, línea discontinua y tres niveles de trazo a mano.
