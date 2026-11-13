@@ -269,3 +269,30 @@ test('en el móvil no se sale nada de la pantalla', { skip }, async () => {
     await page.close();
   }
 });
+
+test('la versión portátil se abre con doble clic y funciona sin red', { skip }, async () => {
+  const { execFileSync } = await import('node:child_process');
+  const dir = await mkdtemp(join(tmpdir(), 'sketch-portatil-'));
+  const file = join(dir, 'sketch-portable.html');
+  execFileSync(process.execPath, [join(ROOT, 'scripts/build-portable.mjs'), file]);
+  const page = await browser.newPage();
+  try {
+    await page.goto(`file://${file}`);
+    await page.waitFor('!!document.querySelector(".sk-canvas")');
+    await page.waitFor('document.fonts.check(\'24px "Sketch Mano"\')');
+    const at = await screen(page);
+    await page.press('r');
+    await page.drag(at(-100, -50), at(100, 50));
+    await page.mouseClick(at(0, 0), { count: 2 });
+    await page.waitFor('!document.querySelector(".sk-textbox").hidden');
+    await page.type('Sin red');
+    await page.press('Escape');
+    const s = await scene(page);
+    assert.deepEqual(s.elements.map((e) => e.type), ['rectangle', 'text']);
+    assert.ok(await page.eval('document.fonts.check(\'24px "Sketch Mano"\')'), 'la letra va dentro');
+    assert.deepEqual(page.requests.filter((u) => !/^(file|data|blob):/.test(u)), [], 'no pide nada fuera');
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});

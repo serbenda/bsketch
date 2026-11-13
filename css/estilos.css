@@ -62,7 +62,8 @@ body {
   flex-wrap: wrap;
 }
 
-.acciones button {
+.acciones button,
+.acciones a {
   font: inherit;
   font-size: 0.9rem;
   padding: 0.3rem 0.7rem;
@@ -73,7 +74,12 @@ body {
   cursor: pointer;
 }
 
-.acciones button:hover {
+.acciones a {
+  text-decoration: none;
+}
+
+.acciones button:hover,
+.acciones a:hover {
   border-color: var(--acento);
 }
 
