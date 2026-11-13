@@ -1,39 +1,61 @@
-# NOMBRE_DEL_PROYECTO
+# sketch
 
-> Una frase que explique qué es y para quién.
+> Pizarra para dibujar a mano alzada: esquemas, diagramas y bocetos. Sin cuentas, sin instalar nada y sin enviar
+> nada a ningún servidor.
 
-🔗 **Web:** https://serbenda.github.io/NOMBRE_DEL_PROYECTO/
+🔗 **Web:** https://serbenda.github.io/sketch/
 
 ## Qué hace
-- Funcionalidad principal 1
-- Funcionalidad principal 2
+- Rectángulos, rombos, elipses, flechas, líneas, lápiz y texto, con trazo «a mano».
+- Relleno rayado o sólido, colores, grosor, línea discontinua y nivel de «trazo a mano».
+- Seleccionar, mover, redimensionar, duplicar, ordenar, borrar, deshacer y rehacer; zoom y desplazamiento,
+  también con dos dedos en el móvil.
+- Guarda y abre ficheros `.sketch`, abre los `.excalidraw` y exporta a **PNG** y **SVG**.
+- El dibujo en curso se queda en el navegador para no perderlo.
+- Se integra en [Snowlog](https://github.com/serbenda/snowlog): allí los dibujos se guardan cifrados y se ven
+  dentro de las notas.
+
+## Atajos
+
+| Tecla | Acción |
+| --- | --- |
+| V · H | Seleccionar · mover el lienzo (o mantener Espacio) |
+| R · D · O | Rectángulo · rombo · elipse |
+| A · L · P · T · E | Flecha · línea · lápiz · texto · borrar |
+| Mayús | Proporción fija al dibujar o redimensionar; ángulos de 15° en líneas |
+| Ctrl+Z · Ctrl+Y | Deshacer · rehacer |
+| Ctrl+D · Ctrl+C · Ctrl+V | Duplicar · copiar · pegar |
+| Supr · Flechas | Borrar · mover lo seleccionado (Mayús: de 10 en 10) |
+| Ctrl+rueda · Ctrl+0 | Zoom · volver al 100 % |
+| Doble clic | Escribir texto (o editar uno que ya existe) |
 
 ## Fuentes de datos
-| Fuente | Qué aporta | Licencia |
-|---|---|---|
-| _Ej.: Red Eléctrica (REData)_ | _Precio de la luz_ | _Uso libre con atribución_ |
+Ninguna: no hay llamadas de red. El formato `.excalidraw` se lee como JSON público; no se usa código de Excalidraw.
 
 ## Uso en local
 ```bash
-git clone https://github.com/serbenda/NOMBRE_DEL_PROYECTO.git
-cd NOMBRE_DEL_PROYECTO
+git clone https://github.com/serbenda/sketch.git
+cd sketch
 git switch development
 python3 -m http.server 8000   # abre http://localhost:8000
+npm test                      # tests del motor (Node 20+, sin dependencias)
 ```
 
 ## Estructura
 ```
 .
 ├── index.html
-├── css/
-├── js/
-├── assets/
-├── docs/          # Definition of Done, guía de seguridad
-├── scripts/       # setup-repo.sh y pruebas
-├── .claude/       # configuración del agente: permisos, hook, skills, subagentes, comandos
-├── .githooks/     # hook de git: quita firmas de IA y comprueba el autor
-├── AGENTS.md      # normas para cualquier agente de IA
-└── CLAUDE.md      # importa AGENTS.md y añade lo específico de Claude Code
+├── icon.svg
+├── css/estilos.css   # la página
+├── css/sketch.css    # el editor (prefijo sk-, se puede incrustar)
+├── js/trazo.js       # trazo «a mano» con semilla → caminos para canvas y SVG
+├── js/escena.js      # elementos: crear, medir, tocar, mover, abrir/guardar, .excalidraw
+├── js/pintar.js      # escena → canvas, SVG (texto o DOM) y PNG
+├── js/editor.js      # el editor interactivo, montable en cualquier contenedor
+├── js/app.js         # la web: abrir, guardar y exportar
+├── tests/            # node --test
+├── docs/             # Definition of Done, guía de seguridad
+└── .claude/ · .githooks/ · AGENTS.md · CLAUDE.md
 ```
 
 ## Cómo contribuir
@@ -41,21 +63,3 @@ Lee [CONTRIBUTING.md](CONTRIBUTING.md) y la [Definition of Done](docs/DEFINITION
 
 ## Licencia
 [MIT](LICENSE) © Sergio Santiago Bendaña Quesada
-
----
-
-<details>
-<summary>📦 Cómo usar esta plantilla (borra esta sección en el proyecto nuevo)</summary>
-
-1. En GitHub: **Use this template → Create a new repository**.
-2. Clona el repo nuevo y ejecuta:
-   ```bash
-   ./scripts/setup-repo.sh
-   ```
-   Crea la rama `development`, protege `main`, activa Pages, las alertas de seguridad y el hook de git.
-   Con commits firmados: `FIRMAS=1 ./scripts/setup-repo.sh`.
-3. Sustituye `NOMBRE_DEL_PROYECTO` en este README.
-4. Borra esta sección.
-5. Una sola vez en tu Mac: sigue [docs/SEGURIDAD.md](docs/SEGURIDAD.md) → "Lo que tienes que hacer tú".
-
-</details>
