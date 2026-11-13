@@ -46,6 +46,20 @@ Ninguna: no hay llamadas de red. El formato `.excalidraw` se lee como JSON públ
 La letra a mano es [Caveat](https://github.com/googlefonts/caveat), con licencia SIL Open Font License
 ([fonts/OFL.txt](fonts/OFL.txt)), recortada a los caracteres latinos y servida desde el propio sitio.
 
+## Tres formas de usarlo
+
+- **En la web**, en cualquier navegador (Chrome, Edge, Firefox o Safari). Desde Chrome o Edge se puede
+  instalar como aplicación («Instalar aplicación») y se abre en su propia ventana, también sin conexión.
+- **Portátil:** el botón «Portátil» de la web descarga `sketch-portable.html`, un único fichero que se abre con
+  doble clic en cualquier navegador de Windows, macOS o Linux, sin instalar nada y sin conexión (su CSP
+  prohíbe cualquier conexión de red). No es un programa, así que los antivirus no lo bloquean.
+- **De escritorio** (Tauri): una ventana propia, sin navegador. El workflow «Escritorio» compila
+  `sketch-windows.exe` (se abre sin instalar), `sketch-macos.zip` (con `sketch.app`, para Intel y Apple
+  Silicon) y `sketch-linux.AppImage`, y los deja como artefactos de la ejecución en la pestaña Actions.
+  No van firmados: en macOS hay que abrirlo la primera vez con clic derecho → Abrir, y en equipos de
+  empresa el antivirus puede bloquear un ejecutable sin firma. Usan el motor web del sistema (Edge en
+  Windows, Safari en macOS, WebKit en Linux), que se actualiza con el sistema.
+
 ## Uso en local
 ```bash
 git clone https://github.com/serbenda/sketch.git
@@ -54,6 +68,7 @@ git switch development
 python3 -m http.server 8000   # abre http://localhost:8000
 npm test                      # tests del motor (Node 20+, sin dependencias)
 npm run test:e2e              # recorridos en Chrome (Node 22+; CHROME_BIN si no está en /usr/bin)
+npm run build:portable        # versión portátil en dist/sketch-portable.html
 ```
 
 ## Estructura
@@ -63,6 +78,8 @@ npm run test:e2e              # recorridos en Chrome (Node 22+; CHROME_BIN si no
 ├── icon.svg · manifest.webmanifest
 ├── sw.js             # service worker: la web sin conexión
 ├── fonts/            # letra a mano (Caveat, OFL)
+├── desktop/          # versión de escritorio (Tauri): icono y src-tauri/
+├── scripts/          # build-portable.mjs: todo en un único HTML
 ├── css/estilos.css   # la página
 ├── css/sketch.css    # el editor (prefijo sk-, se puede incrustar)
 ├── js/trazo.js       # trazo «a mano» con semilla → caminos para canvas y SVG
