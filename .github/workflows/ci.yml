@@ -102,6 +102,9 @@ jobs:
       - name: Pruebas del hook de seguridad
         run: bash scripts/test-guardia.sh
 
+      - name: Tests del motor de dibujo
+        run: npm test
+
       - name: Enlaces internos rotos
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8  # v2.9.0
         with:

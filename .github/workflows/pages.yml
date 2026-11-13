@@ -33,7 +33,7 @@ jobs:
         run: |
           mkdir -p _site
           rsync -a --exclude '.git*' --exclude '.github' --exclude '.claude' --exclude 'docs' \
-            --exclude 'scripts' --exclude '*.md' --exclude 'LICENSE' \
+            --exclude 'scripts' --exclude 'tests' --exclude 'package.json' --exclude '*.md' --exclude 'LICENSE' \
             --exclude '.editorconfig' --exclude '_site' ./ _site/
 
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b  # v5.0.0
