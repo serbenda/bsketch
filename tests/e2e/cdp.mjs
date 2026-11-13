@@ -66,6 +66,12 @@ const KEYS = {
   Tab: { key: 'Tab', code: 'Tab', keyCode: 9 },
   Escape: { key: 'Escape', code: 'Escape', keyCode: 27 },
   ArrowDown: { key: 'ArrowDown', code: 'ArrowDown', keyCode: 40 },
+  ArrowUp: { key: 'ArrowUp', code: 'ArrowUp', keyCode: 38 },
+  ArrowLeft: { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37 },
+  ArrowRight: { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39 },
+  Delete: { key: 'Delete', code: 'Delete', keyCode: 46 },
+  ']': { key: ']', code: 'BracketRight', keyCode: 221, text: ']' },
+  '[': { key: '[', code: 'BracketLeft', keyCode: 219, text: '[' },
 };
 
 // Página nueva en un contexto aislado (como una ventana privada: almacenamiento propio).
@@ -158,11 +164,11 @@ async function openPage(browser, { initScript, offline = false, width = 1280, he
         else if (part) await send('Input.insertText', { text: part });
       }
     },
-    async press(key, { ctrl = false, shift = false } = {}) {
-      const k = KEYS[key] || { key, code: `Key${key.toUpperCase()}`, keyCode: key.toUpperCase().charCodeAt(0) };
-      const modifiers = (ctrl ? 2 : 0) | (shift ? 8 : 0);
+    async press(key, { ctrl = false, shift = false, alt = false } = {}) {
+      const k = KEYS[key] || { key, code: `Key${key.toUpperCase()}`, keyCode: key.toUpperCase().charCodeAt(0), text: key.length === 1 ? key : undefined };
+      const modifiers = (alt ? 1 : 0) | (ctrl ? 2 : 0) | (shift ? 8 : 0);
       const base = { key: k.key, code: k.code, windowsVirtualKeyCode: k.keyCode, modifiers };
-      await send('Input.dispatchKeyEvent', { type: 'keyDown', ...base, ...(k.text && !ctrl ? { text: k.text } : {}) });
+      await send('Input.dispatchKeyEvent', { type: 'keyDown', ...base, ...(k.text && !ctrl && !alt ? { text: k.text } : {}) });
       await send('Input.dispatchKeyEvent', { type: 'keyUp', ...base });
     },
     async close() {

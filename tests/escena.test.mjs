@@ -231,3 +231,35 @@ test('abrir un .excalidraw con texto dentro, flechas pegadas, grupos y giro', ()
   assert.equal(ar.startId, 'r');
   assert.equal(ar.endId, 'o');
 });
+
+test('fusionar dos versiones de un dibujo elemento a elemento', () => {
+  const r = (id, x, extra = {}) => ({ ...E.createElement('rectangle', x, 0), id, seed: 1, w: 10, h: 10, ...extra });
+  const base = { ...E.emptyScene(), elements: [r('a', 0), r('b', 20), r('c', 40)] };
+  // Aquí: muevo a, borro c y añado d. Allí: cambian el color de b y añaden e detrás de a.
+  const mine = { ...base, elements: [r('a', 5), r('b', 20), r('d', 60)] };
+  const theirs = { ...base, elements: [r('a', 0), r('e', 1), r('b', 20, { stroke: '#e03131' }), r('c', 40)] };
+  const { scene, conflict } = E.mergeScenes(base, mine, theirs);
+  assert.equal(conflict, false);
+  assert.deepEqual(scene.elements.map((e) => e.id), ['a', 'e', 'b', 'd'], 'c sigue borrada; e va detrás de a');
+  assert.equal(scene.elements[0].x, 5, 'mi movimiento');
+  assert.equal(scene.elements[2].stroke, '#e03131', 'su color');
+  // Los dos cambian el mismo elemento de forma distinta: gana el mío y se avisa.
+  const both = E.mergeScenes(base, { ...base, elements: [r('a', 7), r('b', 20), r('c', 40)] }, { ...base, elements: [r('a', 9), r('b', 20), r('c', 40)] });
+  assert.equal(both.conflict, true);
+  assert.equal(both.scene.elements[0].x, 7);
+  // Borrado allí y cambiado aquí: se queda el mío.
+  const keep = E.mergeScenes(base, { ...base, elements: [r('a', 3), r('b', 20), r('c', 40)] }, { ...base, elements: [r('b', 20), r('c', 40)] });
+  assert.deepEqual(keep.scene.elements.map((e) => e.id), ['a', 'b', 'c']);
+  // Fondo: el que cambió.
+  assert.equal(E.mergeScenes(base, mine, { ...theirs, background: '#fffce8' }).scene.background, '#fffce8');
+});
+
+test('agrandar con el teclado sin mover el centro', () => {
+  const r = { ...E.createElement('rectangle', 0, 0), w: 100, h: 50, angle: 1 };
+  const g = E.growElement(r, 10, 0);
+  assert.equal(g.w, 110);
+  assert.deepEqual(E.center(g), E.center(r));
+  const t = { ...E.createElement('text', 0, 0), text: 'hola', fontSize: 20 };
+  assert.equal(E.growElement(t, 10, 0).fontSize, 22);
+  assert.equal(E.growElement(t, -10, 0).fontSize, 18);
+});

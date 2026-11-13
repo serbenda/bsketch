@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y 
 
 ## [Sin publicar]
 ### Añadido
+- **Todo con el teclado:** con una herramienta elegida, Intro crea la forma en el centro; Tab y Mayús+Tab recorren los elementos; Alt+flechas cambian el tamaño; `[` y `]` giran 15°; Intro escribe dentro. Foco visible y descripción de los atajos para lectores de pantalla.
+- **Dibujos grandes más fluidos:** el trazo de cada elemento se prepara una vez y se reutiliza, y solo se pinta lo que se ve. Con 2.000 elementos, desplazarse al 100 % pasa de 36 a 18 ms por fotograma (medido en la CI).
+- `mergeScenes`: fusión a tres bandas de dos versiones de un dibujo, elemento a elemento (la usa Snowlog para juntar cambios de dos dispositivos).
 - **Letra a mano** (Caveat, licencia OFL) para los textos, servida desde el propio sitio. Los textos se miden con la letra real.
 - **Texto dentro de las formas:** doble clic (o Intro) en un rectángulo, rombo o elipse para escribir dentro. Va centrado, se parte al ancho de la forma y la sigue al moverla, redimensionarla o girarla.
 - **Flechas pegadas a las formas:** si una flecha empieza o acaba sobre una forma, queda unida a su borde y lo sigue al mover la forma. Se pueden mover sus puntas para pegarlas o despegarlas.

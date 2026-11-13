@@ -36,6 +36,10 @@
 
 Para girar, arrastra el círculo que aparece encima de lo seleccionado.
 
+Sin ratón: elige herramienta con su tecla y pulsa **Intro** para crear la forma en el centro. **Tab** y
+**Mayús+Tab** recorren los elementos, **Alt+flechas** cambian su tamaño, **[** y **]** los giran e **Intro** escribe
+dentro. **Escape** quita la selección (y entonces Tab sale de la pizarra).
+
 ## Fuentes de datos
 Ninguna: no hay llamadas de red. El formato `.excalidraw` se lee como JSON público; no se usa código de Excalidraw.
 
