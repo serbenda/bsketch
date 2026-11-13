@@ -1,0 +1,14 @@
+{
+  "name": "sketch",
+  "short_name": "sketch",
+  "description": "Pizarra para dibujar a mano alzada, sin cuentas y sin enviar nada a ningún servidor.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "lang": "es",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
