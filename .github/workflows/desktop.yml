@@ -81,31 +81,18 @@ jobs:
           esac
           ls -la salida
 
-      # Prueba de humo en una pantalla virtual: la app arranca, sigue abierta y pinta algo.
-      - name: Abrir la app (Linux)
+      # Prueba de humo (Linux, pantalla virtual): la app abre su ventana y la web de dentro arranca.
+      # Se hace por WebDriver con tauri-driver, que pregunta a la página en vez de mirar píxeles.
+      - name: Abrir la app y comprobar la web (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get install -y xvfb imagemagick x11-utils x11-apps ffmpeg
-          chmod +x salida/*.AppImage
-          export APPIMAGE_EXTRACT_AND_RUN=1
-          # Sin tarjeta gráfica: que WebKit pinte por software
-          export WEBKIT_DISABLE_DMABUF_RENDERER=1 WEBKIT_DISABLE_COMPOSITING_MODE=1 LIBGL_ALWAYS_SOFTWARE=1
-          probar() {
-            xvfb-run -a -s "-screen 0 1280x820x24" bash -c '
-              "$0" > app.log 2>&1 & pid=$!
-              sleep 30
-              kill -0 "$pid" || { echo "La app se ha cerrado al arrancar"; cat app.log; exit 1; }
-              win=$(xwininfo -root -tree | awk "/1280x820\\+/ {print \$1; exit}")
-              echo "ventana: $win"
-              import -window root captura.png
-              xwd -root -silent | convert xwd:- captura-xwd.png
-              ffmpeg -loglevel error -f x11grab -video_size 1280x820 -i "$DISPLAY" -frames:v 1 captura-ff.png
-              kill "$pid"
-              for f in captura.png captura-xwd.png captura-ff.png; do echo "$f: $(convert $f -format "%[fx:standard_deviation] %[pixel:p{640,40}] %[pixel:p{640,400}]" info:)"; done
-              tail -c 2000 app.log' "$1"
-          }
-          echo "=== binario"; probar desktop/src-tauri/target/release/sketch || true
-          echo "=== AppImage"; probar "$(ls salida/*.AppImage)"
+          sudo apt-get install -y xvfb webkit2gtk-driver
+          cargo install tauri-driver --version 2.1.0 --locked
+          export WEBKIT_DISABLE_DMABUF_RENDERER=1
+          xvfb-run -a -s "-screen 0 1280x820x24" bash -c '
+            tauri-driver > driver.log 2>&1 &
+            node desktop/prueba.mjs "$PWD/desktop/src-tauri/target/release/sketch" "$0" || { cat driver.log; exit 1; }' \
+            'document.querySelector(".sk-canvas") && document.fonts.check("24px \"Sketch Mano\"")'
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
