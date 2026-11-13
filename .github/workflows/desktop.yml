@@ -85,7 +85,7 @@ jobs:
       - name: Abrir la app (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get install -y xvfb imagemagick x11-utils
+          sudo apt-get install -y xvfb imagemagick x11-utils x11-apps ffmpeg
           chmod +x salida/*.AppImage
           export APPIMAGE_EXTRACT_AND_RUN=1
           # Sin tarjeta gráfica: que WebKit pinte por software
@@ -97,10 +97,11 @@ jobs:
               kill -0 "$pid" || { echo "La app se ha cerrado al arrancar"; cat app.log; exit 1; }
               win=$(xwininfo -root -tree | awk "/1280x820\\+/ {print \$1; exit}")
               echo "ventana: $win"
-              import -window "${win:-root}" captura.png
+              import -window root captura.png
               xwd -root -silent | convert xwd:- captura-xwd.png
+              ffmpeg -loglevel error -f x11grab -video_size 1280x820 -i "$DISPLAY" -frames:v 1 captura-ff.png
               kill "$pid"
-              for f in captura.png captura-xwd.png; do echo "$f: $(convert $f -format "%[fx:standard_deviation] %[pixel:p{640,40}] %[pixel:p{640,400}]" info:)"; done
+              for f in captura.png captura-xwd.png captura-ff.png; do echo "$f: $(convert $f -format "%[fx:standard_deviation] %[pixel:p{640,40}] %[pixel:p{640,400}]" info:)"; done
               tail -c 2000 app.log' "$1"
           }
           echo "=== binario"; probar desktop/src-tauri/target/release/sketch || true
