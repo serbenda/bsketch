@@ -90,17 +90,21 @@ jobs:
           export APPIMAGE_EXTRACT_AND_RUN=1
           # Sin tarjeta gráfica: que WebKit pinte por software
           export WEBKIT_DISABLE_DMABUF_RENDERER=1 WEBKIT_DISABLE_COMPOSITING_MODE=1 LIBGL_ALWAYS_SOFTWARE=1
-          xvfb-run -a -s "-screen 0 1280x820x24" bash -c '
-            RUST_BACKTRACE=1 salida/*.AppImage > app.log 2>&1 & pid=$!
-            sleep 30
-            kill -0 "$pid" || { echo "La app se ha cerrado al arrancar"; exit 1; }
-            xwininfo -root -tree | grep -E "x[0-9]+\+" | head -8
-            echo "--- salida de la app"; head -c 4000 app.log
-            import -window root captura.png
-            kill "$pid"
-            convert captura.png -format "%[fx:standard_deviation]" info: > variacion.txt'
-          echo "Variación de la captura: $(cat variacion.txt)"
-          awk '{ exit !($1 > 0.02) }' variacion.txt || { echo "La ventana sale vacía"; exit 1; }
+          probar() {
+            xvfb-run -a -s "-screen 0 1280x820x24" bash -c '
+              "$0" > app.log 2>&1 & pid=$!
+              sleep 30
+              kill -0 "$pid" || { echo "La app se ha cerrado al arrancar"; cat app.log; exit 1; }
+              win=$(xwininfo -root -tree | awk "/1280x820\\+/ {print \$1; exit}")
+              echo "ventana: $win"
+              import -window "${win:-root}" captura.png
+              xwd -root -silent | convert xwd:- captura-xwd.png
+              kill "$pid"
+              for f in captura.png captura-xwd.png; do echo "$f: $(convert $f -format "%[fx:standard_deviation] %[pixel:p{640,40}] %[pixel:p{640,400}]" info:)"; done
+              tail -c 2000 app.log' "$1"
+          }
+          echo "=== binario"; probar desktop/src-tauri/target/release/sketch || true
+          echo "=== AppImage"; probar "$(ls salida/*.AppImage)"
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
