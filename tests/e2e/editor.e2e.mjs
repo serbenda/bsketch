@@ -138,6 +138,83 @@ test('flechas pegadas, texto dentro, giro, grupos y alinear', { skip }, async ()
   }
 });
 
+test('todo con el teclado', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    assert.match(await page.eval('document.getElementById(document.querySelector(".sk-editor").getAttribute("aria-describedby")).textContent'), /Tab/);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('r');
+    await page.press('Enter'); // rectángulo en el centro
+    await page.press('ArrowRight', { alt: true }); // 10 px más ancho
+    await page.press(']'); // 15° de giro
+    let s = await scene(page);
+    assert.equal(s.elements.length, 1);
+    assert.equal(s.elements[0].w, 170);
+    assert.ok(Math.abs(s.elements[0].angle - Math.PI / 12) < 1e-9);
+    await page.press('Enter'); // escribir dentro
+    await page.waitFor('!document.querySelector(".sk-textbox").hidden');
+    await page.type('Hola');
+    await page.press('Escape');
+    await page.press('Escape'); // nada seleccionado
+    await page.press('o');
+    await page.press('Enter');
+    s = await scene(page);
+    assert.deepEqual(s.elements.map((e) => e.type), ['rectangle', 'text', 'ellipse']);
+    assert.equal(s.elements[1].containerId, s.elements[0].id);
+    await page.press('Tab');
+    assert.equal(await page.eval('document.querySelector(".sk-sr[aria-live]").textContent'), 'Seleccionado: rectángulo');
+    await page.press('Delete');
+    s = await scene(page);
+    assert.deepEqual(s.elements.map((e) => e.type), ['ellipse'], 'se borra con su texto');
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
+test('un dibujo de 2.000 elementos se mueve con soltura', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await page.goto(base);
+    await page.eval(`(() => {
+      const els = [];
+      for (let i = 0; i < 2000; i++) {
+        const x = (i % 50) * 120;
+        const y = Math.floor(i / 50) * 90;
+        const type = ['rectangle', 'ellipse', 'diamond', 'arrow', 'text'][i % 5];
+        const e = { id: 'e' + i, type, x, y, w: 100, h: 60, seed: i, stroke: '#1e1e1e', fill: i % 3 ? '#a5d8ff' : 'transparent', fillStyle: 'hachure', width: 2, dashed: false, roughness: 1, opacity: 1, fontSize: 20 };
+        if (type === 'arrow') e.points = [{ x: 0, y: 0 }, { x: 100, y: 40 }];
+        if (type === 'text') e.text = 'Texto ' + i;
+        els.push(e);
+      }
+      localStorage.setItem('sketch.actual', JSON.stringify({ type: 'sketch', version: 1, background: '#ffffff', elements: els }));
+    })()`);
+    await open(page);
+    // Al 100 % (se ve una parte) y viéndolo todo: tiempo medio por fotograma al desplazar.
+    const frame = (zoomAll) => page.eval(`(async () => {
+      const c = document.querySelector('.sk-canvas');
+      if (${zoomAll}) document.querySelector('button[aria-label="Ver todo el dibujo"]').click();
+      else document.querySelector('button[aria-label="Volver al 100 %"]').click();
+      const raf = () => new Promise((r) => requestAnimationFrame(r));
+      await raf(); await raf();
+      const t0 = performance.now();
+      for (let i = 0; i < 20; i++) {
+        c.dispatchEvent(new WheelEvent('wheel', { deltaX: 7, deltaY: 5, bubbles: true, cancelable: true }));
+        await raf();
+      }
+      return (performance.now() - t0) / 20;
+    })()`);
+    const near = await frame(false);
+    const all = await frame(true);
+    console.log(`2.000 elementos: ${near.toFixed(1)} ms por fotograma al 100 %, ${all.toFixed(1)} ms viéndolo todo`);
+    assert.ok(near < 60, `al 100 %: ${near} ms`);
+    assert.ok(all < 250, `todo: ${all} ms`);
+  } finally {
+    await page.close();
+  }
+});
+
 test('abrir un .excalidraw desde el ordenador', { skip }, async () => {
   const page = await browser.newPage();
   try {
