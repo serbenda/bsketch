@@ -102,3 +102,14 @@ window.addEventListener('drop', (ev) => {
   ev.preventDefault();
   abrir(file);
 });
+
+// Sin conexión: la web se guarda en el navegador (service worker). Trusted Types: solo se admite sw.js.
+const TT = globalThis.trustedTypes?.createPolicy('sketch', {
+  createScriptURL: (u) => {
+    if (u !== 'sw.js') throw new Error('script_no_permitido');
+    return u;
+  },
+});
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  navigator.serviceWorker.register(TT ? TT.createScriptURL('sw.js') : 'sw.js').catch(() => {});
+}

@@ -94,7 +94,7 @@ jobs:
           node-version: "lts/*"
 
       - name: Formato (.editorconfig)
-        run: npx --yes editorconfig-checker@6.2.0 -disable-indent-size -exclude 'LICENSE|\.git/|\.claude/skills/'
+        run: npx --yes editorconfig-checker@6.2.0 -disable-indent-size -exclude 'LICENSE|\.git/|\.claude/skills/|fonts/'
 
       - name: HTML válido
         run: |
@@ -112,6 +112,12 @@ jobs:
 
       - name: Tests del motor de dibujo
         run: npm test
+
+      # Chrome ya viene en las máquinas de GitHub; los recorridos no usan dependencias.
+      - name: Recorridos del editor en Chrome
+        run: npm run test:e2e
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
 
       - name: Enlaces internos rotos
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8  # v2.9.0
