@@ -91,10 +91,11 @@ jobs:
           # Sin tarjeta gráfica: que WebKit pinte por software
           export WEBKIT_DISABLE_DMABUF_RENDERER=1 WEBKIT_DISABLE_COMPOSITING_MODE=1 LIBGL_ALWAYS_SOFTWARE=1
           xvfb-run -a -s "-screen 0 1280x820x24" bash -c '
-            salida/*.AppImage & pid=$!
-            sleep 20
+            RUST_BACKTRACE=1 salida/*.AppImage > app.log 2>&1 & pid=$!
+            sleep 30
             kill -0 "$pid" || { echo "La app se ha cerrado al arrancar"; exit 1; }
-            xwininfo -root -tree | grep -E "\"[^\"]+\"" | head -5
+            xwininfo -root -tree | grep -E "x[0-9]+\+" | head -8
+            echo "--- salida de la app"; head -c 4000 app.log
             import -window root captura.png
             kill "$pid"
             convert captura.png -format "%[fx:standard_deviation]" info: > variacion.txt'
