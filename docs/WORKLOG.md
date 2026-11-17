@@ -16,6 +16,29 @@
 - **Pending:**
 -->
 
+## 2026-11-17 — CI follow-ups after the first real run: SAST, issue templates, link check
+- **Phase / issue:** P01
+- **What:**
+  - The smoke test's two WebDriver requests to `tauri-driver` (plain HTTP on `127.0.0.1:4444`) go through one
+    `driver()` function, with a `nosemgrep` and its written reason on that single line (`react-insecure-request`).
+  - The issue templates (`.github/ISSUE_TEMPLATE/`) in English; two Spanish strings left in `tests/scene.test.mjs`
+    translated.
+  - lychee skips `sketch-portable.html`: it only exists once the Pages workflow builds it.
+  - The guardrail files were committed by the agent with `GUARDRAILS_OWNER_CHANGE=1` at the owner's explicit
+    request in chat.
+- **Why:** the first CI run that actually started (after the billing fix) failed on SAST and on the link check, and
+  the owner asked for everything, issue templates included, to be in English.
+- **Rejected:** rewriting the request with `node:http` (same plain HTTP, it only dodges the rule); excluding the file
+  or the rule from Semgrep (it would hide future findings).
+- **Files:** desktop/smoke-test.mjs, tests/scene.test.mjs, .github/ISSUE_TEMPLATE/*, .github/workflows/ci.yml
+- **Commits:** 27eaae3, 3de5b8d, fd63352, and this entry.
+- **Tested:** `npm test` 17 pass; the smoke test run against a fake WebDriver server on 127.0.0.1:4444; actionlint;
+  CI on the PR green on every job.
+- **Pending:** the Formatting step's `editorconfig-checker` downloads its binary through GitHub's API without a token
+  and failed twice on the runner's rate limit: if it keeps happening, pin and checksum the binary as the template
+  does for actionlint. The push-event Records check wants a new worklog heading on every push that changes code, so
+  follow-ups get their own entry.
+
 ## 2026-11-17 — Adopt project-template 1.0.0; everything in English
 - **Phase / issue:** P01
 - **What:**
@@ -34,13 +57,6 @@
     CODEOWNERS, dev container, workflows in English) prepared as one patch and rehearsed on a copy. The owner
     asked the agent in chat to apply and commit it (`GUARDRAILS_OWNER_CHANGE=1`, commit `fb94aad`), so the
     owner's review of those files happens on the `development → main` PR.
-  - The smoke test's two WebDriver requests to `tauri-driver` (plain HTTP on `127.0.0.1:4444`) go through one
-    `driver()` function, so SAST has a single line to report (`react-insecure-request`, the same finding as in
-    Snowlog); the `nosemgrep` with its reason is the owner's to commit. Two Spanish strings left in
-    `tests/scene.test.mjs` translated.
-  - The owner asked the agent to commit the guardrail follow-ups (`GUARDRAILS_OWNER_CHANGE=1`): the smoke test's
-    `nosemgrep` with its reason, the issue templates in English, and lychee told to skip `sketch-portable.html`
-    (it only exists once the Pages workflow builds it, so the offline link check reported it missing).
 - **Why:** the owner asked for sketch to adapt to the current template and for everything to be in English
   ([ADR 0004](decisions/0004-adopt-project-template-in-english.md)).
 - **Rejected:** keeping Spanish with an ADR (the records check, commands, agents and PR template are English and
@@ -48,14 +64,11 @@
   the hooks (two ways of working side by side).
 - **Files:** js/*, css/*, index.html, sw.js, manifest.webmanifest, package.json, scripts/build-portable.mjs,
   tests/*, desktop/*, README.md, CHANGELOG.md, SECURITY.md, .gitignore, .claude/launch.json, docs/*
-- **Commits:** bab3b8b, d8767e2, fb94aad (guardrails), d868eaa, the smoke-test fix, and this record's updates.
+- **Commits:** bab3b8b, d8767e2, fb94aad (guardrails), d868eaa.
 - **Tested:** `npm test` 17 pass; `npm run test:e2e` 8 pass (2,000 elements: 16.8 ms per frame at 100%).
   On a copy with the guardrails applied: shellcheck, `test-guard.sh`, `test-check-records.sh`,
   `test-githooks.sh` 160 cases and actionlint, all pass.
-- **Pending:** `setup-repo.sh` for the rules of `main`; the owner's review of the PR. The Formatting step's
-  `editorconfig-checker` downloads its binary through GitHub's API without a token and can hit the runner's rate
-  limit (it failed twice that way): if it keeps happening, pin and checksum the binary as the template does for
-  actionlint.
+- **Pending:** `setup-repo.sh` for the rules of `main`; the owner's review of the PR.
 
 ## 2026-11-13 — Recorded afterwards: the work before the template (S0–S2)
 - **Phase / issue:** — (PRs #2 to #5)
