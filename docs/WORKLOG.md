@@ -38,6 +38,9 @@
     `driver()` function, so SAST has a single line to report (`react-insecure-request`, the same finding as in
     Snowlog); the `nosemgrep` with its reason is the owner's to commit. Two Spanish strings left in
     `tests/scene.test.mjs` translated.
+  - The owner asked the agent to commit the guardrail follow-ups (`GUARDRAILS_OWNER_CHANGE=1`): the smoke test's
+    `nosemgrep` with its reason, the issue templates in English, and lychee told to skip `sketch-portable.html`
+    (it only exists once the Pages workflow builds it, so the offline link check reported it missing).
 - **Why:** the owner asked for sketch to adapt to the current template and for everything to be in English
   ([ADR 0004](decisions/0004-adopt-project-template-in-english.md)).
 - **Rejected:** keeping Spanish with an ADR (the records check, commands, agents and PR template are English and
@@ -49,9 +52,10 @@
 - **Tested:** `npm test` 17 pass; `npm run test:e2e` 8 pass (2,000 elements: 16.8 ms per frame at 100%).
   On a copy with the guardrails applied: shellcheck, `test-guard.sh`, `test-check-records.sh`,
   `test-githooks.sh` 160 cases and actionlint, all pass.
-- **Pending:** the owner's commit with the smoke test's `nosemgrep` and the issue templates in English
-  (`.github/ISSUE_TEMPLATE/`, still in Spanish); re-run CI now that Actions starts jobs; `setup-repo.sh` for the
-  rules of `main`.
+- **Pending:** `setup-repo.sh` for the rules of `main`; the owner's review of the PR. The Formatting step's
+  `editorconfig-checker` downloads its binary through GitHub's API without a token and can hit the runner's rate
+  limit (it failed twice that way): if it keeps happening, pin and checksum the binary as the template does for
+  actionlint.
 
 ## 2026-11-13 — Recorded afterwards: the work before the template (S0–S2)
 - **Phase / issue:** — (PRs #2 to #5)
