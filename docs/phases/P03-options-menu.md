@@ -66,6 +66,11 @@ system theme, pick the canvas colour and export without a background.
 ## Risks and open questions
 - Snowlog embeds the editor: forcing light or dark must keep working there (it already passes `sk-light`/`sk-dark`).
 - VISION says not to chase parity with Excalidraw; these options were asked for by the owner.
+- Challenge on the first draft (UX and scope lens), and what changed: Appearance first, since it is what makes the
+  canvas white on a dark system; dark colours for toolbars and panels when Dark is forced (the CSS only had them for
+  the system's dark mode); transparent export visible next to the buttons and not remembered; no free colour picker
+  (it shows a different colour from an inverted canvas); the grid moved to P04 (it touches drawing, moving, resizing
+  and arrows); no Alt modifier to skip the snap (Alt+drag moves windows on many Linux desktops).
 
 ---
 

@@ -9,7 +9,7 @@ Last updated: 2026-11-17
 - **Mode:** full
 - **Current stage:** S3 — Release (see [ROADMAP](ROADMAP.md))
 - **Phase in progress:** none; next is [P03 — Options menu](phases/P03-options-menu.md), plan awaiting the owner's approval
-- **Environment:** GitHub Pages, the portable file, and desktop builds as CI artifacts
+- **Environment:** GitHub Pages (published by the Pages workflow on `main`), the portable file, and desktop builds as CI artifacts
 - **Working branch:** `development`
 
 ## Current work
@@ -29,6 +29,8 @@ Last updated: 2026-11-17
 3. Owner: re-run `./scripts/setup-repo.sh` on his Mac for the rules of `main`.
 4. Owner: try the site and the desktop builds on Firefox, Safari, a real phone, macOS and Windows (P02, [R-002](RISKS.md)).
 5. Optional (owner, `.github/`): pin the `editorconfig-checker` binary; its download hits GitHub's rate limit now and then.
+6. Decide whether the interface's accent colour (`--accent`, still the old purple) should match the new logo.
+7. Owner: set `docs/images/banner.png` as the repository's social preview (Settings → General).
 
 ## Blocked / awaiting decision
 - P03's plan, awaiting the owner's approval.
