@@ -1,26 +1,72 @@
+<div align="center">
+
+<img src="icon.svg" alt="" width="72" height="72">
+
 # sketch
 
-> A whiteboard for hand-drawn sketches, diagrams and wireframes. No accounts, nothing to install, and nothing
-> is sent to any server.
+**A hand-drawn whiteboard that never leaves your computer.**
+Sketch diagrams, flows and wireframes in the browser: no account, nothing to install, nothing sent anywhere.
 
-🔗 **Web:** https://serbenda.github.io/sketch/
+[**Open sketch →**](https://serbenda.github.io/sketch/)
+
+[![CI](https://github.com/serbenda/sketch/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/serbenda/sketch/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![No network](https://img.shields.io/badge/network-none-brightgreen.svg)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshot-dark.png">
+  <img src="docs/images/screenshot-light.png" alt="sketch with a small flowchart: a yellow box 'Idea' with an arrow to a blue diamond 'Worth it?', which points to a green ellipse 'Build it' and a red box 'Sketch it first', all drawn with a hand-drawn stroke and handwriting." width="900">
+</picture>
+
+</div>
+
+## Why sketch
+- **Private by design.** Its security policy forbids every network connection: your drawing stays on your
+  machine, always.
+- **Works anywhere.** In any browser, offline once opened, as a single HTML file, or as a small desktop app. Even
+  on locked-down work computers.
+- **Fast to draw.** A hand-drawn look, text inside shapes, arrows that stick to them, and a shortcut for everything.
+
+## Try it in a minute
+1. Open **[serbenda.github.io/sketch](https://serbenda.github.io/sketch/)**.
+2. Press **R** and drag to draw a box. Double-click it and type.
+3. Press **R** again for a second box, then **A** and drag from one box to the other: the arrow sticks to both.
+4. Move a box: the arrow and the text follow it.
+5. **Save** keeps a `.sketch` file; **PNG** and **SVG** export it.
+
+Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 
 ## What it does
+**Drawing**
 - Rectangles, diamonds, ellipses, arrows, lines, pencil and text, with a hand-drawn stroke and handwriting font.
-- **Text inside shapes:** double-click a box to write in it; the text is centered, wraps to the box and moves,
-  resizes and rotates with it.
+- **Text inside shapes:** it is centered, wraps to the shape and moves, resizes and rotates with it.
 - **Attached arrows:** an arrow that starts or ends on a shape stays on its outline when the shape moves.
 - Hachure or solid fill, colors, stroke width, dashed lines and three levels of sloppiness.
-- Select, move, resize, **rotate**, **group**, **align and distribute**, duplicate, reorder, delete, undo and
-  redo; zoom and pan, also with two fingers on a phone.
-- Works **offline** once opened, and can be installed as an app.
-- Saves and opens `.sketch` files, opens `.excalidraw` files and exports to **PNG** and **SVG**.
-- The drawing in progress stays in the browser so it is not lost.
+
+**Editing**
+- Select, move, resize, **rotate**, **group**, **align and distribute**, duplicate, reorder and delete.
+- Undo and redo; zoom and pan, also with two fingers on a phone.
 - Fully usable with the keyboard, with descriptions for screen readers.
-- Embedded in [Snowlog](https://github.com/serbenda/snowlog), where drawings are stored encrypted and shown
-  inside notes.
+
+**Files**
+- Saves and opens `.sketch` files, opens `.excalidraw` files, exports to **PNG** and **SVG**.
+- Embedded in [Snowlog](https://github.com/serbenda/snowlog), where drawings are stored end-to-end encrypted and
+  shown inside notes.
+
+## Three ways to use it
+| | How | Good for |
+|---|---|---|
+| 🌐 **Web** | [serbenda.github.io/sketch](https://serbenda.github.io/sketch/), in Chrome, Edge, Firefox or Safari. Chrome and Edge can install it as an app ("Install app") | Everyday use; works offline once opened |
+| 📄 **Portable** | The site's **Portable** button downloads `sketch-portable.html`: double-click it on Windows, macOS or Linux | Computers where you can't install anything. It is not a program, so antivirus tools don't block it |
+| 🖥️ **Desktop** | `sketch-windows.exe`, `sketch-macos.zip` and `sketch-linux.AppImage`, built by the [Desktop workflow](https://github.com/serbenda/sketch/actions/workflows/desktop.yml) (download them from a run's artifacts) | A window of its own, no browser |
+
+The desktop builds are not signed: on macOS, open it the first time with right click → Open; on company computers
+the antivirus may block an unsigned executable (use the portable file there). They use the system's web engine
+(Edge on Windows, Safari on macOS, WebKit on Linux), which the system keeps up to date.
 
 ## Shortcuts
+<details>
+<summary>All shortcuts</summary>
 
 | Key | Action |
 | --- | --- |
@@ -41,34 +87,36 @@ Without a mouse: choose a tool with its key and press **Enter** to create the sh
 **Shift+Tab** go through the elements, **Alt+arrow keys** resize them, **[** and **]** rotate them and **Enter**
 writes inside. **Escape** clears the selection (and then Tab leaves the whiteboard).
 
+</details>
+
+## Privacy
+- The page's Content Security Policy has `connect-src 'none'`: it **cannot** send anything over the network, not
+  even by mistake. No analytics, no accounts, no server.
+- No third-party code at runtime: plain JavaScript modules, no frameworks or CDNs.
+- `.excalidraw` files are read as plain JSON; no Excalidraw code is used.
+
+Found a security problem? See [SECURITY.md](SECURITY.md).
+
 ## Data sources
 | Source | What it provides | License |
 |---|---|---|
-| None | No network calls at all. `.excalidraw` files are read as public JSON; no Excalidraw code is used. | — |
+| None | No network calls at all | — |
 | [Caveat](https://github.com/googlefonts/caveat) | The handwriting font, subset to Latin characters and served from the site | SIL Open Font License ([fonts/OFL.txt](fonts/OFL.txt)) |
 
-## Three ways to use it
-- **On the web**, in any browser (Chrome, Edge, Firefox or Safari). From Chrome or Edge it can be installed as an
-  app ("Install app") and opens in its own window, also offline.
-- **Portable:** the site's "Portable" button downloads `sketch-portable.html`, a single file that opens with a
-  double click in any browser on Windows, macOS or Linux, with nothing to install and no connection (its CSP
-  forbids any network access). It is not a program, so antivirus tools do not block it.
-- **Desktop** (Tauri): a window of its own, no browser. The "Desktop" workflow builds `sketch-windows.exe`
-  (opens without installing), `sketch-macos.zip` (with `sketch.app`, for Intel and Apple Silicon) and
-  `sketch-linux.AppImage`, and leaves them as artifacts of the run in the Actions tab. They are not signed: on
-  macOS, open it the first time with right click → Open; on company computers the antivirus may block an
-  unsigned executable. They use the system's web engine (Edge on Windows, Safari on macOS, WebKit on Linux),
-  which the system keeps up to date.
-
-## Running locally
+## For developers
 ```bash
 git clone https://github.com/serbenda/sketch.git
 cd sketch
 git switch development
+python3 -m http.server 8000   # then open http://localhost:8000
+npm test                      # engine tests (no dependencies)
+npm run test:e2e              # walkthroughs in Chrome
 ```
-How to start and verify it: [docs/SETUP.md](docs/SETUP.md).
+Everything else (requirements, verifying, building the portable and desktop versions): [docs/SETUP.md](docs/SETUP.md).
 
-## Structure
+<details>
+<summary>Project structure</summary>
+
 ```
 .
 ├── index.html · icon.svg · manifest.webmanifest
@@ -90,7 +138,13 @@ How to start and verify it: [docs/SETUP.md](docs/SETUP.md).
 └── CLAUDE.md          # imports AGENTS.md and adds what is specific to Claude Code
 ```
 
-## How to work with Claude
+How it is built: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). What it will and won't do: [docs/VISION.md](docs/VISION.md).
+
+</details>
+
+<details>
+<summary>How to work with Claude</summary>
+
 Every flow, as diagrams: [docs/WORKFLOWS.md](docs/WORKFLOWS.md).
 
 ```
@@ -101,6 +155,8 @@ Every flow, as diagrams: [docs/WORKFLOWS.md](docs/WORKFLOWS.md).
 /prepare-pr                  reviewers + development → main PR (you merge it)
 /decision <what>             when something hard to undo has to be chosen
 ```
+
+</details>
 
 ## Contributing
 Read [AGENTS.md](AGENTS.md) and the [Definition of Done](docs/DEFINITION_OF_DONE.md).

@@ -16,6 +16,21 @@
 - **Pending:**
 -->
 
+## 2026-11-17 — README rewritten for visitors, with a screenshot
+- **Phase / issue:** —
+- **What:** the README now opens with the pitch, a link to the site and a screenshot (light and dark, chosen by
+  `prefers-color-scheme`), then "Why sketch", a one-minute walkthrough, the features grouped, the three ways to use it,
+  privacy and data sources. Shortcuts, structure and the Claude workflow are folded into `<details>`; developer
+  setup is condensed and points to SETUP.
+- **Why:** the owner asked for a better README aimed at visitors and users now that the repository is public.
+- **Rejected:** an animated GIF (heavier, and a still image shows the hand-drawn look just as well); keeping the
+  developer sections at the top (visitors want to try it first).
+- **Files:** README.md, docs/images/screenshot-light.png, docs/images/screenshot-dark.png
+- **Commits:** this one.
+- **Tested:** every relative link checked to exist; feature claims, button names and the CSP checked against
+  `index.html` and the old README; the screenshots taken with Playwright from a local server of the site.
+- **Pending:** —
+
 ## 2026-11-17 — CI follow-ups after the first real run: SAST, issue templates, link check
 - **Phase / issue:** P01
 - **What:**
