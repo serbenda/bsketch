@@ -1,8 +1,6 @@
 <div align="center">
 
-<img src="icon.svg" alt="" width="72" height="72">
-
-# sketch
+<img src="docs/images/banner.png" alt="sketch: hand-drawn diagrams, offline, no account" width="900">
 
 **A hand-drawn whiteboard that never leaves your computer.**
 Sketch diagrams, flows and wireframes in the browser: no account, nothing to install, nothing sent anywhere.

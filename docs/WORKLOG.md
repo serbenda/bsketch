@@ -16,6 +16,21 @@
 - **Pending:**
 -->
 
+## 2026-11-17 — README banner; the logo on night blue
+- **Phase / issue:** —
+- **What:** a banner at the top of the README (`docs/images/banner.png`, 1280×400): the logo, "sketch" in the
+  app's handwriting font, the tagline and a small hand-drawn diagram (a hachured box, an arrow, a circle). The logo's
+  background changes from near-black to night blue (`#1d2b53`), and the banner uses the same colour; the desktop
+  icon and the README screenshots are rendered again.
+- **Why:** the owner asked for a nice banner and for another background colour, and chose night blue among six.
+- **Rejected:** the other five backgrounds (near-black, slate green, plum, terracotta, bright blue); a pencil doodle
+  in the banner (read as an odd shape at that size).
+- **Files:** README.md, icon.svg, desktop/icon.png, docs/images/*
+- **Commits:** this one.
+- **Tested:** banner and logo checked by eye at full size; the header in both themes in the screenshots.
+- **Pending:** the banner can also be the repository's social preview (Settings → General → Social preview, the
+  owner's setting; GitHub suggests 1280×640).
+
 ## 2026-11-17 — New logo: a hand-drawn "s"
 - **Phase / issue:** —
 - **What:** a new `icon.svg`: one cream marker stroke shaped as an "s" on a near-black rounded square, with an orange
