@@ -131,6 +131,9 @@ test('attached arrows, text inside, rotation, groups and alignment', { skip }, a
     const r2 = s.elements.find((e) => e.id === rect.id);
     const e2 = s.elements.find((e) => e.id === ell.id);
     assert.ok(Math.abs(r2.y - e2.y) < 1, `both at the top: ${r2.y} ${e2.y}`);
+    const a2 = s.elements.find((e) => e.id === arrow.id);
+    assert.equal(a2.startId, rect.id, 'aligning keeps the arrow attached to the box');
+    assert.equal(a2.endId, ell.id, 'and to the ellipse');
 
     assert.deepEqual(page.errors, []);
   } finally {
@@ -167,6 +170,13 @@ test('everything with the keyboard', { skip }, async () => {
     await page.press('Delete');
     s = await scene(page);
     assert.deepEqual(s.elements.map((e) => e.type), ['ellipse'], 'deleted together with its text');
+    // Enter on a toolbar button presses it instead of acting on the canvas.
+    await page.press('Escape');
+    await page.eval('document.querySelector(\'.sk-toolbar button[aria-label="Diamond"]\').focus()');
+    await page.press('Enter');
+    assert.equal(await page.eval('document.querySelector(\'.sk-toolbar button[aria-label="Diamond"]\').getAttribute("aria-pressed")'), 'true');
+    s = await scene(page);
+    assert.deepEqual(s.elements.map((e) => e.type), ['ellipse'], 'Enter on the button creates nothing');
     assert.deepEqual(page.errors, []);
   } finally {
     await page.close();

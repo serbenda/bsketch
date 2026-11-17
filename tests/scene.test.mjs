@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as E from '../js/scene.js';
-import { toSvgString } from '../js/render.js';
+import { toSvgString, pngScale, PNG_MAX_SIDE, PNG_MAX_AREA } from '../js/render.js';
 import { polylinePath, ellipsePath, toSvgD } from '../js/stroke.js';
 
 test('the hand-drawn stroke is always the same for the same seed', () => {
@@ -262,4 +262,13 @@ test('growing with the keyboard without moving the center', () => {
   const t = { ...E.createElement('text', 0, 0), text: 'hello', fontSize: 20 };
   assert.equal(E.growElement(t, 10, 0).fontSize, 22);
   assert.equal(E.growElement(t, -10, 0).fontSize, 18);
+});
+
+test('a PNG too big for the browser is exported at a smaller scale', () => {
+  assert.equal(pngScale(2000, 1500, 2), 2, 'a normal drawing keeps its scale');
+  const wide = pngScale(70000, 200, 2);
+  assert.ok(70000 * wide <= PNG_MAX_SIDE + 1e-6, `no side over the limit: ${wide}`);
+  const big = pngScale(20000, 20000, 2);
+  assert.ok(20000 * big * 20000 * big <= PNG_MAX_AREA * (1 + 1e-9), `no more pixels than the limit: ${big}`);
+  assert.equal(pngScale(0, 0, 2), 2, 'an empty box does not break it');
 });

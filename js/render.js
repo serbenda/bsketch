@@ -203,15 +203,26 @@ export function toSvgElement(doc, scene, { padding = 20, maxWidth = null } = {})
   return svg;
 }
 
-// Scene → PNG (Blob) at `scale` times its size.
+// Browsers refuse canvases that are too big (toBlob then gives null): Chrome stops at 32,767 px a
+// side, Safari on the iPhone at about 16.7 million pixels. A bigger drawing is exported smaller.
+export const PNG_MAX_SIDE = 16384;
+export const PNG_MAX_AREA = 16777216;
+export function pngScale(w, h, scale) {
+  const fit = Math.min(scale, PNG_MAX_SIDE / w, PNG_MAX_SIDE / h, Math.sqrt(PNG_MAX_AREA / (w * h)));
+  return Number.isFinite(fit) && fit > 0 ? fit : scale;
+}
+
+// Scene → PNG (Blob) at `scale` times its size, or less if it would not fit; null if it cannot be made.
 export async function toPngBlob(doc, scene, { padding = 20, scale = 2 } = {}) {
   measureWithCanvas(doc);
   await fontReady(doc);
   const b = sceneBounds(scene.elements);
+  scale = pngScale(b.w + padding * 2, b.h + padding * 2, scale);
   const canvas = doc.createElement('canvas');
   canvas.width = Math.max(1, Math.ceil((b.w + padding * 2) * scale));
   canvas.height = Math.max(1, Math.ceil((b.h + padding * 2) * scale));
   const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
   paintScene(ctx, scene, { width: canvas.width, height: canvas.height, view: { x: (padding - b.x) * scale, y: (padding - b.y) * scale, zoom: scale } });
   return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
 }

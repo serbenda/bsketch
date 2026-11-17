@@ -59,3 +59,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
 - Engine tests (`npm test`, no dependencies), also in CI.
 - Initial structure from the earlier Spanish version of the template: Definition of Done, development → main
   flow, CI, CodeQL, Dependabot, GitHub Pages publishing and the setup script.
+
+### Fixed
+- Exporting a very big drawing to PNG no longer downloads a broken file: it is exported at a smaller scale so it
+  fits what the browser allows, and if it still cannot be made the site says so.
+- Aligning or distributing no longer detaches arrows from the shapes they are attached to.
+- Enter and Space on a toolbar or panel button now press that button instead of acting on the canvas.

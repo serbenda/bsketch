@@ -400,13 +400,14 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     scene.elements.push(e);
   }
 
-  // Moves some elements. An arrow moved without its shape is no longer attached to it.
-  function moved(list, ids, dx, dy) {
+  // Moves some elements. An arrow moved without its shape is no longer attached to it; `keep` is
+  // everything that moves in the same operation (aligning moves each unit on its own).
+  function moved(list, ids, dx, dy, keep = ids) {
     return list.map((e) => {
       if (!ids.has(e.id)) return e;
       const m = E.moveElement(e, dx, dy);
-      if (m.startId && !ids.has(m.startId)) delete m.startId;
-      if (m.endId && !ids.has(m.endId)) delete m.endId;
+      if (m.startId && !keep.has(m.startId)) delete m.startId;
+      if (m.endId && !keep.has(m.endId)) delete m.endId;
       return m;
     });
   }
@@ -472,12 +473,13 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     if (us.length < 2) return;
     const all = E.sceneBounds(primary());
     commit();
+    const moving = new Set(us.flatMap((u) => u.ids));
     let list = scene.elements;
     for (const u of us) {
       const b = u.box;
       const dx = where === 'left' ? all.x - b.x : where === 'right' ? all.x + all.w - (b.x + b.w) : where === 'center' ? all.x + all.w / 2 - (b.x + b.w / 2) : 0;
       const dy = where === 'top' ? all.y - b.y : where === 'bottom' ? all.y + all.h - (b.y + b.h) : where === 'middle' ? all.y + all.h / 2 - (b.y + b.h / 2) : 0;
-      list = moved(list, new Set(u.ids), dx, dy);
+      list = moved(list, new Set(u.ids), dx, dy, moving);
     }
     update(list);
     changed();
@@ -495,11 +497,12 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     const total = us.reduce((n, u) => n + u.box[len], 0);
     const gap = (last[pos] + last[len] - first[pos] - total) / (us.length - 1);
     commit();
+    const moving = new Set(us.flatMap((u) => u.ids));
     let list = scene.elements;
     let at = first[pos];
     for (const u of us) {
       const d = at - u.box[pos];
-      list = moved(list, new Set(u.ids), axis === 'x' ? d : 0, axis === 'x' ? 0 : d);
+      list = moved(list, new Set(u.ids), axis === 'x' ? d : 0, axis === 'x' ? 0 : d, moving);
       at += u.box[len] + gap;
     }
     update(list);
@@ -950,6 +953,8 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
   root.addEventListener('keydown', (ev) => {
     // Shortcuts work anywhere in the editor except while typing in a field.
     if (ev.target.closest('input, textarea, select')) return;
+    // Enter and Space on a toolbar or panel button press that button.
+    if ((ev.key === 'Enter' || ev.key === ' ') && ev.target !== root && ev.target.closest('button, a[href], [role="button"]')) return;
     const mod = ev.ctrlKey || ev.metaKey;
     const k = ev.key.toLowerCase();
     if (ev.key === ' ') { spaceDown = true; canvas.style.cursor = 'grab'; ev.preventDefault(); return; }
