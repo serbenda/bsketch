@@ -16,6 +16,32 @@
 - **Pending:**
 -->
 
+## 2026-11-17 — Fixes from a code review: export, editor, offline, desktop lockfile
+- **Phase / issue:** — (review of `development` before the next PR)
+- **What:** PNG export of big drawings is scaled down to fit the browser's canvas limits (16,384 px a side,
+  ~16.7 Mpx) and says so if it still fails, instead of downloading a file with "null" in it. Aligning and
+  distributing keep arrows attached. Enter/Space on toolbar and panel buttons press them. Undo: changes that
+  changed nothing leave no step and keep redo; a colour drag is one step. A pinch started while drawing drops the
+  shape just begun; a third finger is ignored. `syncBindings` reuses unchanged elements so per-object caches survive
+  a drag. Texts are measured again once the font loads. The text box follows zoom and pan; double click respects the
+  hand and eraser; right button ignored; Space released on focus loss; `destroy()` keeps the text being written.
+  The service worker keeps only the site's own page under `index.html` (another page opened in the tab, like the
+  portable file, used to replace it offline). `desktop/src-tauri/Cargo.lock` is committed (it was ignored) and the
+  owner added `--locked` to the desktop build.
+- **Why:** a review of the branch found these bugs; the PNG one was reproduced in Chrome (`toBlob` gives null from
+  about 33,000 px wide or 8,000×8,000 drawing units at 2×), the SW one with a debug script.
+- **Rejected:** a higher PNG limit (Chrome takes 268 Mpx, but iPhone Safari fails over ~16.7 Mpx); retrying at a
+  smaller scale after a null (Safari may give a blank canvas, not null); installing Rust on the Mac for the lockfile
+  (generated in a throwaway `rust:1-slim` container instead).
+- **Files:** js/app.js, js/editor.js, js/render.js, js/scene.js, sw.js, tests/scene.test.mjs,
+  tests/e2e/editor.e2e.mjs, .gitignore, desktop/src-tauri/Cargo.lock, CHANGELOG.md
+- **Commits:** 9812bd9, 1421d25, 51e72b4, 3e211c0 (owner, `.github/`); this one.
+- **Tested:** `npm test` 20 pass; `npm run test:e2e` 10 pass. Each new walkthrough was run against the old code and
+  fails there (alignment, Enter on a button, undo, pinch, offline). The offline walkthrough now stops the test server
+  too: Chrome's offline mode does not cut the service worker's own network, so before it never tested offline.
+- **Pending:** try the pinch and the desktop downloads (`<a download>` with `blob:` URLs in WKWebView/WebKitGTK) on
+  real devices; Dependabot for `cargo` in `.github/dependabot.yml` (owner).
+
 ## 2026-11-17 — Close P01
 - **Phase / issue:** P01 · PR #5
 - **What:** P01 closed: its last criterion (CI green on the PR) checked on PR #5's head, where every job passed;

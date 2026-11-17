@@ -76,3 +76,5 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
 - Closing an embedded editor while writing keeps the text.
 - The desktop build's Rust dependencies are pinned in `desktop/src-tauri/Cargo.lock`, so every build of a
   commit compiles the same versions.
+- Offline, the site no longer opens as another page that was opened in the same tab before (such as the
+  portable file).
