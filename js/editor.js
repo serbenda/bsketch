@@ -250,6 +250,12 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
 
   function render() {
     raf = 0;
+    // The text box being written follows zoom and pan.
+    const editing = editingText && byId(editingText);
+    if (editing) {
+      textBox.style.fontSize = `${editing.fontSize * view.zoom}px`;
+      placeTextBox(editing);
+    }
     const r = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     const W = Math.max(1, Math.round(r.width * dpr));
@@ -314,12 +320,28 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
   const redraw = () => { if (!raf) raf = requestAnimationFrame(render); };
 
   // --- History ---
+  // commit() keeps the drawing as it is before a change; changed() closes that change. A change that
+  // ended up changing nothing leaves no undo step and keeps the redo stack. Several commits before one
+  // changed() (a double click that opens a text) are a single step.
+  let pending = false;
   function commit() {
+    if (pending) return;
     undo.push(JSON.stringify(scene.elements));
     if (undo.length > 200) undo.shift();
-    redo.length = 0;
+    pending = true;
+  }
+  // Drops the step opened by commit() (the change was cancelled).
+  function discard() {
+    if (!pending) return;
+    undo.pop();
+    pending = false;
   }
   function changed() {
+    if (pending) {
+      pending = false;
+      if (undo[undo.length - 1] === JSON.stringify(scene.elements)) undo.pop();
+      else redo.length = 0;
+    }
     redraw();
     syncPanel();
     onChange(getScene());
@@ -352,10 +374,11 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     syncPanel();
   }
 
-  function setStyle(patch) {
+  // `step: false` adds to the last undo step instead of opening one (dragging in the colour picker).
+  function setStyle(patch, { step = true } = {}) {
     style = { ...style, ...patch };
     if (selected.size) {
-      commit();
+      if (step) commit();
       update(scene.elements.map((e) => (selected.has(e.id) ? { ...e, ...patch } : e)));
       changed();
     } else {
@@ -671,6 +694,8 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
   const CURSORS = { n: 'ns-resize', s: 'ns-resize', e: 'ew-resize', w: 'ew-resize', nw: 'nwse-resize', se: 'nwse-resize', ne: 'nesw-resize', sw: 'nesw-resize', rot: 'grab', p0: 'move', p1: 'move' };
 
   canvas.addEventListener('pointerdown', (ev) => {
+    if (ev.button === 2) return; // the context menu, not a tool
+    if (pointers.size >= 2) return; // a third finger changes nothing
     if (tool !== 'text') root.focus({ preventScroll: true });
     else ev.preventDefault(); // so the click does not take focus away from the text box about to open
     canvas.setPointerCapture(ev.pointerId);
@@ -678,7 +703,15 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     if (pointers.size === 2) {
       // Two fingers: pinch to zoom and drag to pan.
       const [a, b] = [...pointers.values()];
-      action = { kind: 'pinch', dist: Math.hypot(a.x - b.x, a.y - b.y), mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, view: { ...view } };
+      // What the first finger had started is dropped (a shape just begun) or kept as it is.
+      if (action?.kind === 'create') {
+        update(scene.elements.filter((x) => x.id !== action.id));
+        discard();
+        selected.delete(action.id);
+      } else if (action && action.kind !== 'pan' && action.kind !== 'marquee') {
+        changed();
+      }
+      action = { kind: 'pinch', dist: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, view: { ...view } };
       return;
     }
     if (editingText) finishText();
@@ -894,7 +927,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
       const tiny = e && (e.type === 'line' || e.type === 'arrow') && action.dist < 4;
       if (e && (tiny || E.isEmpty(e))) {
         update(scene.elements.filter((x) => x.id !== e.id));
-        undo.pop();
+        discard();
       } else if (e) {
         update(scene.elements.map((x) => (x.id === e.id ? E.normalize(x) : x)));
         selected = tool === 'draw' ? new Set() : expand([e.id]);
@@ -908,8 +941,6 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
       const key = action.idx === 0 ? 'startId' : 'endId';
       const target = action.target;
       update(scene.elements.map((e) => (e.id === action.orig.id && target ? { ...e, [key]: target } : e)));
-    } else if (action.kind === 'move' && !action.moved) {
-      undo.pop();
     } else if (action.kind === 'pan') {
       canvas.style.cursor = tool === 'hand' ? 'grab' : 'default';
     }
@@ -925,7 +956,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
   canvas.addEventListener('pointercancel', endPointer);
 
   canvas.addEventListener('dblclick', (ev) => {
-    if (readOnly) return;
+    if (readOnly || tool === 'hand' || tool === 'eraser' || spaceDown) return;
     const p = toWorld(ev.clientX, ev.clientY);
     const hit = E.elementAt(scene.elements, p.x, p.y, 6 / view.zoom);
     if (hit?.type === 'text') {
@@ -1044,6 +1075,13 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     }
     if (KEYS[k]) { ev.preventDefault(); setTool(KEYS[k]); }
   });
+  // Space held while the focus leaves (another window, another field): its keyup never comes here.
+  root.addEventListener('focusout', (ev) => {
+    if (spaceDown && !root.contains(ev.relatedTarget)) {
+      spaceDown = false;
+      canvas.style.cursor = tool === 'hand' ? 'grab' : 'default';
+    }
+  });
   root.addEventListener('keyup', (ev) => {
     if (ev.key === ' ') {
       spaceDown = false;
@@ -1051,8 +1089,15 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     }
   });
 
-  strokeColor.addEventListener('input', () => setStyle({ stroke: strokeColor.value }));
-  fillColor.addEventListener('input', () => setStyle({ fill: fillColor.value }));
+  // Dragging in the colour picker fires many input events: they are one undo step, closed on change.
+  let picking = null;
+  for (const [input, prop] of [[strokeColor, 'stroke'], [fillColor, 'fill']]) {
+    input.addEventListener('input', () => {
+      setStyle({ [prop]: input.value }, { step: picking !== input });
+      picking = input;
+    });
+    input.addEventListener('change', () => { picking = null; });
+  }
 
   const ro = new ResizeObserver(() => redraw());
   ro.observe(canvas);
@@ -1061,6 +1106,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
   let alive = true;
   fontReady(document).then(() => {
     if (!alive) return;
+    E.forgetTextBoxes();
     update(scene.elements);
     redraw();
   });
@@ -1076,6 +1122,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     selected.clear();
     undo.length = 0;
     redo.length = 0;
+    pending = false;
     if (fit) requestAnimationFrame(() => zoomToFit());
     redraw();
     syncPanel();
@@ -1091,6 +1138,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     focus: () => root.focus(),
     setTool,
     destroy() {
+      finishText();
       alive = false;
       ro.disconnect();
       cancelAnimationFrame(raf);

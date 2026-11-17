@@ -183,6 +183,34 @@ test('everything with the keyboard', { skip }, async () => {
   }
 });
 
+test('undo: a colour drag is one step and a change that changed nothing is none', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.press('r');
+    await page.drag(at(-100, -50), at(100, 50));
+    const color = 'input[aria-label="Other stroke color"]';
+    for (const c of ['#ff0000', '#00ff00', '#0000ff']) await page.fill(color, c);
+    await page.eval(`${page.sel(color)}.dispatchEvent(new Event('change', { bubbles: true }))`);
+    let s = await scene(page);
+    assert.equal(s.elements[0].stroke, '#0000ff');
+    // Clicking the box again without moving it leaves no step behind.
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.mouseClick(at(-100, 0));
+    await page.press('z', { ctrl: true });
+    s = await scene(page);
+    assert.equal(s.elements.length, 1);
+    assert.equal(s.elements[0].stroke, '#1e1e1e', 'one undo brings back the colour from before the drag');
+    await page.press('z', { ctrl: true });
+    s = await scene(page);
+    assert.equal(s.elements.length, 0, 'the next undo removes the box');
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
 test('a drawing with 2,000 elements pans smoothly', { skip }, async () => {
   const page = await browser.newPage();
   try {

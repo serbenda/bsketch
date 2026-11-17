@@ -272,3 +272,29 @@ test('a PNG too big for the browser is exported at a smaller scale', () => {
   assert.ok(20000 * big * 20000 * big <= PNG_MAX_AREA * (1 + 1e-9), `no more pixels than the limit: ${big}`);
   assert.equal(pngScale(0, 0, 2), 2, 'an empty box does not break it');
 });
+
+test('attached arrows and texts that did not change keep the same object', () => {
+  const a = { ...E.createElement('rectangle', 0, 0), w: 100, h: 50 };
+  const b = { ...E.createElement('rectangle', 300, 0), w: 100, h: 50 };
+  const arrow = { ...E.createElement('arrow', 0, 0), points: [{ x: 0, y: 0 }, { x: 1, y: 1 }], startId: a.id, endId: b.id };
+  const text = { ...E.createElement('text', 0, 0), text: 'hi', containerId: a.id };
+  const first = E.syncBindings([a, b, arrow, text]);
+  const again = E.syncBindings(first);
+  first.forEach((el, i) => assert.equal(again[i], el, `${el.type} is reused`));
+  const moved = E.syncBindings([E.moveElement(first[0], 0, 40), ...first.slice(1)]);
+  assert.notEqual(moved[2], first[2], 'the arrow of a moved box changes');
+  assert.notEqual(moved[3], first[3], 'and so does its text');
+});
+
+test('the text boxes are measured again after forgetting them', () => {
+  const t = { ...E.createElement('text', 0, 0), text: 'hello', fontSize: 20 };
+  const before = E.bounds(t).w;
+  try {
+    E.setTextMeasurer((s, f) => s.length * f);
+    assert.equal(E.bounds(t).w, 100);
+  } finally {
+    E.setTextMeasurer((s, f) => s.length * f * 0.5);
+  }
+  E.forgetTextBoxes();
+  assert.equal(E.bounds(t).w, before);
+});

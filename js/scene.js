@@ -59,6 +59,10 @@ export function setTextMeasurer(fn) {
   boxes = new WeakMap();
 }
 export const measureText = (text, fontSize) => measure(text, fontSize);
+// Forgets the measured boxes (the font they were measured with has just changed, e.g. it loaded).
+export function forgetTextBoxes() {
+  boxes = new WeakMap();
+}
 
 function wrap(line, width, fontSize) {
   if (measure(line, fontSize) <= width) return [line];
@@ -412,7 +416,7 @@ export function syncBindings(elements) {
       const out = { ...t, x: inner.cx - inner.w / 2, y: inner.cy - h / 2 };
       if (c.angle) out.angle = c.angle;
       else delete out.angle;
-      return out;
+      return sameAs(el, out);
     }
     if ((el.type === 'arrow' || el.type === 'line') && (el.startId || el.endId)) {
       let s = el.startId ? byId.get(el.startId) : null;
@@ -433,10 +437,27 @@ export function syncBindings(elements) {
       out.x = pts[0].x;
       out.y = pts[0].y;
       out.points = pts.map((p) => ({ x: p.x - pts[0].x, y: p.y - pts[0].y }));
-      return out;
+      return sameAs(el, out);
     }
     return el;
   });
+}
+
+// The element as it was if nothing changed, so the caches kept per object (boxes, prepared strokes)
+// still hold: moving one box does not recompute every attached arrow and text in the drawing.
+function sameAs(el, out) {
+  const keys = Object.keys(out);
+  if (keys.length !== Object.keys(el).length) return out;
+  for (const k of keys) {
+    if (k === 'points') {
+      const a = el.points;
+      const b = out.points;
+      if (!a || a.length !== b.length || a.some((p, i) => p.x !== b[i].x || p.y !== b[i].y)) return out;
+    } else if (out[k] !== el[k]) {
+      return out;
+    }
+  }
+  return el;
 }
 
 // Three-way merge of two versions of a drawing (mine and another device's) from the one both started
