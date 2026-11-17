@@ -1,32 +1,32 @@
-name: ✨ Mejora
-description: Propón una funcionalidad nueva
+name: ✨ Feature
+description: Propose a new feature
 title: "feat: "
 labels: ["enhancement"]
 body:
   - type: textarea
-    id: problema
+    id: problem
     attributes:
-      label: Qué problema resuelve
-      description: Para quién y por qué es útil.
+      label: What problem it solves
+      description: For whom and why it is useful.
     validations:
       required: true
   - type: textarea
-    id: propuesta
+    id: proposal
     attributes:
-      label: Propuesta
+      label: Proposal
     validations:
       required: true
   - type: textarea
-    id: criterios
+    id: criteria
     attributes:
-      label: Criterios de aceptación
-      description: Cómo sabremos que está hecho.
+      label: Acceptance criteria
+      description: How we will know it is done.
       placeholder: |
         - [ ] ...
         - [ ] ...
     validations:
       required: true
   - type: textarea
-    id: alternativas
+    id: alternatives
     attributes:
-      label: Alternativas consideradas
+      label: Alternatives considered

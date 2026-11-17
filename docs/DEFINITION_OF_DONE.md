@@ -1,43 +1,65 @@
 # Definition of Done (DoD)
 
-Un cambio está **hecho** solo cuando cumple todo lo de esta lista. Si algo no aplica, se indica en la PR con el motivo.
+A change is **done** only when it meets everything on this list. If something does not apply, say so in the PR with the reason.
 
-## 1. Código
-- [ ] Hace lo que pide la issue y nada más (sin cambios colaterales no pedidos).
-- [ ] Legible: nombres claros, sin código muerto, sin `console.log` de depuración.
-- [ ] Sigue `.editorconfig` y el estilo del proyecto.
-- [ ] Sin dependencias nuevas innecesarias; si las hay, están justificadas en la PR.
+Sections 1–6 are checked **before the PR** (by `/close-phase` and `/prepare-pr`, with the `dod-reviewer`). Section 7 can only be checked **after the merge**: the owner does it, and `/status` reminds of anything left.
 
-## 2. Pruebas
-- [ ] Probado en local (`python3 -m http.server` o equivalente) en escritorio **y** móvil.
-- [ ] Probado en al menos dos navegadores (Chrome/Edge y Firefox o Safari).
-- [ ] Tests automáticos añadidos o actualizados si el proyecto los tiene.
-- [ ] La CI está en verde.
+```text
+work + worklog → /close-phase (1–5) → /prepare-pr (1–6, three reviewers) → owner merges → section 7
+```
 
-## 3. Seguridad
-- [ ] Ningún secreto, token, clave ni dato personal en el código o en el historial.
-- [ ] Las entradas de usuario y los datos externos se tratan como no confiables (sin `innerHTML` con datos externos; usar `textContent`).
-- [ ] Las llamadas a APIs externas van por HTTPS y sus fallos se gestionan (mensaje al usuario, sin romper la página).
-- [ ] El escaneo de secretos y CodeQL no reportan nada nuevo.
-- [ ] Si el cambio toca autenticación, datos externos, workflows o dependencias: revisado con la skill `security-audit` (modo guía).
-- [ ] Antes de cada versión mayor: auditoría completa con `security-audit`, sin hallazgos `confirmed` abiertos.
-- [ ] Antes de cada versión mayor: `repo-security-posture` sin hallazgos Critical ni High.
+## 1. Code
+- [ ] Does what the issue and the phase file ask for, and nothing more (no unrequested side changes).
+- [ ] Meets the acceptance criteria in the phase file.
+- [ ] Readable: clear names, no dead code, no debug output (`print`, `console.log`…).
+- [ ] Follows the project style (`docs/ARCHITECTURE.md` → Code conventions).
+- [ ] No unnecessary new dependencies; any new ones are justified in the PR.
 
-## 4. Calidad web
-- [ ] Accesible: textos alternativos, contraste suficiente, navegable con teclado, `lang` correcto.
-- [ ] Responsive: se ve bien de 360 px a escritorio.
-- [ ] Sin errores en la consola del navegador.
-- [ ] Rendimiento razonable: imágenes optimizadas y nada bloqueante innecesario.
-- [ ] Antes de cada versión: revisión con la skill `web-perf`, con Core Web Vitals en verde.
+## 2. Tests
+- [ ] Tested locally (see `docs/SETUP.md`) against the acceptance criteria.
+- [ ] Automated tests added or updated for what changes.
+- [ ] The *Verify* commands in `docs/SETUP.md` pass locally and CI is green.
 
-## 5. Documentación
-- [ ] README actualizado si cambia el uso, la configuración o las fuentes de datos.
-- [ ] Entrada en `CHANGELOG.md` en la sección *Sin publicar*.
-- [ ] Las fuentes de datos públicas usadas aparecen citadas con su licencia.
+## 3. Security
+- [ ] `docs/THREAT_MODEL.md` exists before the first code that handles input, accounts, personal data, money or network exposure, and is updated if this change adds an entry point, an asset or a threat.
+- [ ] No secrets, tokens, keys or personal data in the code or in the history; real values only in `.env` or a secret store.
+- [ ] User input and external data are treated as untrusted and validated (type, length, format, allow-lists) before reaching queries, commands, paths, templates or HTML.
+- [ ] Queries are parameterised; no shell command or `eval` is built from user input.
+- [ ] Every request that reads or changes data checks **authorisation on the server**, for that user and that object (not only "is logged in").
+- [ ] Passwords hashed with a modern algorithm (argon2id, scrypt or bcrypt), never stored or logged in clear; sessions and tokens expire and are revocable.
+- [ ] Calls to external APIs use HTTPS, have timeouts and handle failures without crashing or leaking details.
+- [ ] Errors shown to users reveal nothing internal; logs contain no secrets, tokens or personal data.
+- [ ] New dependencies are justified, come from the official registry and are pinned in a lockfile.
+- [ ] CI is green, including **SAST** (Semgrep) and **Dependencies** (OSV-Scanner); a silenced finding has a `nosemgrep` comment with its reason.
+- [ ] Secret scanning reports nothing new.
+- [ ] If the change touches authentication, external data, workflows or dependencies: reviewed with the `security-audit` skill (guidance mode).
+- [ ] Before each major release: full audit with `security-audit`, with no open `confirmed` findings.
+- [ ] Before each major release: `repo-security-posture` with no Critical or High findings.
 
-## 6. Integración
-- [ ] Trabajo en `development` (o una rama que sale de ella), nunca directamente en `main`.
-- [ ] Commits con formato Conventional Commits y autor correcto.
-- [ ] PR de `development` → `main` con la plantilla rellena y revisada.
-- [ ] Tras el merge, la web publicada en GitHub Pages funciona.
-- [ ] Issue cerrada y tarjeta movida a *Done* en GitHub Projects.
+## 4. Web UI
+- [ ] Accessible: alt text, sufficient contrast, keyboard navigable.
+- [ ] Tested on desktop and mobile, no console errors.
+- [ ] External data via `textContent` (or the framework's escaping), never `innerHTML` / `dangerouslySetInnerHTML` with untrusted data.
+- [ ] A strict `Content-Security-Policy` and Trusted Types, set in `index.html` (GitHub Pages can't send headers; it serves HTTPS).
+- [ ] No network access: the CSP keeps `connect-src 'none'` on the site and in the portable build.
+- [ ] The portable file still builds and its e2e walkthrough passes (`npm run test:e2e`).
+
+## 5. Documentation
+- [ ] README updated if usage, configuration or data sources change.
+- [ ] Entry in `docs/WORKLOG.md` (why, what was rejected, how it was tested, pending).
+- [ ] `docs/STATE.md` updated (`/close-phase`). Full mode: phase file with *Result* filled in and the phase's user-visible changes in `CHANGELOG.md` → *Unreleased*.
+- [ ] If a hard-to-reverse decision was made, it has its ADR in `docs/decisions/` (light mode: only irreversible ones).
+- [ ] Public data sources used are cited with their license.
+
+## 6. Integration (before the PR)
+- [ ] Work on `development` (or a branch off it), never directly on `main`.
+- [ ] Commits follow Conventional Commits with the correct author.
+- [ ] `development` already contains everything in `main` (merged with `--no-ff` if not), so the checks run on what will be merged.
+- [ ] Full mode: every phase in the PR is closed (✅ with its *Result*). Light mode: the plan is under *Recently done* in STATE.
+- [ ] PR from `development` → `main` with [the PR template](../.github/pull_request_template.md) filled in, and the three reviewers passed.
+
+## 7. After the merge (owner)
+- [ ] The six CI checks were green on the merged PR.
+- [ ] What is deployed (if anything) works.
+- [ ] Issue closed and card moved to *Done* in GitHub Projects.
+- [ ] `development` brought up to date with `main` (`git fetch` and `git merge --no-ff origin/main`) before the next piece of work.

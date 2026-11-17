@@ -1,98 +1,105 @@
-// Web de sketch: el editor a pantalla completa, con abrir, guardar y exportar ficheros del ordenador.
-// El dibujo en curso se guarda en este navegador para no perderlo al cerrar la pestaña.
+// The sketch site: the editor full screen, with opening, saving and exporting files on the computer.
+// The drawing in progress is kept in this browser so it is not lost when the tab closes.
 
 import { createEditor } from './editor.js';
-import { emptyScene, parseScene, serializeScene } from './escena.js';
-import { toSvgString, toPngBlob } from './pintar.js';
+import { emptyScene, parseScene, serializeScene } from './scene.js';
+import { toSvgString, toPngBlob } from './render.js';
 
-const KEY = 'sketch.actual';
+const KEY = 'sketch.current';
+const OLD_KEY = 'sketch.actual'; // before 0.4.0: read once and moved to KEY
 const $ = (id) => document.getElementById(id);
-const estado = $('estado');
-let nombre = 'dibujo';
+const statusLine = $('status');
+let fileName = 'drawing';
 
-function avisar(texto) {
-  estado.textContent = texto;
-  clearTimeout(avisar.t);
-  avisar.t = setTimeout(() => { estado.textContent = ''; }, 3500);
+function notify(text) {
+  statusLine.textContent = text;
+  clearTimeout(notify.timer);
+  notify.timer = setTimeout(() => { statusLine.textContent = ''; }, 3500);
 }
 
-function guardado() {
+function saved() {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(KEY) ?? localStorage.getItem(OLD_KEY);
     return raw ? parseScene(raw) : null;
   } catch {
     return null;
   }
 }
 
-let temporizador = 0;
-const editor = createEditor($('lienzo'), {
-  scene: guardado() || emptyScene(),
+function store(scene) {
+  try {
+    localStorage.setItem(KEY, serializeScene(scene));
+    localStorage.removeItem(OLD_KEY);
+  } catch {
+    notify('Could not save in this browser. Use "Save" so you do not lose the drawing.');
+  }
+}
+
+let timer = 0;
+const editor = createEditor($('canvas'), {
+  scene: saved() || emptyScene(),
   onChange: (scene) => {
-    clearTimeout(temporizador);
-    temporizador = setTimeout(() => {
-      try {
-        localStorage.setItem(KEY, serializeScene(scene));
-      } catch {
-        avisar('No se ha podido guardar en este navegador. Usa «Guardar» para no perder el dibujo.');
-      }
-    }, 400);
+    clearTimeout(timer);
+    timer = setTimeout(() => store(scene), 400);
   },
 });
 editor.focus();
 
-function descargar(datos, fichero, tipo) {
-  const url = URL.createObjectURL(datos instanceof Blob ? datos : new Blob([datos], { type: tipo }));
+function download(data, name, type) {
+  const url = URL.createObjectURL(data instanceof Blob ? data : new Blob([data], { type }));
   const a = document.createElement('a');
   a.href = url;
-  a.download = fichero;
+  a.download = name;
   document.body.append(a);
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
-async function abrir(file) {
+async function openFile(file) {
   try {
     const scene = parseScene(await file.text());
     editor.setScene(scene);
-    localStorage.setItem(KEY, serializeScene(scene));
-    nombre = file.name.replace(/\.(sketch|excalidraw|json)$/i, '') || 'dibujo';
-    avisar(`Abierto «${file.name}»: ${scene.elements.length} elementos.`);
+    store(scene);
+    fileName = file.name.replace(/\.(sketch|excalidraw|json)$/i, '') || 'drawing';
+    notify(`Opened "${file.name}": ${scene.elements.length} elements.`);
   } catch {
-    avisar('Ese fichero no es un dibujo de sketch ni de Excalidraw.');
+    notify('That file is not a sketch or Excalidraw drawing.');
   }
 }
 
-$('nuevo').addEventListener('click', () => {
-  if (editor.getScene().elements.length && !window.confirm('¿Empezar un dibujo nuevo? El actual se borrará de este navegador (guárdalo antes si lo quieres).')) return;
+$('new').addEventListener('click', () => {
+  if (editor.getScene().elements.length && !window.confirm('Start a new drawing? The current one will be removed from this browser (save it first if you want to keep it).')) return;
   editor.setScene(emptyScene());
-  nombre = 'dibujo';
-  try { localStorage.removeItem(KEY); } catch { /* sin almacenamiento */ }
+  fileName = 'drawing';
+  try {
+    localStorage.removeItem(KEY);
+    localStorage.removeItem(OLD_KEY);
+  } catch { /* no storage */ }
   editor.focus();
 });
-$('abrir').addEventListener('click', () => $('fichero').click());
-$('fichero').addEventListener('change', (ev) => {
+$('open').addEventListener('click', () => $('file').click());
+$('file').addEventListener('change', (ev) => {
   const [file] = ev.target.files;
   ev.target.value = '';
-  if (file) abrir(file);
+  if (file) openFile(file);
 });
-$('guardar').addEventListener('click', () => {
-  descargar(serializeScene(editor.getScene()), `${nombre}.sketch`, 'application/json');
-  avisar('Descargado. Puedes volver a abrirlo con «Abrir…».');
+$('save').addEventListener('click', () => {
+  download(serializeScene(editor.getScene()), `${fileName}.sketch`, 'application/json');
+  notify('Downloaded. You can open it again with "Open…".');
 });
 $('png').addEventListener('click', async () => {
   const scene = editor.getScene();
-  if (!scene.elements.length) return avisar('El dibujo está vacío.');
-  descargar(await toPngBlob(document, scene), `${nombre}.png`, 'image/png');
+  if (!scene.elements.length) return notify('The drawing is empty.');
+  download(await toPngBlob(document, scene), `${fileName}.png`, 'image/png');
 });
 $('svg').addEventListener('click', () => {
   const scene = editor.getScene();
-  if (!scene.elements.length) return avisar('El dibujo está vacío.');
-  descargar(toSvgString(scene), `${nombre}.svg`, 'image/svg+xml');
+  if (!scene.elements.length) return notify('The drawing is empty.');
+  download(toSvgString(scene), `${fileName}.svg`, 'image/svg+xml');
 });
 
-// Arrastrar un fichero encima de la página lo abre.
+// Dropping a file on the page opens it.
 window.addEventListener('dragover', (ev) => {
   if (ev.dataTransfer?.types.includes('Files')) ev.preventDefault();
 });
@@ -100,13 +107,13 @@ window.addEventListener('drop', (ev) => {
   const [file] = ev.dataTransfer?.files || [];
   if (!file) return;
   ev.preventDefault();
-  abrir(file);
+  openFile(file);
 });
 
-// Sin conexión: la web se guarda en el navegador (service worker). Trusted Types: solo se admite sw.js.
+// Offline: the site is kept in the browser (service worker). Trusted Types: only sw.js is allowed.
 const TT = globalThis.trustedTypes?.createPolicy('sketch', {
   createScriptURL: (u) => {
-    if (u !== 'sw.js') throw new Error('script_no_permitido');
+    if (u !== 'sw.js') throw new Error('script_not_allowed');
     return u;
   },
 });

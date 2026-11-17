@@ -1,4 +1,4 @@
-name: Publicar en GitHub Pages
+name: Publish to GitHub Pages
 
 on:
   push:
@@ -13,8 +13,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publicar:
-    name: Publicar
+  publish:
+    name: Publish
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -28,13 +28,17 @@ jobs:
         with:
           persist-credentials: false
 
-      # Publica solo lo necesario, no docs internos ni configuración
-      - name: Preparar sitio
+      # Publishes only what the site needs: no internal docs or configuration
+      - name: Prepare the site
         run: |
           mkdir -p _site
           rsync -a --exclude '.git*' --exclude '.github' --exclude '.claude' --exclude 'docs' \
-            --exclude 'scripts' --exclude 'tests' --exclude 'package.json' --exclude '*.md' --exclude 'LICENSE' \
-            --exclude '.editorconfig' --exclude '_site' ./ _site/
+            --exclude 'scripts' --exclude 'tests' --exclude '.devcontainer' --exclude '.scanners' --exclude 'package.json' --exclude '*.md' --exclude 'LICENSE' \
+            --exclude '.editorconfig' --exclude '_site' --exclude 'desktop' --exclude 'dist' ./ _site/
+
+      # The portable version (one HTML file, no network), downloadable from the site itself
+      - name: Portable version
+        run: node scripts/build-portable.mjs _site/sketch-portable.html
 
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d  # v6.0.0
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0

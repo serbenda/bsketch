@@ -1,0 +1,25 @@
+# sketch's desktop version: a window of its own (no browser) with the same web app inside.
+# GitHub Actions builds it (.github/workflows/desktop.yml) for Windows, macOS and Linux.
+[package]
+name = "sketch"
+version = "0.4.0"
+description = "Whiteboard for hand-drawn sketches"
+authors = ["Sergio Santiago Bendaña Quesada"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.77"
+publish = false
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+# A small executable
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

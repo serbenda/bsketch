@@ -1,20 +1,20 @@
-// Service worker de sketch: guarda la web (HTML, CSS, JS, letra e icono) para abrirla sin conexión.
-// Los dibujos no pasan por aquí: viven en el navegador o en los ficheros que guardas.
+// sketch's service worker: keeps the site (HTML, CSS, JS, font and icon) so it opens offline.
+// Drawings never go through here: they live in the browser or in the files you save.
 
-const VERSION = 'sketch-v1';
+const VERSION = 'sketch-v2';
 const SHELL = [
   './',
   'index.html',
-  'css/estilos.css',
+  'css/styles.css',
   'css/sketch.css',
   'fonts/caveat.woff',
   'icon.svg',
   'manifest.webmanifest',
   'js/app.js',
   'js/editor.js',
-  'js/escena.js',
-  'js/pintar.js',
-  'js/trazo.js',
+  'js/render.js',
+  'js/scene.js',
+  'js/stroke.js',
 ];
 
 self.addEventListener('install', (ev) => {
@@ -27,7 +27,7 @@ self.addEventListener('activate', (ev) => {
     .then(() => self.clients.claim()));
 });
 
-// Primero la red (para tener siempre la última versión); si no hay, lo guardado.
+// Network first (to always get the latest version); if there is none, what was kept.
 self.addEventListener('fetch', (ev) => {
   const req = ev.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;

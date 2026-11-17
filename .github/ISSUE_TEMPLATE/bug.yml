@@ -1,37 +1,37 @@
-name: 🐞 Error
-description: Algo no funciona como debería
+name: 🐞 Bug
+description: Something doesn't work as it should
 title: "fix: "
 labels: ["bug"]
 body:
   - type: textarea
-    id: que-pasa
+    id: what-happens
     attributes:
-      label: Qué pasa
-      description: Describe el error.
+      label: What happens
+      description: Describe the bug.
     validations:
       required: true
   - type: textarea
-    id: pasos
+    id: steps
     attributes:
-      label: Pasos para reproducirlo
+      label: Steps to reproduce it
       placeholder: |
-        1. Ir a...
-        2. Pulsar...
-        3. Ver el error
+        1. Go to...
+        2. Click...
+        3. See the error
     validations:
       required: true
   - type: textarea
-    id: esperado
+    id: expected
     attributes:
-      label: Qué debería pasar
+      label: What should happen
     validations:
       required: true
   - type: input
-    id: entorno
+    id: environment
     attributes:
-      label: Navegador y dispositivo
-      placeholder: "Ej.: Chrome 130 en Android"
+      label: Browser and device
+      placeholder: "E.g.: Chrome 130 on Android"
   - type: textarea
-    id: capturas
+    id: screenshots
     attributes:
-      label: Capturas o errores de consola
+      label: Screenshots or console errors

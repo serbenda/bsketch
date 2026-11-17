@@ -1,25 +1,30 @@
-# Sistema
+# System
 .DS_Store
 Thumbs.db
 
-# Editores
-.vscode/*
-!.vscode/extensions.json
+# Editors
+.vscode/
 .idea/
 
-# Dependencias y builds
+# Dependencies and builds
 node_modules/
 dist/
 build/
 .cache/
 __pycache__/
 
-# Secretos: nunca al repo
+# Secrets: never in the repo
 .env
 .env.*
-!.env.example
 *.pem
 *.key
 
 # Logs
 *.log
+
+# Desktop app (Tauri): build output
+desktop/src-tauri/target/
+desktop/src-tauri/gen/
+desktop/src-tauri/icons/
+desktop/src-tauri/Cargo.lock
+desktop/app/

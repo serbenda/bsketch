@@ -1,82 +1,109 @@
 # sketch
 
-> Pizarra para dibujar a mano alzada: esquemas, diagramas y bocetos. Sin cuentas, sin instalar nada y sin enviar
-> nada a ningún servidor.
+> A whiteboard for hand-drawn sketches, diagrams and wireframes. No accounts, nothing to install, and nothing
+> is sent to any server.
 
 🔗 **Web:** https://serbenda.github.io/sketch/
 
-## Qué hace
-- Rectángulos, rombos, elipses, flechas, líneas, lápiz y texto, con trazo y letra «a mano».
-- **Texto dentro de las formas:** doble clic en una caja para escribir; va centrado, se parte al ancho y se mueve,
-  se redimensiona y gira con ella.
-- **Flechas pegadas:** una flecha que empieza o acaba en una forma se queda unida a su borde al moverla.
-- Relleno rayado o sólido, colores, grosor, línea discontinua y nivel de «trazo a mano».
-- Seleccionar, mover, redimensionar, **girar**, **agrupar**, **alinear y repartir**, duplicar, ordenar, borrar,
-  deshacer y rehacer; zoom y desplazamiento, también con dos dedos en el móvil.
-- Funciona **sin conexión** una vez abierta y se puede instalar como aplicación.
-- Guarda y abre ficheros `.sketch`, abre los `.excalidraw` y exporta a **PNG** y **SVG**.
-- El dibujo en curso se queda en el navegador para no perderlo.
-- Se integra en [Snowlog](https://github.com/serbenda/snowlog): allí los dibujos se guardan cifrados y se ven
-  dentro de las notas.
+## What it does
+- Rectangles, diamonds, ellipses, arrows, lines, pencil and text, with a hand-drawn stroke and handwriting font.
+- **Text inside shapes:** double-click a box to write in it; the text is centered, wraps to the box and moves,
+  resizes and rotates with it.
+- **Attached arrows:** an arrow that starts or ends on a shape stays on its outline when the shape moves.
+- Hachure or solid fill, colors, stroke width, dashed lines and three levels of sloppiness.
+- Select, move, resize, **rotate**, **group**, **align and distribute**, duplicate, reorder, delete, undo and
+  redo; zoom and pan, also with two fingers on a phone.
+- Works **offline** once opened, and can be installed as an app.
+- Saves and opens `.sketch` files, opens `.excalidraw` files and exports to **PNG** and **SVG**.
+- The drawing in progress stays in the browser so it is not lost.
+- Fully usable with the keyboard, with descriptions for screen readers.
+- Embedded in [Snowlog](https://github.com/serbenda/snowlog), where drawings are stored encrypted and shown
+  inside notes.
 
-## Atajos
+## Shortcuts
 
-| Tecla | Acción |
+| Key | Action |
 | --- | --- |
-| V · H | Seleccionar · mover el lienzo (o mantener Espacio) |
-| R · D · O | Rectángulo · rombo · elipse |
-| A · L · P · T · E | Flecha · línea · lápiz · texto · borrar |
-| Mayús | Proporción fija al dibujar o redimensionar; ángulos de 15° en líneas y al girar |
-| Ctrl+Z · Ctrl+Y | Deshacer · rehacer |
-| Ctrl+D · Ctrl+C · Ctrl+V | Duplicar · copiar · pegar |
-| Ctrl+G · Ctrl+Mayús+G | Agrupar · desagrupar |
-| Supr · Flechas | Borrar · mover lo seleccionado (Mayús: de 10 en 10) |
-| Ctrl+rueda · Ctrl+0 | Zoom · volver al 100 % |
-| Doble clic · Intro | Escribir texto: dentro de la forma si se hace sobre ella (o editar el que ya hay) |
+| V · H | Select · pan the canvas (or hold Space) |
+| R · D · O | Rectangle · diamond · ellipse |
+| A · L · P · T · E | Arrow · line · pencil · text · eraser |
+| Shift | Keep proportions while drawing or resizing; 15° steps for lines and rotation |
+| Ctrl+Z · Ctrl+Y | Undo · redo |
+| Ctrl+D · Ctrl+C · Ctrl+V | Duplicate · copy · paste |
+| Ctrl+G · Ctrl+Shift+G | Group · ungroup |
+| Delete · arrow keys | Delete · move the selection (Shift: 10 at a time) |
+| Ctrl+wheel · Ctrl+0 | Zoom · back to 100% |
+| Double click · Enter | Write text: inside the shape when done on one (or edit the existing text) |
 
-Para girar, arrastra el círculo que aparece encima de lo seleccionado.
+To rotate, drag the round handle above the selection.
 
-Sin ratón: elige herramienta con su tecla y pulsa **Intro** para crear la forma en el centro. **Tab** y
-**Mayús+Tab** recorren los elementos, **Alt+flechas** cambian su tamaño, **[** y **]** los giran e **Intro** escribe
-dentro. **Escape** quita la selección (y entonces Tab sale de la pizarra).
+Without a mouse: choose a tool with its key and press **Enter** to create the shape in the center. **Tab** and
+**Shift+Tab** go through the elements, **Alt+arrow keys** resize them, **[** and **]** rotate them and **Enter**
+writes inside. **Escape** clears the selection (and then Tab leaves the whiteboard).
 
-## Fuentes de datos
-Ninguna: no hay llamadas de red. El formato `.excalidraw` se lee como JSON público; no se usa código de Excalidraw.
+## Data sources
+| Source | What it provides | License |
+|---|---|---|
+| None | No network calls at all. `.excalidraw` files are read as public JSON; no Excalidraw code is used. | — |
+| [Caveat](https://github.com/googlefonts/caveat) | The handwriting font, subset to Latin characters and served from the site | SIL Open Font License ([fonts/OFL.txt](fonts/OFL.txt)) |
 
-La letra a mano es [Caveat](https://github.com/googlefonts/caveat), con licencia SIL Open Font License
-([fonts/OFL.txt](fonts/OFL.txt)), recortada a los caracteres latinos y servida desde el propio sitio.
+## Three ways to use it
+- **On the web**, in any browser (Chrome, Edge, Firefox or Safari). From Chrome or Edge it can be installed as an
+  app ("Install app") and opens in its own window, also offline.
+- **Portable:** the site's "Portable" button downloads `sketch-portable.html`, a single file that opens with a
+  double click in any browser on Windows, macOS or Linux, with nothing to install and no connection (its CSP
+  forbids any network access). It is not a program, so antivirus tools do not block it.
+- **Desktop** (Tauri): a window of its own, no browser. The "Desktop" workflow builds `sketch-windows.exe`
+  (opens without installing), `sketch-macos.zip` (with `sketch.app`, for Intel and Apple Silicon) and
+  `sketch-linux.AppImage`, and leaves them as artifacts of the run in the Actions tab. They are not signed: on
+  macOS, open it the first time with right click → Open; on company computers the antivirus may block an
+  unsigned executable. They use the system's web engine (Edge on Windows, Safari on macOS, WebKit on Linux),
+  which the system keeps up to date.
 
-## Uso en local
+## Running locally
 ```bash
 git clone https://github.com/serbenda/sketch.git
 cd sketch
 git switch development
-python3 -m http.server 8000   # abre http://localhost:8000
-npm test                      # tests del motor (Node 20+, sin dependencias)
-npm run test:e2e              # recorridos en Chrome (Node 22+; CHROME_BIN si no está en /usr/bin)
 ```
+How to start and verify it: [docs/SETUP.md](docs/SETUP.md).
 
-## Estructura
+## Structure
 ```
 .
-├── index.html
-├── icon.svg · manifest.webmanifest
-├── sw.js             # service worker: la web sin conexión
-├── fonts/            # letra a mano (Caveat, OFL)
-├── css/estilos.css   # la página
-├── css/sketch.css    # el editor (prefijo sk-, se puede incrustar)
-├── js/trazo.js       # trazo «a mano» con semilla → caminos para canvas y SVG
-├── js/escena.js      # elementos: crear, medir, tocar, mover, girar, enlazar, abrir/guardar, .excalidraw
-├── js/pintar.js      # escena → canvas, SVG (texto o DOM) y PNG
-├── js/editor.js      # el editor interactivo, montable en cualquier contenedor
-├── js/app.js         # la web: abrir, guardar y exportar
-├── tests/            # node --test; tests/e2e: recorridos en Chrome por DevTools, sin dependencias
-├── docs/             # Definition of Done, guía de seguridad
-└── .claude/ · .githooks/ · AGENTS.md · CLAUDE.md
+├── index.html · icon.svg · manifest.webmanifest
+├── sw.js              # service worker: the site offline
+├── css/styles.css     # the page
+├── css/sketch.css     # the editor (sk- prefix, can be embedded)
+├── js/stroke.js       # seeded hand-drawn strokes → paths for canvas and SVG
+├── js/scene.js        # elements: create, measure, hit-test, move, rotate, bind, merge, open/save, .excalidraw
+├── js/render.js       # scene → canvas, SVG (text or DOM) and PNG
+├── js/editor.js       # the interactive editor, mountable in any container
+├── js/app.js          # the site: open, save and export
+├── fonts/             # handwriting font (Caveat, OFL)
+├── desktop/           # desktop version (Tauri): icon, smoke test and src-tauri/
+├── scripts/           # build-portable.mjs, and the template's setup, sync and check scripts
+├── tests/             # node --test; tests/e2e: walkthroughs in Chrome over DevTools, no dependencies
+├── docs/              # VISION, STATE, WORKLOG, ROADMAP, phases, decisions, ARCHITECTURE, THREAT_MODEL…
+├── .claude/ · .githooks/ · .github/
+├── AGENTS.md          # rules for any AI agent
+└── CLAUDE.md          # imports AGENTS.md and adds what is specific to Claude Code
 ```
 
-## Cómo contribuir
-Lee [CONTRIBUTING.md](CONTRIBUTING.md) y la [Definition of Done](docs/DEFINITION_OF_DONE.md).
+## How to work with Claude
+Every flow, as diagrams: [docs/WORKFLOWS.md](docs/WORKFLOWS.md).
 
-## Licencia
+```
+/status                      at the start of every session
+/new-phase <what>            phase file + plan → you approve → Claude implements on development
+(automatic)                  record-changes skill: WORKLOG after every change
+/close-phase                 criteria + DoD + updates STATE, ROADMAP and CHANGELOG (once per phase)
+/prepare-pr                  reviewers + development → main PR (you merge it)
+/decision <what>             when something hard to undo has to be chosen
+```
+
+## Contributing
+Read [AGENTS.md](AGENTS.md) and the [Definition of Done](docs/DEFINITION_OF_DONE.md).
+
+## License
 [MIT](LICENSE) © Sergio Santiago Bendaña Quesada
