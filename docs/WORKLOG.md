@@ -31,6 +31,18 @@
   `npm test` 17 pass, `npm run test:e2e` 8 pass; the DoD reviewer's verdict for sections 1–5: OK.
 - **Pending:** —
 
+## 2026-11-17 — Plan P03: the options menu
+- **Phase / issue:** P03
+- **What:** the plan for an options menu (appearance light/dark/system, canvas background swatches, a transparent
+  export toggle next to PNG/SVG), with P04 for the grid; ROADMAP lists both.
+- **Why:** the owner wants the canvas white without changing the system theme, and options inside the app.
+- **Rejected:** grid in the same phase, a free colour picker, a remembered hidden transparent export, Alt to skip the
+  snap (from the challenge on the plan).
+- **Files:** docs/phases/P03-options-menu.md, docs/ROADMAP.md
+- **Commits:** 63962d2.
+- **Tested:** n/a (plan only, no code).
+- **Pending:** the owner's approval of the plan.
+
 ## 2026-11-17 — README banner; the logo on night blue
 - **Phase / issue:** —
 - **What:** a banner at the top of the README (`docs/images/banner.png`, 1280×400): the logo, "sketch" in the
@@ -41,7 +53,7 @@
 - **Rejected:** the other five backgrounds (near-black, slate green, plum, terracotta, bright blue); a pencil doodle
   in the banner (read as an odd shape at that size).
 - **Files:** README.md, icon.svg, desktop/icon.png, docs/images/*
-- **Commits:** this one.
+- **Commits:** 3318bee.
 - **Tested:** banner and logo checked by eye at full size; the header in both themes in the screenshots.
 - **Pending:** the banner can also be the repository's social preview (Settings → General → Social preview, the
   owner's setting; GitHub suggests 1280×640).
@@ -62,7 +74,7 @@
   hachured box alone (reads as a hazard sign); the sheet and pencil (looks like any document app); keeping the old
   purple background.
 - **Files:** icon.svg, desktop/icon.png, sw.js, docs/images/screenshot-light.png, docs/images/screenshot-dark.png
-- **Commits:** this one.
+- **Commits:** c7d4f9c.
 - **Tested:** rendered at 16, 32, 64 and 220 px on light and dark tab backgrounds; the site header checked in both
   themes; `npm test` 17 pass; `npm run build:portable` embeds the new icon.
 - **Pending:** the interface's accent colour is still the old purple (`--accent` in `css/styles.css`); changing it
@@ -78,7 +90,7 @@
 - **Rejected:** an animated GIF (heavier, and a still image shows the hand-drawn look just as well); keeping the
   developer sections at the top (visitors want to try it first).
 - **Files:** README.md, docs/images/screenshot-light.png, docs/images/screenshot-dark.png
-- **Commits:** this one.
+- **Commits:** 35d95f1.
 - **Tested:** every relative link checked to exist; feature claims, button names and the CSP checked against
   `index.html` and the old README; the screenshots taken with Playwright from a local server of the site.
 - **Pending:** —
