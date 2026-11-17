@@ -1,10 +1,10 @@
-// Pinta una escena en un <canvas> o la convierte en SVG (texto para descargar o nodos DOM para
-// incrustar). Los textos del dibujo nunca se meten como HTML: se escapan o van con textContent.
+// Paints a scene on a <canvas> or turns it into SVG (text to download, or DOM nodes to embed). The
+// drawing's texts never go in as HTML: they are escaped or set with textContent.
 
-import { drawOps, sceneBounds, textLayout, setTextMeasurer, aabb, FONT, FONT_NAME } from './escena.js';
-import { toSvgD, tracePath } from './trazo.js';
+import { drawOps, sceneBounds, textLayout, setTextMeasurer, aabb, FONT, FONT_NAME } from './scene.js';
+import { toSvgD, tracePath } from './stroke.js';
 
-// Mide los textos con un canvas (la letra a mano es más estrecha que la estimación sin DOM).
+// Measures texts with a canvas (the handwriting font is narrower than the no-DOM estimate).
 let measuring = false;
 export function measureWithCanvas(doc) {
   if (measuring) return;
@@ -17,7 +17,7 @@ export function measureWithCanvas(doc) {
   });
 }
 
-// Promesa que se cumple cuando la letra a mano está lista (o no se puede cargar).
+// A promise that resolves when the handwriting font is ready (or cannot be loaded).
 export function fontReady(doc) {
   try {
     return Promise.resolve(doc.fonts?.load(`24px "${FONT_NAME}"`)).catch(() => {});
@@ -26,8 +26,8 @@ export function fontReady(doc) {
   }
 }
 
-// Trazos ya preparados por elemento (Path2D si existe): pintar de nuevo un elemento que no ha cambiado
-// no vuelve a calcular su trazo a mano ni su rayado. Los elementos nunca se cambian en el sitio.
+// Strokes prepared once per element (Path2D when available): repainting an unchanged element does not
+// recompute its hand-drawn stroke or hachure. Elements are never changed in place.
 const prepared = new WeakMap();
 function opsOf(el) {
   let ops = prepared.get(el);
@@ -100,7 +100,7 @@ export function paintElement(ctx, el) {
   ctx.restore();
 }
 
-// view: { x, y, zoom } (desplazamiento en píxeles de pantalla y escala).
+// view: { x, y, zoom } (offset in screen pixels, and scale).
 export function paintScene(ctx, scene, { view = { x: 0, y: 0, zoom: 1 }, width, height, background = true } = {}) {
   ctx.save();
   if (background) {
@@ -109,7 +109,7 @@ export function paintScene(ctx, scene, { view = { x: 0, y: 0, zoom: 1 }, width, 
   }
   ctx.translate(view.x, view.y);
   ctx.scale(view.zoom, view.zoom);
-  // Solo lo que se ve (con margen para el grosor y el temblor del trazo).
+  // Only what is visible (with a margin for the stroke's width and wobble).
   const m = 20 / view.zoom;
   const x1 = -view.x / view.zoom - m;
   const y1 = -view.y / view.zoom - m;
@@ -125,7 +125,7 @@ export function paintScene(ctx, scene, { view = { x: 0, y: 0, zoom: 1 }, width, 
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
-// Escena → SVG como texto (para descargar). `padding` alrededor del dibujo.
+// Scene → SVG as text (to download). `padding` around the drawing.
 export function toSvgString(scene, { padding = 20 } = {}) {
   const b = sceneBounds(scene.elements);
   const W = Math.ceil(b.w + padding * 2);
@@ -157,7 +157,7 @@ export function toSvgString(scene, { padding = 20 } = {}) {
     + `${parts.join('')}</svg>\n`;
 }
 
-// Escena → nodo <svg> creado con el DOM (sin innerHTML), para incrustarlo en otra página.
+// Scene → an <svg> node built with the DOM (no innerHTML), to embed in another page.
 export function toSvgElement(doc, scene, { padding = 20, maxWidth = null } = {}) {
   measureWithCanvas(doc);
   const NS = 'http://www.w3.org/2000/svg';
@@ -203,7 +203,7 @@ export function toSvgElement(doc, scene, { padding = 20, maxWidth = null } = {})
   return svg;
 }
 
-// Escena → PNG (Blob) a `scale` veces su tamaño.
+// Scene → PNG (Blob) at `scale` times its size.
 export async function toPngBlob(doc, scene, { padding = 20, scale = 2 } = {}) {
   measureWithCanvas(doc);
   await fontReady(doc);

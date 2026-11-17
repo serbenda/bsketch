@@ -1,10 +1,10 @@
-// sketch de escritorio: solo abre la ventana con la web. No expone ninguna orden al JavaScript
-// (sin IPC propio ni plugins), así que la web no puede tocar el sistema más allá de lo que haría
-// en un navegador.
+// sketch for the desktop: it only opens the window with the web app. It exposes no command to the
+// JavaScript (no IPC of its own, no plugins), so the page cannot touch the system beyond what it could
+// in a browser.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
     tauri::Builder::default()
         .run(tauri::generate_context!())
-        .expect("no se ha podido abrir sketch");
+        .expect("could not open sketch");
 }

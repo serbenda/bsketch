@@ -1,37 +1,37 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>sketch</title>
-  <meta name="description" content="Pizarra para dibujar a mano alzada: esquemas, diagramas y bocetos. Sin cuentas y sin enviar nada a ningún servidor.">
+  <meta name="description" content="A whiteboard for hand-drawn sketches, diagrams and wireframes. No accounts, and nothing is sent to any server.">
   <meta name="color-scheme" content="light dark">
-  <!-- Sin red: el dibujo nunca sale del navegador. Trusted Types: nada de HTML a mano; solo se carga a mano sw.js. -->
+  <!-- No network: the drawing never leaves the browser. Trusted Types: no hand-written HTML; only sw.js is loaded by hand. -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; worker-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types sketch">
   <meta name="referrer" content="no-referrer">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preload" href="fonts/caveat.woff" as="font" type="font/woff" crossorigin>
-  <link rel="stylesheet" href="css/estilos.css">
+  <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/sketch.css">
   <script type="module" src="js/app.js"></script>
 </head>
 <body>
-  <a class="saltar" href="#lienzo">Saltar al lienzo</a>
-  <header class="cabecera">
-    <h1 class="marca"><img src="icon.svg" alt="" width="24" height="24"> sketch</h1>
-    <nav class="acciones" aria-label="Fichero">
-      <button type="button" id="nuevo">Nuevo</button>
-      <button type="button" id="abrir">Abrir…</button>
-      <button type="button" id="guardar">Guardar</button>
+  <a class="skip-link" href="#canvas">Skip to the canvas</a>
+  <header class="header">
+    <h1 class="brand"><img src="icon.svg" alt="" width="24" height="24"> sketch</h1>
+    <nav class="actions" aria-label="File">
+      <button type="button" id="new">New</button>
+      <button type="button" id="open">Open…</button>
+      <button type="button" id="save">Save</button>
       <button type="button" id="png">PNG</button>
       <button type="button" id="svg">SVG</button>
-      <a id="portatil" href="sketch-portable.html" download title="Un solo fichero que se abre con doble clic, sin conexión">Portátil</a>
+      <a id="portable" href="sketch-portable.html" download title="A single file that opens with a double click, offline">Portable</a>
     </nav>
   </header>
-  <main id="lienzo" class="lienzo" aria-label="Pizarra"></main>
-  <p id="estado" class="estado" aria-live="polite"></p>
-  <input type="file" id="fichero" accept=".sketch,.excalidraw,.json,application/json" hidden>
+  <main id="canvas" class="board" aria-label="Whiteboard"></main>
+  <p id="status" class="status" aria-live="polite"></p>
+  <input type="file" id="file" accept=".sketch,.excalidraw,.json,application/json" hidden>
 </body>
 </html>
