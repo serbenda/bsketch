@@ -40,7 +40,11 @@
   fails there (alignment, Enter on a button, undo, pinch, offline). The offline walkthrough now stops the test server
   too: Chrome's offline mode does not cut the service worker's own network, so before it never tested offline.
 - **Pending:** try the pinch and the desktop downloads (`<a download>` with `blob:` URLs in WKWebView/WebKitGTK) on
-  real devices; Dependabot for `cargo` in `.github/dependabot.yml` (owner).
+  real devices. (Dependabot already has a `cargo` entry for `desktop/src-tauri`; with the lockfile it now has
+  something to update.)
+- **Security review:** the security reviewer (guidance mode) went over the workflow change and the lockfile:
+  427 crates, all from crates.io with checksums, no git or path sources; `--locked` only adds a flag to a static
+  matrix; no Critical, High or Medium findings.
 
 ## 2026-11-17 — Close P01
 - **Phase / issue:** P01 · PR #5

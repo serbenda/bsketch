@@ -34,7 +34,6 @@ Last updated: 2026-11-17
 5. Optional (owner, `.github/`): pin the `editorconfig-checker` binary; its download hits GitHub's rate limit now and then.
 6. Decide whether the interface's accent colour (`--accent`, still the old purple) should match the new logo.
 7. Owner: set `docs/images/banner.png` as the repository's social preview (Settings → General).
-8. Optional (owner, `.github/`): a `cargo` entry in `dependabot.yml` for `desktop/src-tauri`, now that `Cargo.lock` is committed.
 
 ## Blocked / awaiting decision
 - P03's plan, awaiting the owner's approval.
