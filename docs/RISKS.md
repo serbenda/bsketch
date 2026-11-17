@@ -8,7 +8,7 @@
 | R-001 | Unsigned desktop executables are blocked or flagged on company computers | Medium | High | OPEN | The portable HTML file is offered for those computers; signing only if the owner decides to pay for it | — |
 | R-002 | Untested on Firefox, Safari and real phones: something may break there | Medium | Medium | OPEN | Owner tests on real devices; a later phase can add Firefox and WebKit to the e2e in CI | — |
 | R-003 | The Linux AppImage bundles its own WebKitGTK, which doesn't update with the system | Medium | Medium | OPEN | Rebuild on every release; Dependabot keeps the Tauri crates current | — |
-| R-004 | Snowlog's copy of the engine drifts from sketch | Low | Medium | OPEN | `scripts/update-sketch.mjs` in Snowlog copies a given commit; update it when Snowlog adopts the new file names | P01 |
+| R-004 | Snowlog's copy of the engine drifts from sketch | Low | Medium | MITIGATED | `scripts/update-sketch.mjs` in Snowlog copies a given commit; updated in Snowlog's own migration with the new file names | P01 |
 | R-005 | The browser storage is the only copy of an unsaved drawing | Low | Low | MITIGATED | "Save" downloads a `.sketch` file; the e2e checks the old storage key is migrated, not lost | P01 |
 
 ## How to use it

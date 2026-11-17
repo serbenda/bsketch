@@ -1,9 +1,9 @@
 # P01 — Adopt project-template 1.0.0, everything in English
 
 - **Stage:** S3
-- **Status:** ⏳ in progress
+- **Status:** ✅ done
 - **Issue:** —
-- **Dates:** 2026-11-17 → —
+- **Dates:** 2026-11-17 → 2026-11-17
 - **Owner approvals:** 2026-11-17 "start with sketch, it has to adapt to the template"; 2026-11-17 "everything in English"; 2026-11-17 "run it yourself" (the agent applies and commits the guardrails patch)
 
 ## Goal
@@ -28,7 +28,7 @@ the interface included, is in English.
 - [x] Rehearsed on a copy: `sync --apply`, shellcheck, `test-guard.sh`, `test-check-records.sh`,
   `test-githooks.sh` (160 cases) and actionlint pass.
 - [x] The guardrails commit is on `development` (`fb94aad`; applied by the agent at the owner's explicit request).
-- [ ] CI is green on the PR: Secrets, Authorship, Hook, Hook (macOS bash 3.2), SAST, Dependencies, Records, Tests.
+- [x] CI is green on the PR: Secrets, Authorship, Hook, Hook (macOS bash 3.2), SAST, Dependencies, Records, Tests.
 
 ## Plan
 1. Agent: rehearse the sync on a copy and prepare the merged guardrail files.
@@ -49,9 +49,18 @@ the interface included, is in English.
 ---
 
 ## Result
-<!-- Filled in with /close-phase. -->
-- **What was done:**
-- **How it was tested:**
-- **What was left out and why:**
-- **Lessons learned:**
-- **PR:** #
+- **What was done:** the template's guardrails (guard hook, git hooks, CI jobs, Dependabot, agents, commands,
+  skills) and its full-mode docs (VISION, STATE, WORKLOG, ROADMAP, ARCHITECTURE, THREAT_MODEL, RISKS, ADRs);
+  everything translated to English, files and the storage key renamed (an older drawing is moved, not lost). First
+  CI run fixes: one `fetch` in the desktop smoke test with a suppressed Semgrep finding and its reason, English issue
+  templates, and the portable file left out of the offline link check.
+- **How it was tested:** `npm test` 17 and `npm run test:e2e` 8 pass; the guardrail tests (`test-guard.sh`,
+  `test-check-records.sh`, `test-githooks.sh`), shellcheck and actionlint pass; every CI job green on PR #5.
+- **What was left out and why:** tests on other browsers and devices (P02, R-002); pinning the
+  `editorconfig-checker` binary (its unauthenticated download hit GitHub's rate limit three times; a change to
+  `.github/` for the owner).
+- **Lessons learned:** the push-event Records check needs a new WORKLOG heading on every push that changes code,
+  so CI follow-ups get their own entry. The guardrails commit (`fb94aad`) and the `nosemgrep` suppression with its
+  issue templates (`3de5b8d`) were committed by the agent with `GUARDRAILS_OWNER_CHANGE=1` only because the owner
+  explicitly asked for it in chat, each time; the owner then reviewed and merged them in PR #5.
+- **PR:** #5

@@ -4,6 +4,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
 
 ## [Unreleased]
 ### Changed
+- New logo: a hand-drawn "s" on night blue, for the site, the installed app and the desktop builds. The README
+  opens with a banner and a screenshot.
 - The project now follows [project-template](https://github.com/serbenda/project-template) 1.0.0: full mode with
   vision, state, worklog, roadmap, phases, decisions, architecture and threat model in `docs/`; the template's
   agents, commands, git hooks, Claude guard hook, CI jobs (secrets, authorship, hook tests, SAST, dependencies,
