@@ -34,6 +34,10 @@
     CODEOWNERS, dev container, workflows in English) prepared as one patch and rehearsed on a copy. The owner
     asked the agent in chat to apply and commit it (`GUARDRAILS_OWNER_CHANGE=1`, commit `fb94aad`), so the
     owner's review of those files happens on the `development → main` PR.
+  - The smoke test's two WebDriver requests to `tauri-driver` (plain HTTP on `127.0.0.1:4444`) go through one
+    `driver()` function, so SAST has a single line to report (`react-insecure-request`, the same finding as in
+    Snowlog); the `nosemgrep` with its reason is the owner's to commit. Two Spanish strings left in
+    `tests/scene.test.mjs` translated.
 - **Why:** the owner asked for sketch to adapt to the current template and for everything to be in English
   ([ADR 0004](decisions/0004-adopt-project-template-in-english.md)).
 - **Rejected:** keeping Spanish with an ADR (the records check, commands, agents and PR template are English and
@@ -41,12 +45,13 @@
   the hooks (two ways of working side by side).
 - **Files:** js/*, css/*, index.html, sw.js, manifest.webmanifest, package.json, scripts/build-portable.mjs,
   tests/*, desktop/*, README.md, CHANGELOG.md, SECURITY.md, .gitignore, .claude/launch.json, docs/*
-- **Commits:** bab3b8b, d8767e2, fb94aad (guardrails), and this record's update.
+- **Commits:** bab3b8b, d8767e2, fb94aad (guardrails), d868eaa, the smoke-test fix, and this record's updates.
 - **Tested:** `npm test` 17 pass; `npm run test:e2e` 8 pass (2,000 elements: 16.8 ms per frame at 100%).
   On a copy with the guardrails applied: shellcheck, `test-guard.sh`, `test-check-records.sh`,
   `test-githooks.sh` 160 cases and actionlint, all pass.
-- **Pending:** GitHub Actions is not starting jobs (account billing); once it runs, SAST and OSV check the code
-  for the first time; `setup-repo.sh` for the rules of `main`; Snowlog's `update-sketch.mjs` needs the new names.
+- **Pending:** the owner's commit with the smoke test's `nosemgrep` and the issue templates in English
+  (`.github/ISSUE_TEMPLATE/`, still in Spanish); re-run CI now that Actions starts jobs; `setup-repo.sh` for the
+  rules of `main`.
 
 ## 2026-11-13 — Recorded afterwards: the work before the template (S0–S2)
 - **Phase / issue:** — (PRs #2 to #5)

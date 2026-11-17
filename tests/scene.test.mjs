@@ -60,8 +60,8 @@ test('opening: validates whatever comes from the file', () => {
   const svg = toSvgString(s);
   assert.ok(!svg.includes('<img') && !svg.includes('onload='), svg);
   assert.ok(svg.includes('&lt;img src=x onerror=alert(1)&gt;'));
-  assert.throws(() => E.parseScene('no es json'), /bad_file/);
-  assert.throws(() => E.parseScene('{"type":"otra cosa"}'), /bad_file/);
+  assert.throws(() => E.parseScene('not json'), /bad_file/);
+  assert.throws(() => E.parseScene('{"type":"something else"}'), /bad_file/);
 });
 
 test('saving and opening again gives the same drawing', () => {
