@@ -26,5 +26,4 @@ __pycache__/
 desktop/src-tauri/target/
 desktop/src-tauri/gen/
 desktop/src-tauri/icons/
-desktop/src-tauri/Cargo.lock
 desktop/app/

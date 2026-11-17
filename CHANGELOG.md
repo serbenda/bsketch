@@ -74,3 +74,5 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
 - A double click with the hand or the eraser no longer starts a text; the right mouse button no longer draws;
   Space held while the window loses focus no longer leaves the editor panning.
 - Closing an embedded editor while writing keeps the text.
+- The desktop build's Rust dependencies are pinned in `desktop/src-tauri/Cargo.lock`, so every build of a
+  commit compiles the same versions.
