@@ -13,8 +13,8 @@ Last updated: 2026-11-17
 - **Working branch:** `development`
 
 ## Current work
-- [P01](phases/P01-adopt-project-template.md): the agent's part is done (code, UI and docs in English; template docs
-  filled in). Waiting for the owner's guardrails commit (hooks, `.claude/`, `.github/`, `AGENTS.md`, `CLAUDE.md`).
+- [P01](phases/P01-adopt-project-template.md): code, UI and docs in English, template docs filled in and the
+  guardrails committed (at the owner's request, by the agent). Waiting for CI and the owner's review on the PR.
 
 ## Recently done
 - Portable single-file version and Tauri desktop builds for Windows, macOS and Linux (PR #5).
@@ -23,13 +23,15 @@ Last updated: 2026-11-17
 - First version: hand-drawn whiteboard, `.excalidraw` import, PNG/SVG export (PR #2).
 
 ## Next
-1. Owner: apply and commit the guardrails for P01 (see the phase file), then open the PR.
+1. Owner: fix GitHub Actions billing (jobs are not starting), then review and merge the P01 PR.
 2. Owner: enable GitHub Pages (Settings → Pages → Source: GitHub Actions) and re-run `./scripts/setup-repo.sh`.
 3. Owner: try the site and the desktop builds on Firefox, Safari, a real phone, macOS and Windows ([R-002](RISKS.md)).
 4. Migrate Snowlog to the template; update its `scripts/update-sketch.mjs` for the new file names ([R-004](RISKS.md)).
 
 ## Blocked / awaiting decision
-- P01 waits for the owner's guardrails commit: the agent can't commit those files.
+- GitHub Actions doesn't start jobs: "recent account payments have failed or your spending limit needs to be
+  increased" (owner: Settings → Billing). sketch is private, so its minutes are billed: public or private is the
+  owner's call.
 
 ## Open risks
 - R-001 unsigned executables, R-002 untested browsers and devices, R-003 AppImage's bundled WebKit,

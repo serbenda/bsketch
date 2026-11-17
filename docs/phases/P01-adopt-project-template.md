@@ -4,7 +4,7 @@
 - **Status:** ⏳ in progress
 - **Issue:** —
 - **Dates:** 2026-11-17 → —
-- **Owner approvals:** 2026-11-17 "start with sketch, it has to adapt to the template"; 2026-11-17 "everything in English"
+- **Owner approvals:** 2026-11-17 "start with sketch, it has to adapt to the template"; 2026-11-17 "everything in English"; 2026-11-17 "run it yourself" (the agent applies and commits the guardrails patch)
 
 ## Goal
 sketch follows the current template (guardrails, CI jobs, documented way of working) and the whole repository,
@@ -27,7 +27,7 @@ the interface included, is in English.
   under the old storage key.
 - [x] Rehearsed on a copy: `sync --apply`, shellcheck, `test-guard.sh`, `test-check-records.sh`,
   `test-githooks.sh` (160 cases) and actionlint pass.
-- [ ] The owner's guardrails commit is on `development`.
+- [x] The guardrails commit is on `development` (`fb94aad`; applied by the agent at the owner's explicit request).
 - [ ] CI is green on the PR: Secrets, Authorship, Hook, Hook (macOS bash 3.2), SAST, Dependencies, Records, Tests.
 
 ## Plan
