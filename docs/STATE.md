@@ -8,34 +8,34 @@ Last updated: 2026-11-17
 ## Where we are
 - **Mode:** full
 - **Current stage:** S3 — Release (see [ROADMAP](ROADMAP.md))
-- **Phase in progress:** [P01 — Adopt project-template 1.0.0, everything in English](phases/P01-adopt-project-template.md)
-- **Environment:** GitHub Pages (once enabled), the portable file, and desktop builds as CI artifacts
+- **Phase in progress:** none; next is [P03 — Options menu](phases/P03-options-menu.md), plan awaiting the owner's approval
+- **Environment:** GitHub Pages, the portable file, and desktop builds as CI artifacts
 - **Working branch:** `development`
 
 ## Current work
-- [P01](phases/P01-adopt-project-template.md): code, UI and docs in English, template docs filled in and the
-  guardrails committed (at the owner's request, by the agent). Waiting for CI and the owner's review on the PR.
+- [P03](phases/P03-options-menu.md) planned (appearance, canvas background, transparent export) and challenged;
+  the grid goes to P04. No code until the owner approves the plan.
 
 ## Recently done
+- [P01](phases/P01-adopt-project-template.md): the template's guardrails and docs, everything in English (PR #5).
+- New logo (a hand-drawn "s" on night blue), a README banner and the README rewritten for visitors.
 - Portable single-file version and Tauri desktop builds for Windows, macOS and Linux (PR #5).
 - Keyboard use, smoother large drawings and `mergeScenes` for Snowlog (PR #4).
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
-- First version: hand-drawn whiteboard, `.excalidraw` import, PNG/SVG export (PR #2).
 
 ## Next
-1. Owner: fix GitHub Actions billing (jobs are not starting), then review and merge the P01 PR.
-2. Owner: enable GitHub Pages (Settings → Pages → Source: GitHub Actions) and re-run `./scripts/setup-repo.sh`.
-3. Owner: try the site and the desktop builds on Firefox, Safari, a real phone, macOS and Windows ([R-002](RISKS.md)).
-4. Migrate Snowlog to the template; update its `scripts/update-sketch.mjs` for the new file names ([R-004](RISKS.md)).
+1. Owner: approve P03's plan; then P03 and P04 on `development`.
+2. Owner: review and merge the `development → main` PR with the logo, banner and README.
+3. Owner: re-run `./scripts/setup-repo.sh` on his Mac for the rules of `main`.
+4. Owner: try the site and the desktop builds on Firefox, Safari, a real phone, macOS and Windows (P02, [R-002](RISKS.md)).
+5. Optional (owner, `.github/`): pin the `editorconfig-checker` binary; its download hits GitHub's rate limit now and then.
 
 ## Blocked / awaiting decision
-- GitHub Actions doesn't start jobs: "recent account payments have failed or your spending limit needs to be
-  increased" (owner: Settings → Billing). sketch is private, so its minutes are billed: public or private is the
-  owner's call.
+- P03's plan, awaiting the owner's approval.
 
 ## Open risks
 - R-001 unsigned executables, R-002 untested browsers and devices, R-003 AppImage's bundled WebKit,
-  R-004 Snowlog's copy drifting. Details in [RISKS.md](RISKS.md).
+  R-004 Snowlog's copy drifting (mitigated). Details in [RISKS.md](RISKS.md).
 
 ## How to run it
 See [SETUP.md](SETUP.md). To run and verify: see its *Daily use* and *Verify* sections.

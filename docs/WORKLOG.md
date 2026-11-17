@@ -16,6 +16,21 @@
 - **Pending:**
 -->
 
+## 2026-11-17 — Close P01
+- **Phase / issue:** P01 · PR #5
+- **What:** P01 closed: its last criterion (CI green on the PR) checked on PR #5's head, where every job passed;
+  *Result* filled in, ✅ in ROADMAP and the phases index, STATE brought up to date (P03 next, the billing block
+  gone), R-004 mitigated (Snowlog's update script now uses the new file names), the logo line in CHANGELOG.
+  `main` merged into `development` first (only PR #5's merge commit was missing).
+- **Why:** the owner asked for the next PR; P01's work was already merged in PR #5 but the phase was still open.
+- **Rejected:** leaving P01 open until the next PR (its work is on `main` already).
+- **Files:** docs/phases/P01-adopt-project-template.md, docs/phases/README.md, docs/ROADMAP.md, docs/STATE.md,
+  docs/RISKS.md, CHANGELOG.md
+- **Commits:** bab3b8b, d8767e2, fb94aad, d868eaa, 27eaae3, 3de5b8d, fd63352, d45f5b9 (P01); this close.
+- **Tested:** the *Verify* commands: shellcheck, `test-guard.sh`, `test-check-records.sh`, `test-githooks.sh`,
+  `npm test` 17 pass, `npm run test:e2e` 8 pass; the DoD reviewer's verdict for sections 1–5: OK.
+- **Pending:** —
+
 ## 2026-11-17 — README banner; the logo on night blue
 - **Phase / issue:** —
 - **What:** a banner at the top of the README (`docs/images/banner.png`, 1280×400): the logo, "sketch" in the
