@@ -16,6 +16,28 @@
 - **Pending:**
 -->
 
+## 2026-11-17 — New logo: a hand-drawn "s"
+- **Phase / issue:** —
+- **What:** a new `icon.svg`: one cream marker stroke shaped as an "s" on a near-black rounded square, with an orange
+  dot where the pen starts and two faint echo lines, the double stroke of a sketch. The same drawing is the favicon,
+  the installed app's icon, the header logo, the portable file's icon (built from `icon.svg`) and the desktop icon
+  (`desktop/icon.png`, 1024 px, rendered from the SVG). The service worker cache moves to `sketch-v3` so installed
+  copies pick it up; the README screenshots are taken again because they show the header.
+- **Why:** the owner didn't like the old logo. Three directions were drawn (a mini diagram, an "s", a sheet with a
+  pencil) and challenged from a brand and UX lens: the mini diagram explains the app best but turns into a smudge
+  at 16 px and borrows the look of the app it is modelled on; the "s" reads at every size, in light and dark
+  tabs, and sits next to Snowlog's icon (a light symbol on a dark square) as a sibling. The owner asked for the
+  best one from the UX side and then for the logo.
+- **Rejected:** the mini diagram (unreadable in a tab; a simplified small version would make two icons); the
+  hachured box alone (reads as a hazard sign); the sheet and pencil (looks like any document app); keeping the old
+  purple background.
+- **Files:** icon.svg, desktop/icon.png, sw.js, docs/images/screenshot-light.png, docs/images/screenshot-dark.png
+- **Commits:** this one.
+- **Tested:** rendered at 16, 32, 64 and 220 px on light and dark tab backgrounds; the site header checked in both
+  themes; `npm test` 17 pass; `npm run build:portable` embeds the new icon.
+- **Pending:** the interface's accent colour is still the old purple (`--accent` in `css/styles.css`); changing it
+  to match the logo is a separate decision.
+
 ## 2026-11-17 — README rewritten for visitors, with a screenshot
 - **Phase / issue:** —
 - **What:** the README now opens with the pitch, a link to the site and a screenshot (light and dark, chosen by
