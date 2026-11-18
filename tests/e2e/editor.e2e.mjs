@@ -519,8 +519,8 @@ test('on a phone nothing overflows the screen', { skip }, async () => {
 
 test('the portable version opens with a double click and works offline', { skip }, async () => {
   const { execFileSync } = await import('node:child_process');
-  const dir = await mkdtemp(join(tmpdir(), 'sketch-portable-'));
-  const file = join(dir, 'sketch-portable.html');
+  const dir = await mkdtemp(join(tmpdir(), 'bsketch-portable-'));
+  const file = join(dir, 'bsketch-portable.html');
   execFileSync(process.execPath, [join(ROOT, 'scripts/build-portable.mjs'), file]);
   const page = await browser.newPage();
   try {

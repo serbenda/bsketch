@@ -1,4 +1,4 @@
-# sketch vision
+# bsketch vision
 
 > The filter for deciding what goes in and what doesn't: Claude reads it before proposing features.
 

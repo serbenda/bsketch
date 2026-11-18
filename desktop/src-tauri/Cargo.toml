@@ -1,7 +1,7 @@
-# sketch's desktop version: a window of its own (no browser) with the same web app inside.
+# bsketch's desktop version: a window of its own (no browser) with the same web app inside.
 # GitHub Actions builds it (.github/workflows/desktop.yml) for Windows, macOS and Linux.
 [package]
-name = "sketch"
+name = "bsketch"
 version = "0.4.0"
 description = "Whiteboard for hand-drawn sketches"
 authors = ["Sergio Santiago Bendaña Quesada"]

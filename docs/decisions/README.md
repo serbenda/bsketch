@@ -12,3 +12,4 @@ One record per decision that is costly to undo or that someone (you or Claude) m
 | [0002](0002-stack-static-site-no-dependencies.md) | Stack: a static site in plain JavaScript, with no runtime dependencies | accepted |
 | [0003](0003-distribution-web-portable-desktop.md) | Distribution: web, portable HTML file and Tauri desktop app | accepted |
 | [0004](0004-adopt-project-template-in-english.md) | Adopt project-template 1.0.0 in full mode, with everything in English | accepted |
+| [0005](0005-rename-to-bsketch.md) | The name: bsketch, with an SB logo | accepted |

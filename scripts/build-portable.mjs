@@ -3,7 +3,7 @@
 // that opens with a double click in any browser, with nothing to install and no connection.
 // Its CSP forbids any network connection and only allows the script and style it carries.
 //
-// Usage: node scripts/build-portable.mjs [output]   (default: dist/sketch-portable.html)
+// Usage: node scripts/build-portable.mjs [output]   (default: dist/bsketch-portable.html)
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -11,7 +11,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const OUT = resolve(process.argv[2] || join(ROOT, 'dist', 'sketch-portable.html'));
+const OUT = resolve(process.argv[2] || join(ROOT, 'dist', 'bsketch-portable.html'));
 const read = (p) => readFileSync(join(ROOT, p), 'utf8');
 
 // --- ES modules → a single classic script (file:// does not allow modules) ---
@@ -83,12 +83,12 @@ swap(/<link rel="stylesheet" href="css\/styles\.css">/, () => `<style>${css}</st
 swap(/\n\s*<script type="module" src="js\/app\.js"><\/script>/, '');
 swap(/<img src="icon\.svg"/, `<img src="${iconUri}"`);
 swap(/\n\s*<a id="portable"[^>]*>[^<]*<\/a>/, ''); // this already is the portable version
-swap(/<title>sketch<\/title>/, '<title>sketch portable</title>');
+swap(/<title>bsketch<\/title>/, '<title>bsketch portable</title>');
 swap(/<!-- No network:[^>]*-->/, '<!-- Portable version: everything is inside this file and it connects to nothing. -->');
 html = html.replace('</body>', () => `<script>${script}</script>\n</body>`);
 
 const version = JSON.parse(read('package.json')).version || '0.0.0';
-const stamp = `<!-- sketch portable ${version}: open it with a double click in any browser. Nothing to install and no connection. -->\n`;
+const stamp = `<!-- bsketch portable ${version}: open it with a double click in any browser. Nothing to install and no connection. -->\n`;
 html = html.replace(/^<!DOCTYPE html>\n/i, (m) => `${m}${stamp}`);
 
 mkdirSync(dirname(OUT), { recursive: true });
