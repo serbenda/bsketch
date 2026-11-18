@@ -8,7 +8,7 @@ Last updated: 2026-11-17
 ## Where we are
 - **Mode:** full
 - **Current stage:** S3 — Release (see [ROADMAP](ROADMAP.md))
-- **Phase in progress:** none; next is P02 — the owner's tests on other browsers and devices, and `v0.4.0`
+- **Phase in progress:** [P02 — the owner's tests and v1.0.0](phases/P02-owner-tests-and-release.md)
 - **Environment:** GitHub Pages (published by the Pages workflow on `main`), the portable file, and desktop builds as CI artifacts
 - **Working branch:** `development`
 
@@ -31,13 +31,18 @@ Last updated: 2026-11-17
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. Owner: review and merge the PR with the rename; then P02 (tests on other browsers and devices, `v0.4.0`).
-2. Owner: re-run `./scripts/setup-repo.sh` on his Mac for the rules of `main`.
-3. Owner: try the site and the desktop builds on Firefox, Safari, a real phone, macOS and Windows (P02, [R-002](RISKS.md)),
-   including a pinch while drawing and downloading PNG/SVG/.sketch from the desktop app.
-4. Optional (owner, `.github/`): pin the `editorconfig-checker` binary; its download hits GitHub's rate limit now and then.
-5. Decide whether the interface's accent colour (`--accent`, still the old purple) should match the new logo.
-6. Owner: set `docs/images/banner.png` as the repository's social preview (Settings → General).
+1. Owner, in GitHub (from the repo posture review, 2026-11-18):
+   - run `./scripts/setup-repo.sh` as admin: `main` has **no protection** today, and secret scanning, push
+     protection, Dependabot alerts and private vulnerability reporting are off (SECURITY.md says otherwise);
+   - Settings → Pages → Source: **GitHub Actions** (today the legacy build publishes the whole `main`, so the
+     portable file is a 404 and files like `CLAUDE.md` are served); and Enforce HTTPS;
+   - Settings → Actions → General: allow only GitHub's and selected actions, require full-SHA pinning;
+   - add `Tests` and `Hook (macOS bash 3.2)` to the required checks.
+2. Owner: pin `editorconfig-checker` in CI (a script is ready; its download hits GitHub's rate limit).
+3. Owner: P02's checklist on other browsers and devices ([P02](phases/P02-owner-tests-and-release.md)); then
+   `v1.0.0`.
+4. Owner: set `docs/images/banner.png` as the repository's social preview; point Snowlog's update script to
+   `serbenda/bsketch`.
 
 ## Blocked / awaiting decision
 - Nothing.

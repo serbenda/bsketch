@@ -307,7 +307,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     ctx.save();
     ctx.translate(view.x, view.y);
     ctx.scale(view.zoom, view.zoom);
-    const accent = getComputedStyle(root).getPropertyValue('--sk-accent').trim() || '#6965db';
+    const accent = getComputedStyle(root).getPropertyValue('--sk-accent').trim() || '#3451b2';
     ctx.strokeStyle = accent;
     ctx.lineWidth = 1 / view.zoom;
     const f = !readOnly && selected.size ? frame() : null;

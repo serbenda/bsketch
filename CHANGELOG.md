@@ -4,6 +4,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
 
 ## [Unreleased]
 ### Changed
+- The interface's accent colour is now a blue taken from the logo (`#3451b2`, `#9db2ff` in dark), with more
+  contrast than the old purple (7:1); the active tool's icon is dark on the dark theme's light accent, and the
+  installed app's title bar is the logo's night blue.
+- The zoom percentage button is big enough to tap (32 px).
 - **The name is now bsketch**, with a hand-drawn **SB** logo: the site, the installed app, the portable file
   (`bsketch-portable.html`), the desktop app and the README. The repository moves to `serbenda/bsketch` and the site
   to `/bsketch/`. The `.sketch` format and drawings already saved in the browser are unchanged

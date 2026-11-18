@@ -1,0 +1,73 @@
+# P02 — The owner's tests on other browsers and devices, and the first release (v1.0.0)
+
+- **Stage:** S3
+- **Status:** ⏳ in progress
+- **Issue:** —
+- **Dates:** 2026-11-18 → —
+- **Owner approvals:** 2026-11-18 "prepara todo" (prepare everything for a 10/10: tests on devices, audits,
+  release)
+
+## Goal
+bsketch is known to work where the owner uses it, not only in the Chrome that CI drives, and there is a first
+release with its notes and executables.
+
+## Scope
+**In:**
+- The owner goes through the checklist below on each browser and device; anything that fails becomes a fix.
+- Lighthouse-style measures and a full security audit before the release (done, see *Result*).
+- The release: version `1.0.0` everywhere, the CHANGELOG's *Unreleased* becomes `1.0.0`, a `v1.0.0` tag on `main`
+  and a GitHub release with the notes and the desktop executables.
+
+**Out:**
+- Signing the executables (R-001: it costs money; the owner decides separately).
+- New features.
+
+## Checklist (for each browser or device)
+Mark each one ✅, or ❌ with what happened.
+
+| Check | Chrome/Edge (Win) | Safari (Mac) | Firefox | iPhone/Android | Desktop Win | Desktop Mac | Desktop Linux |
+|---|---|---|---|---|---|---|---|
+| Opens at bendi.dev/bsketch and draws a box, an arrow and text | | | | | | | |
+| Text inside a shape; an arrow stays attached when the shape moves | | | | | | | |
+| ☰ menu: New, Open, Save (a `.sketch` downloads and opens again) | | | | | | | |
+| PNG and SVG export (also with "Transparent background") | | | | | | | |
+| Copy as PNG (Alt+Shift+C) and paste it in a chat or document | | | | | | | |
+| Appearance Light/Dark/System; canvas background colour | | | | | | | |
+| Grid (G): shapes land on it | | | | | | | |
+| Fonts: Hand, Normal, Code | | | | | | | |
+| Pinch to zoom; a pinch while drawing leaves nothing behind | — | — | — | | — | — | — |
+| Works offline after the first visit (airplane mode, reload) | | | | | — | — | — |
+| Install as an app ("Install app" / "Add to Home Screen") | | | | | — | — | — |
+| Portable file: download it from the menu, open it with a double click | | | | — | — | — | — |
+
+## Release steps (once the checklist is green)
+1. Bump the version to `1.0.0` in `package.json`, `desktop/src-tauri/tauri.conf.json`,
+   `desktop/src-tauri/Cargo.toml` (and its root entry in `Cargo.lock`), and turn the CHANGELOG's *Unreleased* into
+   `## [1.0.0] - <date>`; PR `development → main`.
+2. After the merge, on `main`: `git tag -a v1.0.0 -m "bsketch 1.0.0"` and `git push origin v1.0.0`.
+3. Download the executables from the Desktop workflow's run for that commit and create the release:
+   `gh release create v1.0.0 --title "bsketch 1.0.0" --notes-file <notes> bsketch-windows.exe bsketch-macos.zip bsketch-linux.AppImage`
+   (the notes are the CHANGELOG's 1.0.0 section).
+
+## Acceptance criteria
+- [ ] The checklist is green on every browser and device the owner uses, or each ❌ has its fix merged.
+- [x] Measures: first paint under 2.5 s on a throttled phone, no layout shift, every control labelled.
+- [ ] The full security audit has no open confirmed findings.
+- [ ] `v1.0.0` is tagged on `main` and its GitHub release has the notes and the three executables.
+
+## Security impact
+- None by itself. The audit's findings, if any, are fixed in their own commits.
+
+## Risks and open questions
+- Safari and Firefox support for copying images to the clipboard is newer; where it fails, the site says so.
+- The desktop apps use WebKit on macOS and Linux (R-003); downloads there are the most likely place for a surprise.
+
+---
+
+## Result
+<!-- Filled in with /close-phase. -->
+- **What was done:**
+- **How it was tested:**
+- **What was left out and why:**
+- **Lessons learned:**
+- **PR:** #
