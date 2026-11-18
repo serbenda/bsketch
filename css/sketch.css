@@ -14,8 +14,8 @@
   --sk-text: #1b1b1f;
   --sk-muted: #6b6e76;
   --sk-border: #e3e4e8;
-  --sk-accent: #6965db;
-  --sk-active: rgba(105, 101, 219, 0.14);
+  --sk-accent: #3451b2;
+  --sk-active: rgba(52, 81, 178, 0.12);
   --sk-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   position: absolute;
   inset: 0;
@@ -34,8 +34,8 @@
     --sk-text: #ececf1;
     --sk-muted: #a1a1aa;
     --sk-border: #34343c;
-    --sk-accent: #a8a5ff;
-    --sk-active: rgba(168, 165, 255, 0.18);
+    --sk-accent: #9db2ff;
+    --sk-active: rgba(157, 178, 255, 0.18);
     --sk-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
   }
 }
@@ -45,8 +45,8 @@
   --sk-text: #ececf1;
   --sk-muted: #a1a1aa;
   --sk-border: #34343c;
-  --sk-accent: #a8a5ff;
-  --sk-active: rgba(168, 165, 255, 0.18);
+  --sk-accent: #9db2ff;
+  --sk-active: rgba(157, 178, 255, 0.18);
   --sk-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
 }
 
@@ -116,6 +116,17 @@
 .sk-btn[aria-pressed="true"] {
   background: var(--sk-accent);
   color: #ffffff;
+}
+
+/* On the dark theme's light accent, a dark icon reads better than a white one. */
+@media (prefers-color-scheme: dark) {
+  .sk-editor:not(.sk-light) .sk-btn[aria-pressed="true"] {
+    color: #18181b;
+  }
+}
+
+.sk-editor.sk-dark .sk-btn[aria-pressed="true"] {
+  color: #18181b;
 }
 
 .sk-icon {
@@ -235,6 +246,7 @@
 
 .sk-zoomlabel {
   min-width: 58px;
+  min-height: 32px; /* big enough to tap (WCAG 2.5.8: at least 24 px) */
   border: 0;
   background: transparent;
   color: var(--sk-text);
