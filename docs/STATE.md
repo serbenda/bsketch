@@ -13,8 +13,7 @@ Last updated: 2026-11-17
 - **Working branch:** `development`
 
 ## Current work
-- [P03](phases/P03-options-menu.md) done on `feat/p03-options-menu`: the side menu with file actions, appearance,
-  canvas background and transparent export. To merge into `development` once PR #7 is merged.
+- [P03](phases/P03-options-menu.md) done and on `development`, in PR #7 with the review fixes.
 
 ## Recently done
 - [P03](phases/P03-options-menu.md): the ☰ side menu (files, export, appearance, canvas background).
@@ -28,7 +27,7 @@ Last updated: 2026-11-17
 
 ## Next
 1. Owner: try P03's menu; then P04 (grid) on `development`.
-2. Owner: review and merge the `development → main` PR with the logo, banner, README and the review fixes.
+2. Owner: review and merge PR #7 (`development → main`): the review fixes and P03's side menu.
 3. Owner: re-run `./scripts/setup-repo.sh` on his Mac for the rules of `main`.
 4. Owner: try the site and the desktop builds on Firefox, Safari, a real phone, macOS and Windows (P02, [R-002](RISKS.md)),
    including a pinch while drawing and downloading PNG/SVG/.sketch from the desktop app.
