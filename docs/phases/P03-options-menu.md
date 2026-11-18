@@ -1,12 +1,13 @@
 # P03 — Options menu: appearance, canvas background, transparent export
 
 - **Stage:** S3
-- **Status:** ⬜ planned
+- **Status:** ✅ done
 - **Issue:** —
-- **Dates:** 2026-11-17 → —
+- **Dates:** 2026-11-17 → 2026-11-18
 - **Owner approvals:** 2026-11-17 "make it possible to change some options without going to Windows or whatever, like
   Excalidraw does" and the four options chosen (theme, canvas background, export without background, grid; the grid
-  goes to P04)
+  goes to P04); 2026-11-18 "a side menu with New, Open, Save, PNG…" (the plan approved, with the file actions
+  moved into a side menu)
 
 ## Goal
 The common settings live inside the app: the owner can make the canvas white (or dark) without changing the
@@ -34,15 +35,15 @@ system theme, pick the canvas colour and export without a background.
   `scripts/update-sketch.mjs`).
 
 ## Acceptance criteria
-- [ ] System dark + Light: page, toolbars and canvas are light, and stay so after a reload.
-- [ ] System light + Dark: page, toolbars, panels and canvas are dark.
-- [ ] Choosing a canvas colour changes the canvas, survives a reload and Save/Open, can be undone, and appears in PNG
+- [x] System dark + Light: page, toolbars and canvas are light, and stay so after a reload.
+- [x] System light + Dark: page, toolbars, panels and canvas are dark.
+- [x] Choosing a canvas colour changes the canvas, survives a reload and Save/Open, can be undone, and appears in PNG
   and SVG; in dark appearance the note is shown and the export keeps the real colour.
-- [ ] With Transparent on, the PNG has transparent pixels outside the shapes and the SVG has no background rectangle;
+- [x] With Transparent on, the PNG has transparent pixels outside the shapes and the SVG has no background rectangle;
   after a reload it is off again.
-- [ ] The panel works with the keyboard only (open, move through the options, change them, close with Escape) and
+- [x] The panel works with the keyboard only (open, move through the options, change them, close with Escape) and
   every control has a label.
-- [ ] Unit tests for the preferences (bad or missing stored values fall back to defaults) and for the background
+- [x] Unit tests for the preferences (bad or missing stored values fall back to defaults) and for the background
   command; an e2e walkthrough through the panel; `npm test`, `npm run test:e2e` and the portable build pass.
 
 ## Plan
@@ -76,8 +77,17 @@ system theme, pick the canvas colour and export without a background.
 
 ## Result
 <!-- Filled in with /close-phase. -->
-- **What was done:**
-- **How it was tested:**
-- **What was left out and why:**
-- **Lessons learned:**
+- **What was done:** a ☰ button in the header opens a side menu (a modal `<dialog>` on the left) with the file
+  actions that used to be header buttons (New, Open, Save, PNG, SVG, Portable), a "Transparent background" toggle
+  for PNG and SVG, Appearance (System · Light · Dark, kept in `sketch.prefs`) and six canvas colours (saved with the
+  drawing and undoable: undo steps now keep the background too). The editor gained `setTheme` and `setBackground`;
+  the forced dark colours now also apply to the editor's toolbars and panels (`sk-dark`) and the page
+  (`data-theme`).
+- **How it was tested:** `npm test` 23 pass (preferences, colour check of the swatches, SVG without background);
+  `npm run test:e2e` 11 pass, with a new walkthrough on a dark system: keyboard open and Escape, Light that survives
+  a reload, canvas colour saved and undone. Checked by eye in the browser on a dark system, light and dark, desktop
+  and phone width. The transparent PNG is covered by its code path (`paintScene` without background), not by a
+  pixel test.
+- **What was left out and why:** the grid (P04, as planned). Keyboard shortcuts for Save/Open (not asked for).
+- **Lessons learned:** the owner wanted the file actions out of the header too: one menu for files and options.
 - **PR:** #

@@ -16,6 +16,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
   version (`sketch.actual`) is moved there the first time.
 
 ### Added
+- **Side menu (☰):** the file actions (New, Open, Save, PNG, SVG, Portable) move from the header into a side menu,
+  together with the options: **Appearance** (System, Light or Dark, whatever the system theme is, remembered in
+  this browser), **Canvas background** (six light colours, saved with the drawing and undoable) and a
+  **Transparent background** toggle for PNG and SVG exports.
 - **Portable version:** `sketch-portable.html`, a single file with everything inside (the font too) that opens
   with a double click in any browser, with nothing to install and no connection. Downloaded with the site's
   "Portable" button and tested in CI opened from disk.

@@ -126,7 +126,8 @@ export function paintScene(ctx, scene, { view = { x: 0, y: 0, zoom: 1 }, width, 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 // Scene → SVG as text (to download). `padding` around the drawing.
-export function toSvgString(scene, { padding = 20 } = {}) {
+// `background: false` leaves it out (a transparent SVG).
+export function toSvgString(scene, { padding = 20, background = true } = {}) {
   const b = sceneBounds(scene.elements);
   const W = Math.ceil(b.w + padding * 2);
   const H = Math.ceil(b.h + padding * 2);
@@ -153,7 +154,7 @@ export function toSvgString(scene, { padding = 20 } = {}) {
     }
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="${b.x - padding} ${b.y - padding} ${W} ${H}">`
-    + `<rect x="${b.x - padding}" y="${b.y - padding}" width="${W}" height="${H}" fill="${esc(scene.background || '#ffffff')}"/>`
+    + (background ? `<rect x="${b.x - padding}" y="${b.y - padding}" width="${W}" height="${H}" fill="${esc(scene.background || '#ffffff')}"/>` : '')
     + `${parts.join('')}</svg>\n`;
 }
 
@@ -213,7 +214,8 @@ export function pngScale(w, h, scale) {
 }
 
 // Scene → PNG (Blob) at `scale` times its size, or less if it would not fit; null if it cannot be made.
-export async function toPngBlob(doc, scene, { padding = 20, scale = 2 } = {}) {
+// `background: false` gives transparent pixels outside the shapes.
+export async function toPngBlob(doc, scene, { padding = 20, scale = 2, background = true } = {}) {
   measureWithCanvas(doc);
   await fontReady(doc);
   const b = sceneBounds(scene.elements);
@@ -223,6 +225,6 @@ export async function toPngBlob(doc, scene, { padding = 20, scale = 2 } = {}) {
   canvas.height = Math.max(1, Math.ceil((b.h + padding * 2) * scale));
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
-  paintScene(ctx, scene, { width: canvas.width, height: canvas.height, view: { x: (padding - b.x) * scale, y: (padding - b.y) * scale, zoom: scale } });
+  paintScene(ctx, scene, { background, width: canvas.width, height: canvas.height, view: { x: (padding - b.x) * scale, y: (padding - b.y) * scale, zoom: scale } });
   return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
 }

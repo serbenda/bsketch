@@ -8,14 +8,28 @@
   line-height: 1.5;
 }
 
+/* Dark: the system's, unless the menu forces light; or forced from the menu (data-theme on <html>). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #18181b;
     --text: #ececf1;
     --muted: #a1a1aa;
     --border: #2e2e35;
     --accent: #a5a2ff;
   }
+}
+
+:root[data-theme="dark"] {
+  --bg: #18181b;
+  --text: #ececf1;
+  --muted: #a1a1aa;
+  --border: #2e2e35;
+  --accent: #a5a2ff;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
 }
 
 *,
@@ -41,11 +55,9 @@ body {
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.4rem 0.75rem;
+  padding: 0.35rem 0.75rem;
   border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
 }
 
 .brand {
@@ -56,31 +68,203 @@ body {
   font-size: 1.05rem;
 }
 
-.actions {
-  display: flex;
-  gap: 0.25rem;
-  flex-wrap: wrap;
-}
-
-.actions button,
-.actions a {
-  font: inherit;
-  font-size: 0.9rem;
-  padding: 0.3rem 0.7rem;
+.menu-button,
+.drawer-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: transparent;
   color: var(--text);
+  font: inherit;
+  font-size: 1.3rem;
+  line-height: 1;
   cursor: pointer;
 }
 
-.actions a {
-  text-decoration: none;
+.menu-button:hover,
+.drawer-close:hover {
+  border-color: var(--accent);
 }
 
-.actions button:hover,
-.actions a:hover {
-  border-color: var(--accent);
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The side menu: a modal <dialog> on the left (Escape and the backdrop close it). */
+.drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  margin: 0;
+  width: min(20rem, 100vw - 3rem);
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  padding: 0.75rem 1rem 1.5rem;
+  border: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  overflow-y: auto;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
+}
+
+.drawer::backdrop {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.drawer-head h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.drawer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.75rem 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  min-width: 0;
+}
+
+.drawer-section h3,
+.drawer-section legend {
+  margin: 0 0 0.15rem;
+  padding: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+/* A legend does not take part in the fieldset's flex layout: give it room above the options. */
+fieldset.drawer-section legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.drawer-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.drawer-item:hover {
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.drawer-row {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.drawer-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.drawer-seg {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.drawer-seg label {
+  flex: 1;
+  position: relative;
+  padding: 0.45rem 0.25rem;
+  text-align: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.drawer-seg label + label {
+  border-left: 1px solid var(--border);
+}
+
+.drawer-seg input,
+.drawer-swatches input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.drawer-seg label:has(input:checked) {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  font-weight: 600;
+}
+
+.drawer-seg label:has(input:focus-visible),
+.drawer-swatches label:has(input:focus-visible) {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.drawer-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.drawer-swatches label {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+.drawer-swatch {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+
+.drawer-swatches label:has(input:checked) .drawer-swatch {
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+}
+
+.drawer-note {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
 }
 
 .board {

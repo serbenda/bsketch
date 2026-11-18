@@ -20,16 +20,46 @@
 <body>
   <a class="skip-link" href="#canvas">Skip to the canvas</a>
   <header class="header">
+    <button type="button" id="menu-button" class="menu-button" aria-haspopup="dialog" aria-controls="menu" aria-expanded="false" title="Menu">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span class="visually-hidden">Menu</span>
+    </button>
     <h1 class="brand"><img src="icon.svg" alt="" width="24" height="24"> sketch</h1>
-    <nav class="actions" aria-label="File">
-      <button type="button" id="new">New</button>
-      <button type="button" id="open">Open…</button>
-      <button type="button" id="save">Save</button>
-      <button type="button" id="png">PNG</button>
-      <button type="button" id="svg">SVG</button>
-      <a id="portable" href="sketch-portable.html" download title="A single file that opens with a double click, offline">Portable</a>
-    </nav>
   </header>
+  <dialog id="menu" class="drawer" aria-labelledby="menu-title">
+    <div class="drawer-head">
+      <h2 id="menu-title">Menu</h2>
+      <button type="button" id="menu-close" class="drawer-close" title="Close the menu"><span aria-hidden="true">×</span><span class="visually-hidden">Close the menu</span></button>
+    </div>
+    <section class="drawer-section" aria-labelledby="menu-file">
+      <h3 id="menu-file">File</h3>
+      <button type="button" id="new" class="drawer-item">New drawing</button>
+      <button type="button" id="open" class="drawer-item">Open…</button>
+      <button type="button" id="save" class="drawer-item">Save</button>
+    </section>
+    <section class="drawer-section" aria-labelledby="menu-export">
+      <h3 id="menu-export">Export</h3>
+      <div class="drawer-row">
+        <button type="button" id="png" class="drawer-item">PNG</button>
+        <button type="button" id="svg" class="drawer-item">SVG</button>
+      </div>
+      <label class="drawer-check"><input type="checkbox" id="transparent"> Transparent background</label>
+      <a id="portable" class="drawer-item" href="sketch-portable.html" download title="A single file that opens with a double click, offline">Portable version</a>
+    </section>
+    <fieldset class="drawer-section">
+      <legend>Appearance</legend>
+      <div class="drawer-seg">
+        <label><input type="radio" name="appearance" value="system"> System</label>
+        <label><input type="radio" name="appearance" value="light"> Light</label>
+        <label><input type="radio" name="appearance" value="dark"> Dark</label>
+      </div>
+    </fieldset>
+    <fieldset class="drawer-section">
+      <legend>Canvas background</legend>
+      <div id="backgrounds" class="drawer-swatches"></div>
+      <p id="background-note" class="drawer-note" hidden>In the dark appearance the canvas is shown inverted. Files and exports keep the real colour.</p>
+    </fieldset>
+  </dialog>
   <main id="canvas" class="board" aria-label="Whiteboard"></main>
   <p id="status" class="status" aria-live="polite"></p>
   <input type="file" id="file" accept=".sketch,.excalidraw,.json,application/json" hidden>

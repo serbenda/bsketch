@@ -30,7 +30,7 @@ Sketch diagrams, flows and wireframes in the browser: no account, nothing to ins
 2. Press **R** and drag to draw a box. Double-click it and type.
 3. Press **R** again for a second box, then **A** and drag from one box to the other: the arrow sticks to both.
 4. Move a box: the arrow and the text follow it.
-5. **Save** keeps a `.sketch` file; **PNG** and **SVG** export it.
+5. Open the **☰ menu** (top left): **Save** keeps a `.sketch` file; **PNG** and **SVG** export it.
 
 Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 
@@ -46,8 +46,11 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 - Undo and redo; zoom and pan, also with two fingers on a phone.
 - Fully usable with the keyboard, with descriptions for screen readers.
 
-**Files**
-- Saves and opens `.sketch` files, opens `.excalidraw` files, exports to **PNG** and **SVG**.
+**Files and options** (the ☰ menu)
+- Saves and opens `.sketch` files, opens `.excalidraw` files, exports to **PNG** and **SVG**, also with a
+  transparent background.
+- **Appearance:** light, dark or the system's, whatever the system theme is.
+- **Canvas background:** six light colours, saved with the drawing.
 - Embedded in [Snowlog](https://github.com/serbenda/snowlog), where drawings are stored end-to-end encrypted and
   shown inside notes.
 
@@ -55,7 +58,7 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 | | How | Good for |
 |---|---|---|
 | 🌐 **Web** | [serbenda.github.io/sketch](https://serbenda.github.io/sketch/), in Chrome, Edge, Firefox or Safari. Chrome and Edge can install it as an app ("Install app") | Everyday use; works offline once opened |
-| 📄 **Portable** | The site's **Portable** button downloads `sketch-portable.html`: double-click it on Windows, macOS or Linux | Computers where you can't install anything. It is not a program, so antivirus tools don't block it |
+| 📄 **Portable** | **Portable version** in the site's menu downloads `sketch-portable.html`: double-click it on Windows, macOS or Linux | Computers where you can't install anything. It is not a program, so antivirus tools don't block it |
 | 🖥️ **Desktop** | `sketch-windows.exe`, `sketch-macos.zip` and `sketch-linux.AppImage`, built by the [Desktop workflow](https://github.com/serbenda/sketch/actions/workflows/desktop.yml) (download them from a run's artifacts) | A window of its own, no browser |
 
 The desktop builds are not signed: on macOS, open it the first time with right click → Open; on company computers
@@ -125,7 +128,8 @@ Everything else (requirements, verifying, building the portable and desktop vers
 ├── js/scene.js        # elements: create, measure, hit-test, move, rotate, bind, merge, open/save, .excalidraw
 ├── js/render.js       # scene → canvas, SVG (text or DOM) and PNG
 ├── js/editor.js       # the interactive editor, mountable in any container
-├── js/app.js          # the site: open, save and export
+├── js/app.js          # the site: the side menu, open, save, export and options
+├── js/prefs.js        # the site's preferences (appearance), validated
 ├── fonts/             # handwriting font (Caveat, OFL)
 ├── desktop/           # desktop version (Tauri): icon, smoke test and src-tauri/
 ├── scripts/           # build-portable.mjs, and the template's setup, sync and check scripts

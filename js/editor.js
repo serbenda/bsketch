@@ -324,9 +324,11 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
   // ended up changing nothing leaves no undo step and keeps the redo stack. Several commits before one
   // changed() (a double click that opens a text) are a single step.
   let pending = false;
+  // A step keeps the elements and the canvas background.
+  const snapshot = () => JSON.stringify({ background: scene.background, elements: scene.elements });
   function commit() {
     if (pending) return;
-    undo.push(JSON.stringify(scene.elements));
+    undo.push(snapshot());
     if (undo.length > 200) undo.shift();
     pending = true;
   }
@@ -339,7 +341,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
   function changed() {
     if (pending) {
       pending = false;
-      if (undo[undo.length - 1] === JSON.stringify(scene.elements)) undo.pop();
+      if (undo[undo.length - 1] === snapshot()) undo.pop();
       else redo.length = 0;
     }
     redraw();
@@ -347,19 +349,21 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     onChange(getScene());
   }
   function restore(json) {
-    scene.elements = JSON.parse(json);
+    const s = JSON.parse(json);
+    scene.elements = s.elements;
+    scene.background = s.background;
     selected = new Set([...selected].filter((id) => byId(id)));
     announce();
     changed();
   }
   function doUndo() {
     if (!undo.length) return;
-    redo.push(JSON.stringify(scene.elements));
+    redo.push(snapshot());
     restore(undo.pop());
   }
   function doRedo() {
     if (!redo.length) return;
-    undo.push(JSON.stringify(scene.elements));
+    undo.push(snapshot());
     restore(redo.pop());
   }
 
@@ -1128,9 +1132,25 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     syncPanel();
   }
 
+  // Canvas background, as an undoable step. Only colours the file format accepts.
+  function setBackground(color) {
+    if (readOnly || !E.isColor(color) || color === scene.background) return;
+    commit();
+    scene.background = color;
+    changed();
+  }
+  // 'light' or 'dark' forces the editor's appearance; anything else follows the system.
+  function setTheme(theme) {
+    root.classList.toggle('sk-light', theme === 'light');
+    root.classList.toggle('sk-dark', theme === 'dark');
+    redraw();
+  }
+
   setTool(readOnly ? 'hand' : 'select');
   requestAnimationFrame(() => zoomToFit());
   return {
+    setBackground,
+    setTheme,
     root,
     getScene,
     setScene,

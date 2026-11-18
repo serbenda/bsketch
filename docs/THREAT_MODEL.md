@@ -23,6 +23,7 @@ Last reviewed: 2026-11-17
 |---|---|---|---|
 | Open file / drag and drop | Anyone who gets a file to the user | JSON drawing | No |
 | Browser storage (`sketch.current`) | Scripts on the same origin (none other) | JSON drawing | No |
+| Browser storage (`sketch.prefs`) | Scripts on the same origin (none other) | The appearance (`system`, `light` or `dark`) | No |
 | Snowlog embedding | Snowlog, with scenes decrypted from the user's vault | Scene object | Snowlog's session |
 | Desktop webview | The page inside the app | — (no IPC exposed) | No |
 | CI and desktop build | Workflows, actions, crates, `npx` tools | Code | GitHub permissions |

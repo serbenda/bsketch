@@ -10,4 +10,4 @@ Each block of work has a phase file `PNN-short-title.md` created with `/new-phas
 | Phase | Stage | Title | Status |
 |---|---|---|---|
 | [P01](P01-adopt-project-template.md) | S3 | Adopt project-template 1.0.0, everything in English | ✅ |
-| [P03](P03-options-menu.md) | S3 | Options menu: appearance, canvas background, transparent export | ⬜ |
+| [P03](P03-options-menu.md) | S3 | Options menu: appearance, canvas background, transparent export | ✅ |

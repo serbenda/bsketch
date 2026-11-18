@@ -16,6 +16,25 @@
 - **Pending:**
 -->
 
+## 2026-11-18 — P03: the side menu with file actions and options
+- **Phase / issue:** P03
+- **What:** a ☰ button opens a side menu (modal `<dialog>`) with New, Open, Save, PNG, SVG, a Transparent background
+  toggle, Portable, Appearance (System · Light · Dark) and six canvas colours. `js/prefs.js` keeps the appearance in
+  `sketch.prefs`, validated. The editor has `setTheme` and `setBackground`; undo steps keep the background.
+  `css/styles.css` and `css/sketch.css` apply the dark colours when forced, not only with the system's dark mode.
+- **Why:** the owner's canvas was black (dark system) and there was nowhere in the app to change it; they asked
+  for a side menu with the file actions, which approves P03's plan with that change.
+- **Rejected:** a centred dialog with the file buttons still in the header (the plan's first idea; the owner asked
+  for one side menu); a free colour picker (as planned); remembering the transparent toggle (as planned).
+- **Files:** index.html, js/app.js, js/prefs.js, js/editor.js, js/scene.js, js/render.js, css/styles.css,
+  css/sketch.css, sw.js, tests/scene.test.mjs, tests/e2e/editor.e2e.mjs, README.md, CHANGELOG.md,
+  docs/ARCHITECTURE.md, docs/THREAT_MODEL.md, docs/ROADMAP.md, docs/phases/
+- **Commits:** this one, on `feat/p03-options-menu`.
+- **Tested:** `npm test` 23 pass; `npm run test:e2e` 11 pass (a new walkthrough through the menu on a dark system);
+  the portable build; by eye in the browser, dark system with Light and System, desktop and phone width, no console
+  errors.
+- **Pending:** P04 (grid). The transparent PNG has no pixel test.
+
 ## 2026-11-18 — OSV-Scanner findings in the desktop lockfile
 - **Phase / issue:** — · PR #7
 - **What:** `desktop/src-tauri/osv-scanner.toml` (owner) ignores, until 2027-05-18 and each with its reason, the

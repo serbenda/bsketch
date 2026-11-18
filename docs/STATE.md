@@ -8,15 +8,16 @@ Last updated: 2026-11-17
 ## Where we are
 - **Mode:** full
 - **Current stage:** S3 — Release (see [ROADMAP](ROADMAP.md))
-- **Phase in progress:** none; next is [P03 — Options menu](phases/P03-options-menu.md), plan awaiting the owner's approval
+- **Phase in progress:** none; next is P04 — Grid and snapping (to plan)
 - **Environment:** GitHub Pages (published by the Pages workflow on `main`), the portable file, and desktop builds as CI artifacts
 - **Working branch:** `development`
 
 ## Current work
-- [P03](phases/P03-options-menu.md) planned (appearance, canvas background, transparent export) and challenged;
-  the grid goes to P04. No code until the owner approves the plan.
+- [P03](phases/P03-options-menu.md) done on `feat/p03-options-menu`: the side menu with file actions, appearance,
+  canvas background and transparent export. To merge into `development` once PR #7 is merged.
 
 ## Recently done
+- [P03](phases/P03-options-menu.md): the ☰ side menu (files, export, appearance, canvas background).
 - Fixes from a code review: big PNG export, arrows kept when aligning, Enter on buttons, undo steps, pinch while
   drawing, attached-element caching, the service worker's offline page, `Cargo.lock` committed (see WORKLOG).
 - [P01](phases/P01-adopt-project-template.md): the template's guardrails and docs, everything in English (PR #5).
@@ -26,7 +27,7 @@ Last updated: 2026-11-17
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. Owner: approve P03's plan; then P03 and P04 on `development`.
+1. Owner: try P03's menu; then P04 (grid) on `development`.
 2. Owner: review and merge the `development → main` PR with the logo, banner, README and the review fixes.
 3. Owner: re-run `./scripts/setup-repo.sh` on his Mac for the rules of `main`.
 4. Owner: try the site and the desktop builds on Firefox, Safari, a real phone, macOS and Windows (P02, [R-002](RISKS.md)),
@@ -36,7 +37,7 @@ Last updated: 2026-11-17
 7. Owner: set `docs/images/banner.png` as the repository's social preview (Settings → General).
 
 ## Blocked / awaiting decision
-- P03's plan, awaiting the owner's approval.
+- Nothing.
 
 ## Open risks
 - R-001 unsigned executables, R-002 untested browsers and devices, R-003 AppImage's bundled WebKit,
