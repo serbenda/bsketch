@@ -149,6 +149,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     el('div', { class: 'sk-label' }, 'Sloppiness'),
     seg('Sloppiness', [[0, 'Straight'], [1, 'Hand-drawn'], [2, 'Sketchy']], (v) => setStyle({ roughness: v })),
     el('div', { class: 'sk-label' }, 'Text'),
+    seg('Font', [['hand', 'Hand'], ['normal', 'Normal'], ['code', 'Code']], (v) => setStyle({ font: v })),
     seg('Text size', [[16, 'S'], [24, 'M'], [36, 'L'], [56, 'XL']], (v) => setStyle({ fontSize: v })),
     alignBlock,
     el('div', { class: 'sk-label' }, 'Layers and actions'),
@@ -286,6 +287,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     const editing = editingText && byId(editingText);
     if (editing) {
       textBox.style.fontSize = `${editing.fontSize * view.zoom}px`;
+      textBox.style.fontFamily = E.fontOf(editing);
       placeTextBox(editing);
     }
     const r = canvas.getBoundingClientRect();
@@ -418,13 +420,20 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     style = { ...style, ...patch };
     if (selected.size) {
       if (step) commit();
-      // Arrowheads only make sense on arrows; 'end' is the default and is not stored.
+      // Arrowheads only make sense on arrows and fonts on texts; their defaults ('end', 'hand') are not stored.
       update(scene.elements.map((e) => {
         if (!selected.has(e.id)) return e;
-        if (!('heads' in patch)) return { ...e, ...patch };
-        if (e.type !== 'arrow') return e;
-        const { heads, ...rest } = { ...e, ...patch };
-        return heads === 'end' ? rest : { ...rest, heads };
+        if ('heads' in patch) {
+          if (e.type !== 'arrow') return e;
+          const { heads, ...rest } = { ...e, ...patch };
+          return heads === 'end' ? rest : { ...rest, heads };
+        }
+        if ('font' in patch) {
+          if (e.type !== 'text') return e;
+          const { font, ...rest } = { ...e, ...patch };
+          return font === 'hand' ? rest : { ...rest, font };
+        }
+        return { ...e, ...patch };
       }));
       changed();
     } else {
@@ -453,12 +462,13 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       b.setAttribute('aria-pressed', String(cur[prop] === b.dataset.color));
     }
     const segs = panel.querySelectorAll('.sk-seg');
-    const props = ['fillStyle', 'width', 'dashed', 'heads', 'roughness', 'fontSize'];
+    const props = ['fillStyle', 'width', 'dashed', 'heads', 'roughness', 'font', 'fontSize'];
     const arrow = s.length ? s.filter((e) => e.type === 'arrow').pop() : null;
     headsBlock.hidden = !(arrow || (!s.length && tool === 'arrow'));
     const heads = (arrow || style).heads || 'end';
     segs.forEach((g, i) => {
-      const value = props[i] === 'heads' ? heads : cur[props[i]];
+      const textEl = s.filter((e) => e.type === 'text').pop();
+      const value = props[i] === 'heads' ? heads : props[i] === 'font' ? (textEl || style).font || 'hand' : cur[props[i]];
       for (const b of g.children) b.setAttribute('aria-pressed', String(String(value) === b.dataset.value));
     });
     const n = s.length ? units().length : 0;
@@ -650,6 +660,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     textBox.classList.toggle('sk-bound', !!t.containerId);
     textBox.value = t.text || '';
     textBox.style.fontSize = `${t.fontSize * view.zoom}px`;
+    textBox.style.fontFamily = E.fontOf(t);
     textBox.style.color = t.stroke;
     textBox.style.lineHeight = String(E.LINE_HEIGHT);
     placeTextBox(t);

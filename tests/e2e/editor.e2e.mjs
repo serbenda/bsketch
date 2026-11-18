@@ -394,6 +394,37 @@ test('arrowheads, copy as PNG, Ctrl+S and asking before opening over a drawing',
   }
 });
 
+test('fonts: a text written in the code font keeps it, and the font can be changed afterwards', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('t');
+    await page.click('[aria-label="Font"] button', 'Code');
+    await page.mouseClick(at(0, 0));
+    await page.waitFor('!document.querySelector(".sk-textbox").hidden');
+    assert.match(await page.eval('document.querySelector(".sk-textbox").style.fontFamily'), /monospace/, 'the text box writes in it');
+    await page.type('let x = 1');
+    await page.press('Escape');
+    let s = await scene(page);
+    assert.equal(s.elements[0].font, 'code');
+    // Selected again, the panel shows it and another font can be chosen.
+    await page.press('v');
+    await page.mouseClick(at(20, 0));
+    assert.equal(await page.eval('[...document.querySelectorAll(\'[aria-label="Font"] button\')].find((b) => b.getAttribute("aria-pressed") === "true").textContent'), 'Code');
+    await page.click('[aria-label="Font"] button', 'Normal');
+    s = await scene(page);
+    assert.equal(s.elements[0].font, 'normal');
+    await page.click('[aria-label="Font"] button', 'Hand');
+    s = await scene(page);
+    assert.equal(s.elements[0].font, undefined, 'the handwriting font is the default and is not stored');
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
 test('a drawing with 2,000 elements pans smoothly', { skip }, async () => {
   const page = await browser.newPage();
   try {
