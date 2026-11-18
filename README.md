@@ -40,6 +40,7 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 - **Text inside shapes:** it is centered, wraps to the shape and moves, resizes and rotates with it.
 - **Attached arrows:** an arrow that starts or ends on a shape stays on its outline when the shape moves.
 - Hachure or solid fill, colors, stroke width, dashed lines and three levels of sloppiness.
+- Arrowheads at the end, the start, both ends or none.
 
 **Editing**
 - Select, move, resize, **rotate**, **group**, **align and distribute**, duplicate, reorder and delete.
@@ -48,7 +49,7 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 
 **Files and options** (the ☰ menu)
 - Saves and opens `.sketch` files, opens `.excalidraw` files, exports to **PNG** and **SVG**, also with a
-  transparent background.
+  transparent background, and copies the drawing or the selection to the clipboard as a PNG.
 - **Appearance:** light, dark or the system's, whatever the system theme is.
 - **Canvas background:** six light colours, saved with the drawing.
 - **Grid:** shown on screen only; new shapes and moves snap to it.
@@ -80,6 +81,8 @@ the antivirus may block an unsigned executable (use the portable file there). Th
 | Ctrl+D · Ctrl+C · Ctrl+V | Duplicate · copy · paste |
 | Ctrl+G · Ctrl+Shift+G | Group · ungroup |
 | G | Show the grid: new shapes and moves land on it (also in the ☰ menu) |
+| Ctrl+S · Ctrl+O | Save · open a file (Cmd on a Mac) |
+| Alt+Shift+C | Copy the selection (or the whole drawing) as a PNG, to paste in a chat or a document |
 | Delete · arrow keys | Delete · move the selection (Shift: 10 at a time; with the grid, one cell and Shift 1 px) |
 | Ctrl+wheel · Ctrl+0 | Zoom · back to 100% |
 | Double click · Enter | Write text: inside the shape when done on one (or edit the existing text) |

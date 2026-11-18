@@ -133,6 +133,8 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       btn('alignMiddle', 'Center vertically', () => align('middle')),
       btn('alignBottom', 'Align bottom', () => align('bottom')),
       distH, distV));
+  const headsSeg = seg('Arrowheads', [['end', 'End'], ['start', 'Start'], ['both', 'Both'], ['none', 'None']], (v) => setStyle({ heads: v }));
+  const headsBlock = el('div', {}, el('div', { class: 'sk-label' }, 'Arrowheads'), headsSeg);
   const panel = el('div', { class: 'sk-panel', 'aria-label': 'Style' },
     el('div', { class: 'sk-label' }, 'Stroke'),
     el('div', { class: 'sk-row', 'data-prop': 'stroke' }, ...STROKES.map((c) => swatch(c, (v) => setStyle({ stroke: v }), `Stroke ${c}`)), strokeColor),
@@ -143,6 +145,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     seg('Stroke width', [[1, 'Thin'], [2, 'Medium'], [4, 'Bold']], (v) => setStyle({ width: v })),
     el('div', { class: 'sk-label' }, 'Line'),
     seg('Line style', [[false, 'Solid'], [true, 'Dashed']], (v) => setStyle({ dashed: v })),
+    headsBlock,
     el('div', { class: 'sk-label' }, 'Sloppiness'),
     seg('Sloppiness', [[0, 'Straight'], [1, 'Hand-drawn'], [2, 'Sketchy']], (v) => setStyle({ roughness: v })),
     el('div', { class: 'sk-label' }, 'Text'),
@@ -415,7 +418,14 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     style = { ...style, ...patch };
     if (selected.size) {
       if (step) commit();
-      update(scene.elements.map((e) => (selected.has(e.id) ? { ...e, ...patch } : e)));
+      // Arrowheads only make sense on arrows; 'end' is the default and is not stored.
+      update(scene.elements.map((e) => {
+        if (!selected.has(e.id)) return e;
+        if (!('heads' in patch)) return { ...e, ...patch };
+        if (e.type !== 'arrow') return e;
+        const { heads, ...rest } = { ...e, ...patch };
+        return heads === 'end' ? rest : { ...rest, heads };
+      }));
       changed();
     } else {
       syncPanel();
@@ -443,9 +453,13 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       b.setAttribute('aria-pressed', String(cur[prop] === b.dataset.color));
     }
     const segs = panel.querySelectorAll('.sk-seg');
-    const props = ['fillStyle', 'width', 'dashed', 'roughness', 'fontSize'];
+    const props = ['fillStyle', 'width', 'dashed', 'heads', 'roughness', 'fontSize'];
+    const arrow = s.length ? s.filter((e) => e.type === 'arrow').pop() : null;
+    headsBlock.hidden = !(arrow || (!s.length && tool === 'arrow'));
+    const heads = (arrow || style).heads || 'end';
     segs.forEach((g, i) => {
-      for (const b of g.children) b.setAttribute('aria-pressed', String(String(cur[props[i]]) === b.dataset.value));
+      const value = props[i] === 'heads' ? heads : cur[props[i]];
+      for (const b of g.children) b.setAttribute('aria-pressed', String(String(value) === b.dataset.value));
     });
     const n = s.length ? units().length : 0;
     alignBlock.hidden = n < 2;
@@ -1207,6 +1221,8 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   setTool(readOnly ? 'hand' : 'select');
   requestAnimationFrame(() => zoomToFit());
   return {
+    // A copy of the selected elements (with the texts inside selected shapes), or [] if nothing is selected.
+    getSelection: () => structuredClone(selection()),
     setBackground,
     setGrid,
     setTheme,

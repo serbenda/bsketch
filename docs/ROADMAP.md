@@ -24,3 +24,4 @@ S0–S2 were done before the project adopted the template (2026-11-13 to 2026-11
 | P02 | Owner's tests on other browsers and devices, fixes, and the first release (`v0.4.0`) | ⬜ |
 | P03 | [Options menu: appearance, canvas background, transparent export](phases/P03-options-menu.md) | ✅ |
 | P04 | [Grid and snapping (new shapes and moves first)](phases/P04-grid-and-snapping.md) | ✅ |
+| P05 | [Everyday comfort: ask before opening, file shortcuts, copy as PNG, arrowheads](phases/P05-everyday-comfort.md) | ✅ |

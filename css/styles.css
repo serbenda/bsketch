@@ -164,7 +164,9 @@ fieldset.drawer-section legend {
 }
 
 .drawer-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   width: 100%;
   padding: 0.5rem 0.75rem;
   border: 1px solid transparent;
@@ -197,6 +199,7 @@ fieldset.drawer-section legend {
   cursor: pointer;
 }
 
+.drawer-item kbd,
 .drawer-check kbd {
   margin-left: auto;
   padding: 0 0.4rem;

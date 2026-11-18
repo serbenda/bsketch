@@ -339,3 +339,20 @@ test('snapping to the grid rounds to the nearest line', () => {
   assert.deepEqual(E.snapPoint({ x: 27, y: 92 }), { x: 20, y: 100 });
   assert.equal(E.snap(37, 10), 40);
 });
+
+test('arrowheads: stored only on arrows and only when not the default, validated, and imported from Excalidraw', () => {
+  assert.equal(E.createElement('rectangle', 0, 0, { heads: 'both' }).heads, undefined, 'not on other shapes');
+  assert.equal(E.createElement('arrow', 0, 0, { heads: 'end' }).heads, undefined, 'the default is not stored');
+  assert.equal(E.createElement('arrow', 0, 0, { heads: 'both' }).heads, 'both');
+  const raw = { type: 'arrow', x: 0, y: 0, points: [{ x: 0, y: 0 }, { x: 100, y: 0 }] };
+  assert.equal(E.cleanElement({ ...raw, heads: 'start' }).heads, 'start');
+  assert.equal(E.cleanElement({ ...raw, heads: '<b>' }).heads, undefined, 'unknown values are dropped');
+  assert.equal(E.cleanElement({ ...raw, type: 'line', heads: 'both' }).heads, undefined);
+  const arrow = (heads) => ({ ...E.createElement('arrow', 0, 0, { heads }), points: [{ x: 0, y: 0 }, { x: 100, y: 0 }] });
+  assert.deepEqual(['end', 'start', 'both', 'none'].map((h) => E.drawOps(arrow(h)).length), [2, 2, 3, 1], 'one path for the line plus one per head');
+  const ex = (extra) => E.fromExcalidraw({ type: 'excalidraw', elements: [{ id: 'a', type: 'arrow', x: 0, y: 0, width: 100, height: 0, points: [[0, 0], [100, 0]], ...extra }] }).elements[0].heads;
+  assert.equal(ex({}), undefined, 'Excalidraw default: an arrowhead at the end');
+  assert.equal(ex({ startArrowhead: 'arrow', endArrowhead: 'arrow' }), 'both');
+  assert.equal(ex({ startArrowhead: 'arrow', endArrowhead: null }), 'start');
+  assert.equal(ex({ startArrowhead: null, endArrowhead: null }), 'none');
+});

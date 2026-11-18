@@ -16,6 +16,22 @@
 - **Pending:**
 -->
 
+## 2026-11-18 — P05: ask before opening, file shortcuts, copy as PNG, arrowheads
+- **Phase / issue:** P05
+- **What:** opening over a drawing asks first; Ctrl+S/Ctrl+O; Copy as PNG (menu, Alt+Shift+C); arrowheads (End,
+  Start, Both, None) stored as `heads`, validated, imported from Excalidraw. The style panel's nested labels got
+  their gap back (`.sk-panel > .sk-label:first-child`).
+- **Why:** the owner approved the four most useful gaps found after P04.
+- **Rejected:** Ctrl+Shift+C for copying (Chrome's inspector keeps it); storing `heads: 'end'` on every arrow
+  (keeps files and diffs small); reading the clipboard back in the test (headless Chrome denies it; the write is
+  recorded instead).
+- **Files:** js/scene.js, js/editor.js, js/app.js, index.html, css/styles.css, css/sketch.css, sw.js,
+  tests/scene.test.mjs, tests/e2e/editor.e2e.mjs, README.md, CHANGELOG.md, docs/ARCHITECTURE.md, docs/ROADMAP.md,
+  docs/phases/
+- **Commits:** this one.
+- **Tested:** `npm test` 25 pass; `npm run test:e2e` 13 pass; by eye in the browser.
+- **Pending:** copying images from the desktop app (WebKit) is untested.
+
 ## 2026-11-18 — P04: grid and snapping
 - **Phase / issue:** P04
 - **What:** a grid on the editor's canvas (G or the menu's "Show grid"), remembered in `sketch.prefs`; new shapes,
