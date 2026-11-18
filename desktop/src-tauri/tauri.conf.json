@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "sketch",
+  "productName": "bsketch",
   "version": "0.4.0",
   "identifier": "dev.bendi.sketch",
   "build": {
@@ -10,7 +10,7 @@
     "withGlobalTauri": false,
     "windows": [
       {
-        "title": "sketch",
+        "title": "bsketch",
         "width": 1280,
         "height": 820,
         "minWidth": 360,

@@ -1,4 +1,4 @@
-# sketch status
+# bsketch status
 
 > **Single source of truth for status.** Claude reads it at the start of every session (`/status`) and updates it when closing a phase (`/close-phase`).
 > At most **150 lines**: replace what is outdated instead of piling up, and **link** documents instead of copying them.
@@ -16,6 +16,7 @@ Last updated: 2026-11-17
 - P05 done (ask before opening, Ctrl+S/O, copy as PNG, arrowheads); P04 and P05 go to `main` together.
 
 ## Recently done
+- Renamed to **bsketch** with an SB logo ([ADR 0005](decisions/0005-rename-to-bsketch.md)), on `feat/bsketch`.
 - [P05](phases/P05-everyday-comfort.md): ask before opening, Ctrl+S/Ctrl+O, copy as PNG, arrowheads.
 - [P04](phases/P04-grid-and-snapping.md): the grid (G or the menu), with snapping for new shapes and moves.
 - [P03](phases/P03-options-menu.md): the ☰ side menu (files, export, appearance, canvas background).

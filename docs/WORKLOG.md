@@ -16,6 +16,26 @@
 - **Pending:**
 -->
 
+## 2026-11-18 — The name: bsketch, with an SB logo
+- **Phase / issue:** — ([ADR 0005](decisions/0005-rename-to-bsketch.md))
+- **What:** the name the user sees becomes bsketch: page title and header, PWA manifest, portable file
+  (`bsketch-portable.html`), Tauri product name and window title, the Rust package (so the executable is
+  `bsketch`), README and SETUP links to `serbenda/bsketch`. A hand-drawn SB logo on night blue with the orange dot
+  (`icon.svg`, `desktop/icon.png`); the README banner and both screenshots rendered again (the screenshots also
+  show the ☰ menu now). The service worker cache moves to `sketch-v7`.
+- **Why:** the owner wanted something of their own in the name ("the b of bendi"), the repository and URL renamed
+  too, and an SB logo.
+- **Rejected:** renaming the `.sketch` format, the storage keys or the `sk-` prefix (would lose drawings and break
+  Snowlog); a single "b" logo (the owner asked for SB).
+- **Files:** index.html, manifest.webmanifest, icon.svg, desktop/icon.png, desktop/src-tauri/{tauri.conf.json,
+  Cargo.toml, Cargo.lock, src/main.rs}, scripts/build-portable.mjs, sw.js, tests/e2e/editor.e2e.mjs, README.md,
+  CHANGELOG.md, docs/images/*, docs/SETUP.md, docs/VISION.md, docs/STATE.md, docs/decisions/
+- **Commits:** this one; the owner's with `.github/` (workflow file names, issue template link).
+- **Tested:** `npm test` 25 pass; `npm run test:e2e` 13 pass (the portable walkthrough with the new file name);
+  portable build; `Cargo.lock` changed only in the root package (`cargo update --workspace`). The banner, logo and
+  screenshots checked by eye.
+- **Pending:** the owner renames the repository on GitHub and updates the local remote; Snowlog's update script.
+
 ## 2026-11-18 — P05: ask before opening, file shortcuts, copy as PNG, arrowheads
 - **Phase / issue:** P05
 - **What:** opening over a drawing asks first; Ctrl+S/Ctrl+O; Copy as PNG (menu, Alt+Shift+C); arrowheads (End,
