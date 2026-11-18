@@ -90,4 +90,4 @@ system theme, pick the canvas colour and export without a background.
   pixel test.
 - **What was left out and why:** the grid (P04, as planned). Keyboard shortcuts for Save/Open (not asked for).
 - **Lessons learned:** the owner wanted the file actions out of the header too: one menu for files and options.
-- **PR:** #7
+- **PR:** the one after #7
