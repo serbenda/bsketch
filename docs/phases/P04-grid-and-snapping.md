@@ -88,4 +88,4 @@ lightly behind the drawing.
   size (as planned).
 - **Lessons learned:** painting the background in the editor before the grid keeps `paintScene` (and so every
   export) unaware of it.
-- **PR:** #
+- **PR:** #9
