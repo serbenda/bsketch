@@ -1,10 +1,11 @@
 # P04 — Grid and snapping
 
 - **Stage:** S3
-- **Status:** ⬜ planned
+- **Status:** ✅ done
 - **Issue:** —
-- **Dates:** 2026-11-18 → —
-- **Owner approvals:** 2026-11-17 the grid among the options asked for (moved here from P03)
+- **Dates:** 2026-11-18 → 2026-11-18
+- **Owner approvals:** 2026-11-17 the grid among the options asked for (moved here from P03); 2026-11-18 plan
+  approved, with arrow keys moving one cell and Shift+arrow 1 px
 
 ## Goal
 Diagrams line up without effort: with the grid on, new shapes and moved elements land on it, and the grid is drawn
@@ -33,15 +34,15 @@ lightly behind the drawing.
   with G instead).
 
 ## Acceptance criteria
-- [ ] The Grid switch and the G key turn the grid on and off; the choice survives a reload; a stored value that is
+- [x] The Grid switch and the G key turn the grid on and off; the choice survives a reload; a stored value that is
   not `true`/`false` falls back to off.
-- [ ] With the grid on, a new rectangle drawn from (13, 27) to (118, 92) is stored at x 20, y 20, w 100, h 80.
-- [ ] A new arrow from one shape to empty space keeps its start attached and its free end on the grid.
-- [ ] Moving a selection with the mouse leaves its top-left corner on the grid; the elements inside keep their
+- [x] With the grid on, a new rectangle drawn from (13, 27) to (118, 92) is stored at x 20, y 20, w 100, h 80.
+- [x] A new arrow from one shape to empty space keeps its start attached and its free end on the grid.
+- [x] Moving a selection with the mouse leaves its top-left corner on the grid; the elements inside keep their
   positions relative to each other.
-- [ ] With the grid off, nothing changes compared with today (existing walkthroughs pass unchanged).
-- [ ] PNG, SVG and `.sketch` exports are byte-for-byte the same with the grid on or off.
-- [ ] Unit tests for the snap function and for the preference; an e2e walkthrough drawing and moving with the grid;
+- [x] With the grid off, nothing changes compared with today (existing walkthroughs pass unchanged).
+- [x] PNG, SVG and `.sketch` exports are byte-for-byte the same with the grid on or off.
+- [x] Unit tests for the snap function and for the preference; an e2e walkthrough drawing and moving with the grid;
   `npm test`, `npm run test:e2e` and the portable build pass.
 
 ## Plan
@@ -73,8 +74,18 @@ lightly behind the drawing.
 
 ## Result
 <!-- Filled in with /close-phase. -->
-- **What was done:**
-- **How it was tested:**
-- **What was left out and why:**
-- **Lessons learned:**
+- **What was done:** `snap`/`snapPoint` and `GRID_SIZE` (20) in `js/scene.js`; `grid` in `sketch.prefs`; the
+  editor draws the grid behind the drawing (lines every 20 units, stronger every 100, hidden under 6 px a cell) and
+  snaps new shapes, line and arrow ends (an end attaching to a shape still attaches), new text and the keyboard's
+  centre shape; a moved selection lands with its top-left corner on the grid; arrow keys move one cell (Shift 1 px);
+  G and a "Show grid" switch in the menu, with `setGrid` and `onGridChange` in the editor's API.
+- **How it was tested:** `npm test` 24 pass (snap, the stored grid value); `npm run test:e2e` 12 pass, with a
+  walkthrough that turns the grid on with G, draws a box from (13, 27) to (118, 92) and checks x 20, y 20, w 100,
+  h 80, moves it by an odd amount, uses the arrow keys, draws an arrow attached at one end with its free end on the
+  grid, reloads and turns it off from the menu. Checked by eye in light and dark. Exports do not change: the grid is
+  painted only in the editor's `render()`, not in `paintScene`.
+- **What was left out and why:** snapping while resizing or rotating, guides to other elements, a configurable
+  size (as planned).
+- **Lessons learned:** painting the background in the editor before the grid keeps `paintScene` (and so every
+  export) unaware of it.
 - **PR:** #

@@ -32,7 +32,7 @@ flowchart LR
 - **In:** what the user draws, and files they open (`.sketch`, `.excalidraw`) or drop on the page: untrusted.
   `parseScene` validates every field (`cleanElement`) before anything uses it. The saved drawing in the browser
   (`localStorage`, key `sketch.current`) goes through the same validation. The site's preferences (`sketch.prefs`:
-  the appearance) are read through `js/prefs.js`, which keeps only known values.
+  the appearance and the grid) are read through `js/prefs.js`, which keeps only known values.
 - **Through:** the editor keeps the scene in memory and passes immutable element objects to the renderer, which
   caches each element's strokes by object identity.
 - **Out:** downloads (`.sketch`, PNG, SVG) and the browser's storage. Nothing goes over the network.

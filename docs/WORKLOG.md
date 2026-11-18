@@ -16,6 +16,20 @@
 - **Pending:**
 -->
 
+## 2026-11-18 — P04: grid and snapping
+- **Phase / issue:** P04
+- **What:** a grid on the editor's canvas (G or the menu's "Show grid"), remembered in `sketch.prefs`; new shapes,
+  line and arrow ends, texts and moved selections snap to it; arrow keys move one cell (Shift 1 px).
+- **Why:** the owner asked for a grid among the options (2026-11-17) and approved this plan (2026-11-18).
+- **Rejected:** snapping each element of a moved selection (would break groups); Alt to skip the snap (moves
+  windows on Linux); snapping while resizing or rotating (left for later).
+- **Files:** js/scene.js, js/prefs.js, js/editor.js, js/app.js, index.html, css/styles.css, tests/scene.test.mjs,
+  tests/e2e/editor.e2e.mjs, README.md, CHANGELOG.md, docs/ARCHITECTURE.md, docs/THREAT_MODEL.md, docs/ROADMAP.md,
+  docs/phases/
+- **Commits:** this one.
+- **Tested:** `npm test` 24 pass; `npm run test:e2e` 12 pass (a new grid walkthrough); by eye in light and dark.
+- **Pending:** —
+
 ## 2026-11-18 — P03: the side menu with file actions and options
 - **Phase / issue:** P03
 - **What:** a ☰ button opens a side menu (modal `<dialog>`) with New, Open, Save, PNG, SVG, a Transparent background

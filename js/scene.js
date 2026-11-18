@@ -17,6 +17,11 @@ export const FONT_NAME = 'Sketch Hand';
 export const FONT = `"${FONT_NAME}", "Segoe Print", "Bradley Hand", "Comic Sans MS", "Chalkboard SE", cursive`;
 const ARROW_GAP = 6;
 
+// The grid: lines every GRID_SIZE drawing units. snap() rounds a coordinate to the nearest line.
+export const GRID_SIZE = 20;
+export const snap = (v, size = GRID_SIZE) => Math.round(v / size) * size;
+export const snapPoint = (p, size = GRID_SIZE) => ({ x: snap(p.x, size), y: snap(p.y, size) });
+
 export const DEFAULT_STYLE = {
   stroke: '#1e1e1e',
   fill: 'transparent',

@@ -197,6 +197,16 @@ fieldset.drawer-section legend {
   cursor: pointer;
 }
 
+.drawer-check kbd {
+  margin-left: auto;
+  padding: 0 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
 .drawer-seg {
   display: flex;
   border: 1px solid var(--border);

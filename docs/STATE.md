@@ -8,15 +8,15 @@ Last updated: 2026-11-17
 ## Where we are
 - **Mode:** full
 - **Current stage:** S3 — Release (see [ROADMAP](ROADMAP.md))
-- **Phase in progress:** none; next is [P04 — Grid and snapping](phases/P04-grid-and-snapping.md), plan awaiting the owner's approval
+- **Phase in progress:** none; next is P02 — the owner's tests on other browsers and devices, and `v0.4.0`
 - **Environment:** GitHub Pages (published by the Pages workflow on `main`), the portable file, and desktop builds as CI artifacts
 - **Working branch:** `development`
 
 ## Current work
-- [P04](phases/P04-grid-and-snapping.md) planned: grid in the menu and on G, snapping new shapes and moves. No code
-  until the owner approves the plan.
+- P04 done; its PR to `main` is open.
 
 ## Recently done
+- [P04](phases/P04-grid-and-snapping.md): the grid (G or the menu), with snapping for new shapes and moves.
 - [P03](phases/P03-options-menu.md): the ☰ side menu (files, export, appearance, canvas background).
 - Fixes from a code review: big PNG export, arrows kept when aligning, Enter on buttons, undo steps, pinch while
   drawing, attached-element caching, the service worker's offline page, `Cargo.lock` committed (see WORKLOG).
@@ -27,7 +27,7 @@ Last updated: 2026-11-17
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. Owner: approve P04's plan (and its open question on arrow keys); then P04 on `development`.
+1. Owner: review and merge P04's PR; then P02 (tests on other browsers and devices, `v0.4.0`).
 2. Owner: re-run `./scripts/setup-repo.sh` on his Mac for the rules of `main`.
 3. Owner: try the site and the desktop builds on Firefox, Safari, a real phone, macOS and Windows (P02, [R-002](RISKS.md)),
    including a pinch while drawing and downloading PNG/SVG/.sketch from the desktop app.
@@ -36,7 +36,7 @@ Last updated: 2026-11-17
 6. Owner: set `docs/images/banner.png` as the repository's social preview (Settings → General).
 
 ## Blocked / awaiting decision
-- P04's plan, awaiting the owner's approval.
+- Nothing.
 
 ## Open risks
 - R-001 unsigned executables, R-002 untested browsers and devices, R-003 AppImage's bundled WebKit,

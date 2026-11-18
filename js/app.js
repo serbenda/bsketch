@@ -43,6 +43,8 @@ const editor = createEditor($('canvas'), {
     clearTimeout(timer);
     timer = setTimeout(() => store(scene), 400);
   },
+  // The G key: remembered like the menu's switch.
+  onGridChange: (on) => setGridPref(on),
 });
 editor.focus();
 
@@ -151,6 +153,18 @@ for (const input of document.querySelectorAll('input[name="appearance"]')) {
 }
 darkQuery.addEventListener('change', applyAppearance);
 
+// Grid: shown on screen only, remembered in this browser.
+function setGridPref(on) {
+  prefs = { ...prefs, grid: on };
+  savePrefs(prefsStorage, prefs);
+  $('grid').checked = on;
+}
+$('grid').addEventListener('change', () => {
+  editor.setGrid($('grid').checked);
+  setGridPref($('grid').checked);
+});
+editor.setGrid(prefs.grid);
+
 // Canvas background: saved with the drawing and undoable.
 const swatches = $('backgrounds');
 for (const [color, label] of BACKGROUNDS) {
@@ -174,6 +188,7 @@ for (const [color, label] of BACKGROUNDS) {
 // The menu shows the current choices each time it opens.
 function syncMenu() {
   for (const input of document.querySelectorAll('input[name="appearance"]')) input.checked = input.value === prefs.appearance;
+  $('grid').checked = prefs.grid;
   const bg = editor.getScene().background;
   for (const input of swatches.querySelectorAll('input')) input.checked = input.value === bg;
 }

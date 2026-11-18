@@ -303,17 +303,18 @@ test('the text boxes are measured again after forgetting them', () => {
 test('preferences: only known values are kept, anything else falls back to the default', () => {
   const mem = new Map();
   const storage = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, v) };
-  assert.deepEqual(loadPrefs(storage), { appearance: 'system' }, 'nothing stored');
-  assert.ok(savePrefs(storage, { appearance: 'dark', extra: '<script>' }));
-  assert.equal(mem.get(PREFS_KEY), '{"appearance":"dark"}', 'unknown fields are not stored');
-  assert.deepEqual(loadPrefs(storage), { appearance: 'dark' });
-  mem.set(PREFS_KEY, '{"appearance":"purple"}');
-  assert.deepEqual(loadPrefs(storage), { appearance: 'system' }, 'an unknown appearance');
+  const DEF = { appearance: 'system', grid: false };
+  assert.deepEqual(loadPrefs(storage), DEF, 'nothing stored');
+  assert.ok(savePrefs(storage, { appearance: 'dark', grid: true, extra: '<script>' }));
+  assert.equal(mem.get(PREFS_KEY), '{"appearance":"dark","grid":true}', 'unknown fields are not stored');
+  assert.deepEqual(loadPrefs(storage), { appearance: 'dark', grid: true });
+  mem.set(PREFS_KEY, '{"appearance":"purple","grid":"yes"}');
+  assert.deepEqual(loadPrefs(storage), DEF, 'an unknown appearance and a grid that is not a boolean');
   mem.set(PREFS_KEY, 'not json');
-  assert.deepEqual(loadPrefs(storage), { appearance: 'system' }, 'broken JSON');
-  assert.deepEqual(loadPrefs(null), { appearance: 'system' }, 'no storage at all');
+  assert.deepEqual(loadPrefs(storage), DEF, 'broken JSON');
+  assert.deepEqual(loadPrefs(null), DEF, 'no storage at all');
   assert.equal(savePrefs(null, { appearance: 'light' }), false);
-  assert.deepEqual(cleanPrefs(['light']), { appearance: 'system' });
+  assert.deepEqual(cleanPrefs(['light']), DEF);
 });
 
 test('the canvas colours offered pass the same check as colours in files', () => {
@@ -327,4 +328,14 @@ test('an SVG without background has no background rectangle', () => {
   const scene = { ...E.emptyScene(), background: '#e7f5ff', elements: [r] };
   assert.match(toSvgString(scene), /<rect [^>]*fill="#e7f5ff"/);
   assert.doesNotMatch(toSvgString(scene, { background: false }), /<rect /);
+});
+
+test('snapping to the grid rounds to the nearest line', () => {
+  assert.equal(E.GRID_SIZE, 20);
+  assert.equal(E.snap(13), 20);
+  assert.equal(E.snap(9), 0);
+  assert.equal(E.snap(-11), -20);
+  assert.equal(E.snap(118), 120);
+  assert.deepEqual(E.snapPoint({ x: 27, y: 92 }), { x: 20, y: 100 });
+  assert.equal(E.snap(37, 10), 40);
 });

@@ -74,7 +74,7 @@ function el(tag, attrs = {}, ...children) {
   return n;
 }
 
-export function createEditor(container, { scene: initial, onChange = () => {}, readOnly = false } = {}) {
+export function createEditor(container, { scene: initial, onChange = () => {}, onGridChange = () => {}, readOnly = false } = {}) {
   measureWithCanvas(document);
   let scene = initial ? structuredClone(initial) : E.emptyScene();
   scene.elements = E.syncBindings(scene.elements);
@@ -86,6 +86,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
   const redo = [];
   let action = null; // what the pointer is doing
   let editingText = null;
+  let grid = false; // with the grid on, new shapes and moves land on it
   let raf = 0;
   let clipboard = null;
 
@@ -93,7 +94,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
   const helpId = `sk-help-${Math.random().toString(36).slice(2, 8)}`;
   const root = el('div', { class: `sk-editor${readOnly ? ' sk-readonly' : ''}`, tabindex: '0', role: 'application', 'aria-label': readOnly ? 'Drawing' : 'Whiteboard', 'aria-describedby': readOnly ? null : helpId });
   const help = el('p', { class: 'sk-sr', id: helpId },
-    'Tools: V select, R rectangle, D diamond, O ellipse, A arrow, L line, P pencil, T text, E eraser. '
+    'Tools: V select, R rectangle, D diamond, O ellipse, A arrow, L line, P pencil, T text, E eraser; G shows the grid. '
     + 'Enter creates the chosen shape in the center, or writes inside the selected one. Tab and Shift+Tab go through the elements; '
     + 'arrow keys move them; Alt+arrow keys resize them; [ and ] rotate them; Delete removes them; Escape clears the selection.');
   const canvas = el('canvas', { class: 'sk-canvas', 'aria-label': 'Drawing canvas' });
@@ -248,6 +249,34 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     ctx.stroke();
   }
 
+  // The grid, behind the drawing and only on screen (never exported). Hidden when its cells get too small.
+  function paintGrid(width, height) {
+    const step = E.GRID_SIZE * view.zoom;
+    if (step < 6) return;
+    const first = (offset) => offset - Math.floor(offset / step) * step;
+    const major = (pos, offset) => Math.round((pos - offset) / step) % 5 === 0;
+    ctx.save();
+    ctx.lineWidth = 1;
+    for (const strong of [false, true]) {
+      ctx.strokeStyle = strong ? 'rgba(0, 0, 0, 0.13)' : 'rgba(0, 0, 0, 0.06)';
+      ctx.beginPath();
+      for (let x = first(view.x); x <= width; x += step) {
+        if (major(x, view.x) !== strong) continue;
+        const px = Math.round(x) + 0.5;
+        ctx.moveTo(px, 0);
+        ctx.lineTo(px, height);
+      }
+      for (let y = first(view.y); y <= height; y += step) {
+        if (major(y, view.y) !== strong) continue;
+        const py = Math.round(y) + 0.5;
+        ctx.moveTo(0, py);
+        ctx.lineTo(width, py);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   function render() {
     raf = 0;
     // The text box being written follows zoom and pan.
@@ -266,7 +295,10 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const hidden = editingText ? { ...scene, elements: scene.elements.filter((e) => e.id !== editingText) } : scene;
-    paintScene(ctx, hidden, { view, width: r.width, height: r.height });
+    ctx.fillStyle = scene.background || '#ffffff';
+    ctx.fillRect(0, 0, r.width, r.height);
+    if (grid) paintGrid(r.width, r.height);
+    paintScene(ctx, hidden, { view, width: r.width, height: r.height, background: false });
     ctx.save();
     ctx.translate(view.x, view.y);
     ctx.scale(view.zoom, view.zoom);
@@ -544,7 +576,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
 
   // Creating with the keyboard: the chosen shape, at a normal size, in the center of the view.
   function createAtCenter() {
-    const c = viewCenter();
+    const c = grid ? E.snapPoint(viewCenter()) : viewCenter();
     if (tool === 'text') {
       newText(c);
       return;
@@ -625,7 +657,10 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
   }
   function newText(p) {
     commit();
-    const t = E.createElement('text', p.x, p.y - style.fontSize * 0.6, { ...style, fill: 'transparent' });
+    let x = p.x;
+    let y = p.y - style.fontSize * 0.6;
+    if (grid) ({ x, y } = E.snapPoint({ x, y }));
+    const t = E.createElement('text', x, y, { ...style, fill: 'transparent' });
     addElement(t);
     select([t.id]);
     editText(t.id);
@@ -778,13 +813,15 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
       return;
     }
     commit();
-    const e = E.createElement(tool, p.x, p.y, tool === 'draw' ? { ...style, fill: 'transparent' } : style);
+    // On the grid, the shape starts on it (an arrow still attaches to the shape under the pointer).
+    const at = grid && tool !== 'draw' ? E.snapPoint(p) : p;
+    const e = E.createElement(tool, at.x, at.y, tool === 'draw' ? { ...style, fill: 'transparent' } : style);
     if (tool === 'arrow') {
       const s = bindTarget(p);
       if (s) e.startId = s;
     }
     addElement(e);
-    action = { kind: 'create', id: e.id, start: p, dist: 0, target: null };
+    action = { kind: 'create', id: e.id, start: at, dist: 0, target: null };
     redraw();
   });
 
@@ -832,9 +869,15 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     } else if (action.kind === 'erase') {
       eraseAt(p);
     } else if (action.kind === 'move') {
-      const dx = p.x - action.start.x;
-      const dy = p.y - action.start.y;
+      let dx = p.x - action.start.x;
+      let dy = p.y - action.start.y;
       action.moved = action.moved || Math.abs(dx) + Math.abs(dy) > 1 / view.zoom;
+      if (grid) {
+        // The selection's top-left corner lands on the grid; everything moves by the same amount.
+        action.box ??= E.sceneBounds(action.orig.filter((e) => action.ids.has(e.id) && !E.isBoundText(e)));
+        dx = E.snap(action.box.x + dx) - action.box.x;
+        dy = E.snap(action.box.y + dy) - action.box.y;
+      }
       update(moved(action.orig, action.ids, dx, dy));
     } else if (action.kind === 'marquee') {
       action.box = { x: Math.min(action.start.x, p.x), y: Math.min(action.start.y, p.y), w: Math.abs(p.x - action.start.x), h: Math.abs(p.y - action.start.y) };
@@ -885,9 +928,10 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
       update(scene.elements.map((e) => (e.id === o.id ? next : e)));
     } else if (action.kind === 'create') {
       const start = action.start;
-      let dx = p.x - start.x;
-      let dy = p.y - start.y;
-      action.dist = Math.max(action.dist, Math.hypot(dx, dy) * view.zoom);
+      action.dist = Math.max(action.dist, Math.hypot(p.x - start.x, p.y - start.y) * view.zoom);
+      const q = grid && tool !== 'draw' ? E.snapPoint(p) : p;
+      let dx = q.x - start.x;
+      let dy = q.y - start.y;
       const list = scene.elements.map((e) => {
         if (e.id !== action.id) return e;
         if (e.type === 'draw') return { ...e, points: [...e.points, { x: dx, y: dy }] };
@@ -902,7 +946,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
           const next = { ...e, x: start.x, y: start.y, points: [{ x: 0, y: 0 }, { x: dx, y: dy }] };
           delete next.endId;
           if (e.type === 'arrow') {
-            action.target = bindTarget({ x: start.x + dx, y: start.y + dy }, e.startId);
+            action.target = bindTarget(ev.shiftKey ? { x: start.x + dx, y: start.y + dy } : p, e.startId);
             if (action.target) next.endId = action.target;
           }
           return next;
@@ -1069,12 +1113,19 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     }
     if (ev.key.startsWith('Arrow') && selected.size) {
       ev.preventDefault();
-      const d = ev.shiftKey ? 10 : 1;
+      // On the grid, one cell (Shift: 1 px to fine-tune); without it, 1 px (Shift: 10).
+      const d = grid ? (ev.shiftKey ? 1 : E.GRID_SIZE) : ev.shiftKey ? 10 : 1;
       const dx = ev.key === 'ArrowLeft' ? -d : ev.key === 'ArrowRight' ? d : 0;
       const dy = ev.key === 'ArrowUp' ? -d : ev.key === 'ArrowDown' ? d : 0;
       commit();
       update(moved(scene.elements, selected, dx, dy));
       changed();
+      return;
+    }
+    if (k === 'g' && !ev.altKey) {
+      ev.preventDefault();
+      setGrid(!grid);
+      onGridChange(grid);
       return;
     }
     if (KEYS[k]) { ev.preventDefault(); setTool(KEYS[k]); }
@@ -1139,6 +1190,13 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
     scene.background = color;
     changed();
   }
+  // Shows the grid and snaps to it (or not).
+  function setGrid(on) {
+    if (grid === !!on) return;
+    grid = !!on;
+    status.textContent = grid ? 'Grid on' : 'Grid off';
+    redraw();
+  }
   // 'light' or 'dark' forces the editor's appearance; anything else follows the system.
   function setTheme(theme) {
     root.classList.toggle('sk-light', theme === 'light');
@@ -1150,6 +1208,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, r
   requestAnimationFrame(() => zoomToFit());
   return {
     setBackground,
+    setGrid,
     setTheme,
     root,
     getScene,

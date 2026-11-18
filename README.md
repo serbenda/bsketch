@@ -51,6 +51,7 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
   transparent background.
 - **Appearance:** light, dark or the system's, whatever the system theme is.
 - **Canvas background:** six light colours, saved with the drawing.
+- **Grid:** shown on screen only; new shapes and moves snap to it.
 - Embedded in [Snowlog](https://github.com/serbenda/snowlog), where drawings are stored end-to-end encrypted and
   shown inside notes.
 
@@ -78,7 +79,8 @@ the antivirus may block an unsigned executable (use the portable file there). Th
 | Ctrl+Z · Ctrl+Y | Undo · redo |
 | Ctrl+D · Ctrl+C · Ctrl+V | Duplicate · copy · paste |
 | Ctrl+G · Ctrl+Shift+G | Group · ungroup |
-| Delete · arrow keys | Delete · move the selection (Shift: 10 at a time) |
+| G | Show the grid: new shapes and moves land on it (also in the ☰ menu) |
+| Delete · arrow keys | Delete · move the selection (Shift: 10 at a time; with the grid, one cell and Shift 1 px) |
 | Ctrl+wheel · Ctrl+0 | Zoom · back to 100% |
 | Double click · Enter | Write text: inside the shape when done on one (or edit the existing text) |
 

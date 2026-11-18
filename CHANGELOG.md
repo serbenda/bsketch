@@ -16,6 +16,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
   version (`sketch.actual`) is moved there the first time.
 
 ### Added
+- **Grid:** the **G** key or "Show grid" in the ☰ menu draws a light grid behind the drawing (on screen only, never
+  exported). New shapes, lines, arrows and texts start and end on it, a moved selection lands with its corner on it,
+  and arrow keys move one cell (Shift: 1 px). Remembered in this browser.
 - **Side menu (☰):** the file actions (New, Open, Save, PNG, SVG, Portable) move from the header into a side menu,
   together with the options: **Appearance** (System, Light or Dark, whatever the system theme is, remembered in
   this browser), **Canvas background** (six light colours, saved with the drawing and undoable) and a
