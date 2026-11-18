@@ -24,7 +24,7 @@
 - **Rejected:** downloading more font files (heavier site and portable file); a free font picker.
 - **Files:** js/scene.js, js/render.js, js/editor.js, tests/scene.test.mjs, tests/e2e/editor.e2e.mjs, README.md,
   CHANGELOG.md, docs/ROADMAP.md, docs/phases/
-- **Commits:** this one, on `feat/fonts`.
+- **Commits:** acd721e (PR #11).
 - **Tested:** `npm test` 26 pass; `npm run test:e2e` 14 pass; by eye in a clean browser.
 - **Pending:** —
 
