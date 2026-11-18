@@ -29,7 +29,7 @@
 - **Files:** index.html, js/app.js, js/prefs.js, js/editor.js, js/scene.js, js/render.js, css/styles.css,
   css/sketch.css, sw.js, tests/scene.test.mjs, tests/e2e/editor.e2e.mjs, README.md, CHANGELOG.md,
   docs/ARCHITECTURE.md, docs/THREAT_MODEL.md, docs/ROADMAP.md, docs/phases/
-- **Commits:** 281d585 (merged after PR #7, so in the next PR).
+- **Commits:** 281d585 (PR #8).
 - **Tested:** `npm test` 23 pass; `npm run test:e2e` 11 pass (a new walkthrough through the menu on a dark system);
   the portable build; by eye in the browser, dark system with Light and System, desktop and phone width, no console
   errors.
