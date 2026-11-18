@@ -41,6 +41,7 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 - **Attached arrows:** an arrow that starts or ends on a shape stays on its outline when the shape moves.
 - Hachure or solid fill, colors, stroke width, dashed lines and three levels of sloppiness.
 - Arrowheads at the end, the start, both ends or none.
+- Three fonts for text: handwriting, normal and code.
 
 **Editing**
 - Select, move, resize, **rotate**, **group**, **align and distribute**, duplicate, reorder and delete.

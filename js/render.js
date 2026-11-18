@@ -1,7 +1,7 @@
 // Paints a scene on a <canvas> or turns it into SVG (text to download, or DOM nodes to embed). The
 // drawing's texts never go in as HTML: they are escaped or set with textContent.
 
-import { drawOps, sceneBounds, textLayout, setTextMeasurer, aabb, FONT, FONT_NAME } from './scene.js';
+import { drawOps, sceneBounds, textLayout, setTextMeasurer, aabb, fontOf, FONT, FONT_NAME } from './scene.js';
 import { toSvgD, tracePath } from './stroke.js';
 
 // Measures texts with a canvas (the handwriting font is narrower than the no-DOM estimate).
@@ -11,8 +11,8 @@ export function measureWithCanvas(doc) {
   const ctx = doc.createElement('canvas').getContext('2d');
   if (!ctx) return;
   measuring = true;
-  setTextMeasurer((text, fontSize) => {
-    ctx.font = `${fontSize}px ${FONT}`;
+  setTextMeasurer((text, fontSize, family = FONT) => {
+    ctx.font = `${fontSize}px ${family}`;
     return ctx.measureText(text).width;
   });
 }
@@ -55,7 +55,7 @@ export function paintElement(ctx, el) {
     const L = textLayout(el);
     ctx.globalAlpha = el.opacity;
     ctx.fillStyle = el.stroke;
-    ctx.font = `${el.fontSize}px ${FONT}`;
+    ctx.font = `${el.fontSize}px ${fontOf(el)}`;
     ctx.textBaseline = 'top';
     ctx.textAlign = L.anchor === 'middle' ? 'center' : 'left';
     if (L.angle) {
@@ -136,7 +136,7 @@ export function toSvgString(scene, { padding = 20, background = true } = {}) {
   for (const el of scene.elements) {
     if (el.type === 'text') {
       const L = textLayout(el);
-      const lines = L.lines.map((l) => `<text x="${l.x}" y="${l.y}" font-size="${el.fontSize}" font-family="${esc(FONT)}" fill="${esc(el.stroke)}" opacity="${el.opacity}" text-anchor="${L.anchor}" dominant-baseline="hanging">${esc(l.t)}</text>`).join('');
+      const lines = L.lines.map((l) => `<text x="${l.x}" y="${l.y}" font-size="${el.fontSize}" font-family="${esc(fontOf(el))}" fill="${esc(el.stroke)}" opacity="${el.opacity}" text-anchor="${L.anchor}" dominant-baseline="hanging">${esc(l.t)}</text>`).join('');
       parts.push(L.angle ? `<g transform="rotate(${(L.angle * 180) / Math.PI} ${L.c.x} ${L.c.y})">${lines}</g>` : lines);
       continue;
     }
@@ -179,7 +179,7 @@ export function toSvgElement(doc, scene, { padding = 20, maxWidth = null } = {})
       const L = textLayout(el);
       const g = L.angle ? mk('g', { transform: `rotate(${(L.angle * 180) / Math.PI} ${L.c.x} ${L.c.y})` }) : svg;
       for (const l of L.lines) {
-        const t = mk('text', { x: l.x, y: l.y, 'font-size': el.fontSize, 'font-family': FONT, fill: el.stroke, opacity: el.opacity, 'text-anchor': L.anchor, 'dominant-baseline': 'hanging' });
+        const t = mk('text', { x: l.x, y: l.y, 'font-size': el.fontSize, 'font-family': fontOf(el), fill: el.stroke, opacity: el.opacity, 'text-anchor': L.anchor, 'dominant-baseline': 'hanging' });
         t.textContent = l.t;
         g.append(t);
       }

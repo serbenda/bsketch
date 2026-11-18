@@ -16,6 +16,18 @@
 - **Pending:**
 -->
 
+## 2026-11-18 — P06: text fonts
+- **Phase / issue:** P06
+- **What:** a Font choice (Hand, Normal, Code) in the style panel; `font` on text elements, validated, measured,
+  painted and exported with it; imported from Excalidraw's `fontFamily`.
+- **Why:** the owner asked to change the text font, with only a few fonts.
+- **Rejected:** downloading more font files (heavier site and portable file); a free font picker.
+- **Files:** js/scene.js, js/render.js, js/editor.js, tests/scene.test.mjs, tests/e2e/editor.e2e.mjs, README.md,
+  CHANGELOG.md, docs/ROADMAP.md, docs/phases/
+- **Commits:** this one, on `feat/fonts`.
+- **Tested:** `npm test` 26 pass; `npm run test:e2e` 14 pass; by eye in a clean browser.
+- **Pending:** —
+
 ## 2026-11-18 — The name: bsketch, with an SB logo
 - **Phase / issue:** — ([ADR 0005](decisions/0005-rename-to-bsketch.md))
 - **What:** the name the user sees becomes bsketch: page title and header, PWA manifest, portable file
