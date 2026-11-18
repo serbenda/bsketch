@@ -27,6 +27,7 @@
   -webkit-user-select: none;
 }
 
+/* Dark: the system's (unless sk-light forces light) or forced with sk-dark. */
 @media (prefers-color-scheme: dark) {
   .sk-editor:not(.sk-light) {
     --sk-ui: #232329;
@@ -37,6 +38,16 @@
     --sk-active: rgba(168, 165, 255, 0.18);
     --sk-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
   }
+}
+
+.sk-editor.sk-dark {
+  --sk-ui: #232329;
+  --sk-text: #ececf1;
+  --sk-muted: #a1a1aa;
+  --sk-border: #34343c;
+  --sk-accent: #a8a5ff;
+  --sk-active: rgba(168, 165, 255, 0.18);
+  --sk-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
 }
 
 .sk-stage {

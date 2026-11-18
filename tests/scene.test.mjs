@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as E from '../js/scene.js';
 import { toSvgString, pngScale, PNG_MAX_SIDE, PNG_MAX_AREA } from '../js/render.js';
+import { loadPrefs, savePrefs, cleanPrefs, BACKGROUNDS, PREFS_KEY } from '../js/prefs.js';
 import { polylinePath, ellipsePath, toSvgD } from '../js/stroke.js';
 
 test('the hand-drawn stroke is always the same for the same seed', () => {
@@ -297,4 +298,33 @@ test('the text boxes are measured again after forgetting them', () => {
   }
   E.forgetTextBoxes();
   assert.equal(E.bounds(t).w, before);
+});
+
+test('preferences: only known values are kept, anything else falls back to the default', () => {
+  const mem = new Map();
+  const storage = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, v) };
+  assert.deepEqual(loadPrefs(storage), { appearance: 'system' }, 'nothing stored');
+  assert.ok(savePrefs(storage, { appearance: 'dark', extra: '<script>' }));
+  assert.equal(mem.get(PREFS_KEY), '{"appearance":"dark"}', 'unknown fields are not stored');
+  assert.deepEqual(loadPrefs(storage), { appearance: 'dark' });
+  mem.set(PREFS_KEY, '{"appearance":"purple"}');
+  assert.deepEqual(loadPrefs(storage), { appearance: 'system' }, 'an unknown appearance');
+  mem.set(PREFS_KEY, 'not json');
+  assert.deepEqual(loadPrefs(storage), { appearance: 'system' }, 'broken JSON');
+  assert.deepEqual(loadPrefs(null), { appearance: 'system' }, 'no storage at all');
+  assert.equal(savePrefs(null, { appearance: 'light' }), false);
+  assert.deepEqual(cleanPrefs(['light']), { appearance: 'system' });
+});
+
+test('the canvas colours offered pass the same check as colours in files', () => {
+  for (const [c] of BACKGROUNDS) assert.ok(E.isColor(c), c);
+  assert.ok(!E.isColor('red;}'));
+  assert.ok(!E.isColor(' #fff'));
+});
+
+test('an SVG without background has no background rectangle', () => {
+  const r = { ...E.createElement('rectangle', 0, 0), w: 100, h: 50 };
+  const scene = { ...E.emptyScene(), background: '#e7f5ff', elements: [r] };
+  assert.match(toSvgString(scene), /<rect [^>]*fill="#e7f5ff"/);
+  assert.doesNotMatch(toSvgString(scene, { background: false }), /<rect /);
 });

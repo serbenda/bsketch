@@ -530,6 +530,7 @@ export function cloneElements(list, dx = 0, dy = 0) {
 const num = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
 const COLOR_RE = /^(#[0-9a-f]{3,8}|transparent|rgba?\([\d\s.,%]+\)|[a-z]{3,20})$/i;
 const color = (v, d) => (typeof v === 'string' && COLOR_RE.test(v.trim()) ? v.trim() : d);
+export const isColor = (v) => typeof v === 'string' && COLOR_RE.test(v) && v === v.trim();
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const ref = (v) => (typeof v === 'string' && v.length > 0 && v.length <= 64 ? v : null);
 

@@ -246,6 +246,49 @@ test('a pinch started while drawing zooms and leaves nothing behind', { skip }, 
   }
 });
 
+test('the side menu: appearance, canvas background and keyboard use', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await page.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: 'dark' }] });
+    await open(page);
+    const canvasFilter = () => page.eval('getComputedStyle(document.querySelector(".sk-canvas")).filter');
+    assert.notEqual(await canvasFilter(), 'none', 'a dark system shows the canvas inverted');
+
+    // Opened with the keyboard; Escape closes it and gives the focus back.
+    await page.eval('document.getElementById("menu-button").focus()');
+    await page.press('Enter');
+    await page.waitFor('document.getElementById("menu").open');
+    assert.equal(await page.eval('document.getElementById("menu-button").getAttribute("aria-expanded")'), 'true');
+    assert.equal(await page.eval('document.getElementById("background-note").hidden'), false, 'the note about the inverted canvas');
+    await page.press('Escape');
+    await page.waitFor('!document.getElementById("menu").open');
+
+    // Light, on a dark system: the canvas is not inverted, and it stays so after a reload.
+    await page.click('#menu-button');
+    await page.click('input[name="appearance"][value="light"]');
+    assert.equal(await canvasFilter(), 'none');
+    assert.equal(await page.eval('document.getElementById("background-note").hidden'), true);
+    await page.reload();
+    await page.waitFor('!!document.querySelector(".sk-canvas")');
+    assert.equal(await page.eval('document.documentElement.dataset.theme'), 'light');
+    assert.equal(await canvasFilter(), 'none', 'still light after a reload');
+
+    // Canvas background: saved with the drawing and undoable.
+    await page.click('#menu-button');
+    await page.click('input[name="background"][value="#e7f5ff"]');
+    let s = await scene(page);
+    assert.equal(s.background, '#e7f5ff');
+    await page.press('Escape');
+    await page.waitFor('!document.getElementById("menu").open');
+    await page.press('z', { ctrl: true });
+    s = await scene(page);
+    assert.equal(s.background, '#ffffff', 'undone');
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
 test('a drawing with 2,000 elements pans smoothly', { skip }, async () => {
   const page = await browser.newPage();
   try {
