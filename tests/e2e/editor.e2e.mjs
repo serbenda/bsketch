@@ -21,11 +21,18 @@ const TYPES = {
 
 let server;
 let base;
+// Chrome's offline mode cuts the page's network but not the service worker's: to be really offline,
+// the test server stops answering.
+let serverDown = false;
 let browser;
 
 before(async () => {
   if (skip) return;
   server = createServer(async (req, res) => {
+    if (serverDown) {
+      res.destroy();
+      return;
+    }
     const path = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^(\.\.[/\\])+/, '');
     const file = join(ROOT, path.endsWith('/') ? `${path}index.html` : path);
     try {
@@ -131,6 +138,9 @@ test('attached arrows, text inside, rotation, groups and alignment', { skip }, a
     const r2 = s.elements.find((e) => e.id === rect.id);
     const e2 = s.elements.find((e) => e.id === ell.id);
     assert.ok(Math.abs(r2.y - e2.y) < 1, `both at the top: ${r2.y} ${e2.y}`);
+    const a2 = s.elements.find((e) => e.id === arrow.id);
+    assert.equal(a2.startId, rect.id, 'aligning keeps the arrow attached to the box');
+    assert.equal(a2.endId, ell.id, 'and to the ellipse');
 
     assert.deepEqual(page.errors, []);
   } finally {
@@ -167,6 +177,69 @@ test('everything with the keyboard', { skip }, async () => {
     await page.press('Delete');
     s = await scene(page);
     assert.deepEqual(s.elements.map((e) => e.type), ['ellipse'], 'deleted together with its text');
+    // Enter on a toolbar button presses it instead of acting on the canvas.
+    await page.press('Escape');
+    await page.eval('document.querySelector(\'.sk-toolbar button[aria-label="Diamond"]\').focus()');
+    await page.press('Enter');
+    assert.equal(await page.eval('document.querySelector(\'.sk-toolbar button[aria-label="Diamond"]\').getAttribute("aria-pressed")'), 'true');
+    s = await scene(page);
+    assert.deepEqual(s.elements.map((e) => e.type), ['ellipse'], 'Enter on the button creates nothing');
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
+test('undo: a colour drag is one step and a change that changed nothing is none', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.press('r');
+    await page.drag(at(-100, -50), at(100, 50));
+    const color = 'input[aria-label="Other stroke color"]';
+    for (const c of ['#ff0000', '#00ff00', '#0000ff']) await page.fill(color, c);
+    await page.eval(`${page.sel(color)}.dispatchEvent(new Event('change', { bubbles: true }))`);
+    let s = await scene(page);
+    assert.equal(s.elements[0].stroke, '#0000ff');
+    // Clicking the box again without moving it leaves no step behind.
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.mouseClick(at(-100, 0));
+    await page.press('z', { ctrl: true });
+    s = await scene(page);
+    assert.equal(s.elements.length, 1);
+    assert.equal(s.elements[0].stroke, '#1e1e1e', 'one undo brings back the colour from before the drag');
+    await page.press('z', { ctrl: true });
+    s = await scene(page);
+    assert.equal(s.elements.length, 0, 'the next undo removes the box');
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
+test('a pinch started while drawing zooms and leaves nothing behind', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.press('r');
+    const touch = (type, points) => page.send('Input.dispatchTouchEvent', {
+      type, touchPoints: points.map((p, id) => ({ x: p.x, y: p.y, id })),
+    });
+    const a = at(-50, 0);
+    await touch('touchStart', [a]);
+    await touch('touchMove', [at(-40, 10)]);
+    await touch('touchStart', [at(-40, 10), at(50, 0)]); // the second finger: now it is a pinch
+    for (let i = 1; i <= 5; i++) await touch('touchMove', [at(-40 - i * 20, 10), at(50 + i * 20, 0)]);
+    await touch('touchEnd', []);
+    // A finished drawing saves the scene: only this ellipse may be in it.
+    await page.press('o');
+    await page.drag(at(100, 100), at(200, 160));
+    const s = await scene(page);
+    assert.deepEqual(s.elements.map((e) => e.type), ['ellipse'], 'no shape was left behind by the pinch');
+    const zoom = await page.eval('document.querySelector(".sk-zoomlabel").textContent');
+    assert.notEqual(zoom.replace(/\s/g, ''), '100%', `it zoomed: ${zoom}`);
     assert.deepEqual(page.errors, []);
   } finally {
     await page.close();
@@ -263,11 +336,21 @@ test('opens offline once it has loaded', { skip }, async () => {
     await page.eval('navigator.serviceWorker.ready.then(() => true)');
     await page.reload(); // the second load already goes through the service worker
     await page.waitFor('navigator.serviceWorker.controller !== null');
+    serverDown = true;
     await page.send('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
     await page.reload();
     await page.waitFor('!!document.querySelector(".sk-canvas")');
     assert.ok(await page.eval('document.fonts.check(\'24px "Sketch Hand"\')'), 'the font too');
+    // Another page opened in the tab while online does not take the site's place offline.
+    serverDown = false;
+    await page.send('Network.emulateNetworkConditions', { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
+    await page.goto(`${base}icon.svg`);
+    serverDown = true;
+    await page.send('Network.emulateNetworkConditions', { offline: true, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
+    await page.goto(`${base}?again`); // another address, so it does not come back from the page cache
+    await page.waitFor('!!document.querySelector(".sk-canvas")');
   } finally {
+    serverDown = false;
     await page.close();
   }
 });

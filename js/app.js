@@ -91,7 +91,9 @@ $('save').addEventListener('click', () => {
 $('png').addEventListener('click', async () => {
   const scene = editor.getScene();
   if (!scene.elements.length) return notify('The drawing is empty.');
-  download(await toPngBlob(document, scene), `${fileName}.png`, 'image/png');
+  const png = await toPngBlob(document, scene);
+  if (!png) return notify('This browser could not make the PNG. Try SVG instead.');
+  download(png, `${fileName}.png`, 'image/png');
 });
 $('svg').addEventListener('click', () => {
   const scene = editor.getScene();

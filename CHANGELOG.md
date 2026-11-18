@@ -59,3 +59,22 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
 - Engine tests (`npm test`, no dependencies), also in CI.
 - Initial structure from the earlier Spanish version of the template: Definition of Done, development → main
   flow, CI, CodeQL, Dependabot, GitHub Pages publishing and the setup script.
+
+### Fixed
+- Exporting a very big drawing to PNG no longer downloads a broken file: it is exported at a smaller scale so it
+  fits what the browser allows, and if it still cannot be made the site says so.
+- Aligning or distributing no longer detaches arrows from the shapes they are attached to.
+- Enter and Space on a toolbar or panel button now press that button instead of acting on the canvas.
+- Undo no longer keeps steps that changed nothing (a click on a handle, a text left as it was) and they no
+  longer clear redo; dragging in the colour picker is a single undo step.
+- Starting a pinch while drawing no longer leaves an empty shape behind; a third finger is ignored.
+- Dragging a box in a drawing with many attached arrows and texts no longer recomputes all of them on every move.
+- Texts measured before the handwriting font loaded are measured again once it does.
+- The text box being written follows zoom and pan.
+- A double click with the hand or the eraser no longer starts a text; the right mouse button no longer draws;
+  Space held while the window loses focus no longer leaves the editor panning.
+- Closing an embedded editor while writing keeps the text.
+- The desktop build's Rust dependencies are pinned in `desktop/src-tauri/Cargo.lock`, so every build of a
+  commit compiles the same versions.
+- Offline, the site no longer opens as another page that was opened in the same tab before (such as the
+  portable file).

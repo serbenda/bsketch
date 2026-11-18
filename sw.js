@@ -1,7 +1,7 @@
 // sketch's service worker: keeps the site (HTML, CSS, JS, font and icon) so it opens offline.
 // Drawings never go through here: they live in the browser or in the files you save.
 
-const VERSION = 'sketch-v3';
+const VERSION = 'sketch-v4';
 const SHELL = [
   './',
   'index.html',
@@ -33,7 +33,12 @@ self.addEventListener('fetch', (ev) => {
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
   ev.respondWith((async () => {
     const cache = await caches.open(VERSION);
-    const key = req.mode === 'navigate' ? 'index.html' : req;
+    // The site's page is kept under one key (with or without index.html or a query). Any other page opened
+    // in the tab (the portable file) keeps its own, so it never replaces the site offline.
+    const path = new URL(req.url).pathname;
+    const scope = new URL(self.registration.scope).pathname;
+    const isSite = req.mode === 'navigate' && (path === scope || path === `${scope}index.html`);
+    const key = isSite ? 'index.html' : req;
     try {
       const res = await Promise.race([
         fetch(req),

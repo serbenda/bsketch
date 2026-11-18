@@ -17,6 +17,8 @@ Last updated: 2026-11-17
   the grid goes to P04. No code until the owner approves the plan.
 
 ## Recently done
+- Fixes from a code review: big PNG export, arrows kept when aligning, Enter on buttons, undo steps, pinch while
+  drawing, attached-element caching, the service worker's offline page, `Cargo.lock` committed (see WORKLOG).
 - [P01](phases/P01-adopt-project-template.md): the template's guardrails and docs, everything in English (PR #5).
 - New logo (a hand-drawn "s" on night blue), a README banner and the README rewritten for visitors.
 - Portable single-file version and Tauri desktop builds for Windows, macOS and Linux (PR #5).
@@ -25,9 +27,10 @@ Last updated: 2026-11-17
 
 ## Next
 1. Owner: approve P03's plan; then P03 and P04 on `development`.
-2. Owner: review and merge the `development → main` PR with the logo, banner and README.
+2. Owner: review and merge the `development → main` PR with the logo, banner, README and the review fixes.
 3. Owner: re-run `./scripts/setup-repo.sh` on his Mac for the rules of `main`.
-4. Owner: try the site and the desktop builds on Firefox, Safari, a real phone, macOS and Windows (P02, [R-002](RISKS.md)).
+4. Owner: try the site and the desktop builds on Firefox, Safari, a real phone, macOS and Windows (P02, [R-002](RISKS.md)),
+   including a pinch while drawing and downloading PNG/SVG/.sketch from the desktop app.
 5. Optional (owner, `.github/`): pin the `editorconfig-checker` binary; its download hits GitHub's rate limit now and then.
 6. Decide whether the interface's accent colour (`--accent`, still the old purple) should match the new logo.
 7. Owner: set `docs/images/banner.png` as the repository's social preview (Settings → General).

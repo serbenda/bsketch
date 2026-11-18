@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as E from '../js/scene.js';
-import { toSvgString } from '../js/render.js';
+import { toSvgString, pngScale, PNG_MAX_SIDE, PNG_MAX_AREA } from '../js/render.js';
 import { polylinePath, ellipsePath, toSvgD } from '../js/stroke.js';
 
 test('the hand-drawn stroke is always the same for the same seed', () => {
@@ -262,4 +262,39 @@ test('growing with the keyboard without moving the center', () => {
   const t = { ...E.createElement('text', 0, 0), text: 'hello', fontSize: 20 };
   assert.equal(E.growElement(t, 10, 0).fontSize, 22);
   assert.equal(E.growElement(t, -10, 0).fontSize, 18);
+});
+
+test('a PNG too big for the browser is exported at a smaller scale', () => {
+  assert.equal(pngScale(2000, 1500, 2), 2, 'a normal drawing keeps its scale');
+  const wide = pngScale(70000, 200, 2);
+  assert.ok(70000 * wide <= PNG_MAX_SIDE + 1e-6, `no side over the limit: ${wide}`);
+  const big = pngScale(20000, 20000, 2);
+  assert.ok(20000 * big * 20000 * big <= PNG_MAX_AREA * (1 + 1e-9), `no more pixels than the limit: ${big}`);
+  assert.equal(pngScale(0, 0, 2), 2, 'an empty box does not break it');
+});
+
+test('attached arrows and texts that did not change keep the same object', () => {
+  const a = { ...E.createElement('rectangle', 0, 0), w: 100, h: 50 };
+  const b = { ...E.createElement('rectangle', 300, 0), w: 100, h: 50 };
+  const arrow = { ...E.createElement('arrow', 0, 0), points: [{ x: 0, y: 0 }, { x: 1, y: 1 }], startId: a.id, endId: b.id };
+  const text = { ...E.createElement('text', 0, 0), text: 'hi', containerId: a.id };
+  const first = E.syncBindings([a, b, arrow, text]);
+  const again = E.syncBindings(first);
+  first.forEach((el, i) => assert.equal(again[i], el, `${el.type} is reused`));
+  const moved = E.syncBindings([E.moveElement(first[0], 0, 40), ...first.slice(1)]);
+  assert.notEqual(moved[2], first[2], 'the arrow of a moved box changes');
+  assert.notEqual(moved[3], first[3], 'and so does its text');
+});
+
+test('the text boxes are measured again after forgetting them', () => {
+  const t = { ...E.createElement('text', 0, 0), text: 'hello', fontSize: 20 };
+  const before = E.bounds(t).w;
+  try {
+    E.setTextMeasurer((s, f) => s.length * f);
+    assert.equal(E.bounds(t).w, 100);
+  } finally {
+    E.setTextMeasurer((s, f) => s.length * f * 0.5);
+  }
+  E.forgetTextBoxes();
+  assert.equal(E.bounds(t).w, before);
 });
