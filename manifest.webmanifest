@@ -1,6 +1,6 @@
 {
-  "name": "sketch",
-  "short_name": "sketch",
+  "name": "bsketch",
+  "short_name": "bsketch",
   "description": "A whiteboard for hand-drawn sketches. No accounts, and nothing is sent to any server.",
   "start_url": "./",
   "scope": "./",

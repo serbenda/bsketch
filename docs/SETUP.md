@@ -11,8 +11,8 @@
 
 ## First time
 ```bash
-git clone https://github.com/serbenda/sketch.git
-cd sketch
+git clone https://github.com/serbenda/bsketch.git
+cd bsketch
 git switch development
 git config core.hooksPath .githooks
 ```

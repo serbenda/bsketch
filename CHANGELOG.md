@@ -4,6 +4,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
 
 ## [Unreleased]
 ### Changed
+- **The name is now bsketch**, with a hand-drawn **SB** logo: the site, the installed app, the portable file
+  (`bsketch-portable.html`), the desktop app and the README. The repository moves to `serbenda/bsketch` and the site
+  to `/bsketch/`. The `.sketch` format and drawings already saved in the browser are unchanged
+  ([ADR 0005](docs/decisions/0005-rename-to-bsketch.md)).
 - New logo: a hand-drawn "s" on night blue, for the site, the installed app and the desktop builds. The README
   opens with a banner and a screenshot.
 - The project now follows [project-template](https://github.com/serbenda/project-template) 1.0.0: full mode with

@@ -1,24 +1,24 @@
 <div align="center">
 
-<img src="docs/images/banner.png" alt="sketch: hand-drawn diagrams, offline, no account" width="900">
+<img src="docs/images/banner.png" alt="bsketch: hand-drawn diagrams, offline, no account" width="900">
 
 **A hand-drawn whiteboard that never leaves your computer.**
 Sketch diagrams, flows and wireframes in the browser: no account, nothing to install, nothing sent anywhere.
 
-[**Open sketch →**](https://serbenda.github.io/sketch/)
+[**Open bsketch →**](https://serbenda.github.io/bsketch/)
 
-[![CI](https://github.com/serbenda/sketch/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/serbenda/sketch/actions/workflows/ci.yml)
+[![CI](https://github.com/serbenda/bsketch/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/serbenda/bsketch/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![No network](https://img.shields.io/badge/network-none-brightgreen.svg)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/screenshot-dark.png">
-  <img src="docs/images/screenshot-light.png" alt="sketch with a small flowchart: a yellow box 'Idea' with an arrow to a blue diamond 'Worth it?', which points to a green ellipse 'Build it' and a red box 'Sketch it first', all drawn with a hand-drawn stroke and handwriting." width="900">
+  <img src="docs/images/screenshot-light.png" alt="bsketch with a small flowchart: a yellow box 'Idea' with an arrow to a blue diamond 'Worth it?', which points to a green ellipse 'Build it' and a red box 'Sketch it first', all drawn with a hand-drawn stroke and handwriting." width="900">
 </picture>
 
 </div>
 
-## Why sketch
+## Why bsketch
 - **Private by design.** Its security policy forbids every network connection: your drawing stays on your
   machine, always.
 - **Works anywhere.** In any browser, offline once opened, as a single HTML file, or as a small desktop app. Even
@@ -26,7 +26,7 @@ Sketch diagrams, flows and wireframes in the browser: no account, nothing to ins
 - **Fast to draw.** A hand-drawn look, text inside shapes, arrows that stick to them, and a shortcut for everything.
 
 ## Try it in a minute
-1. Open **[serbenda.github.io/sketch](https://serbenda.github.io/sketch/)**.
+1. Open **[serbenda.github.io/bsketch](https://serbenda.github.io/bsketch/)**.
 2. Press **R** and drag to draw a box. Double-click it and type.
 3. Press **R** again for a second box, then **A** and drag from one box to the other: the arrow sticks to both.
 4. Move a box: the arrow and the text follow it.
@@ -59,9 +59,9 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 ## Three ways to use it
 | | How | Good for |
 |---|---|---|
-| 🌐 **Web** | [serbenda.github.io/sketch](https://serbenda.github.io/sketch/), in Chrome, Edge, Firefox or Safari. Chrome and Edge can install it as an app ("Install app") | Everyday use; works offline once opened |
-| 📄 **Portable** | **Portable version** in the site's menu downloads `sketch-portable.html`: double-click it on Windows, macOS or Linux | Computers where you can't install anything. It is not a program, so antivirus tools don't block it |
-| 🖥️ **Desktop** | `sketch-windows.exe`, `sketch-macos.zip` and `sketch-linux.AppImage`, built by the [Desktop workflow](https://github.com/serbenda/sketch/actions/workflows/desktop.yml) (download them from a run's artifacts) | A window of its own, no browser |
+| 🌐 **Web** | [serbenda.github.io/bsketch](https://serbenda.github.io/bsketch/), in Chrome, Edge, Firefox or Safari. Chrome and Edge can install it as an app ("Install app") | Everyday use; works offline once opened |
+| 📄 **Portable** | **Portable version** in the site's menu downloads `bsketch-portable.html`: double-click it on Windows, macOS or Linux | Computers where you can't install anything. It is not a program, so antivirus tools don't block it |
+| 🖥️ **Desktop** | `bsketch-windows.exe`, `bsketch-macos.zip` and `bsketch-linux.AppImage`, built by the [Desktop workflow](https://github.com/serbenda/bsketch/actions/workflows/desktop.yml) (download them from a run's artifacts) | A window of its own, no browser |
 
 The desktop builds are not signed: on macOS, open it the first time with right click → Open; on company computers
 the antivirus may block an unsigned executable (use the portable file there). They use the system's web engine
@@ -111,8 +111,8 @@ Found a security problem? See [SECURITY.md](SECURITY.md).
 
 ## For developers
 ```bash
-git clone https://github.com/serbenda/sketch.git
-cd sketch
+git clone https://github.com/serbenda/bsketch.git
+cd bsketch
 git switch development
 python3 -m http.server 8000   # then open http://localhost:8000
 npm test                      # engine tests (no dependencies)
