@@ -58,4 +58,4 @@ way.
   read the clipboard back), Ctrl+S and the question before opening. Checked by eye in the browser.
 - **What was left out and why:** as in *Out*; copying from the desktop app is untested (R-002).
 - **Lessons learned:** Ctrl+Shift+C cannot be used in a web page; pick shortcuts the browser does not keep.
-- **PR:** #
+- **PR:** #9
