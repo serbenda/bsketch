@@ -16,6 +16,24 @@
 - **Pending:**
 -->
 
+## 2026-11-18 — OSV-Scanner findings in the desktop lockfile
+- **Phase / issue:** — · PR #7
+- **What:** `desktop/src-tauri/osv-scanner.toml` (owner) ignores, until 2027-05-18 and each with its reason, the
+  three advisories OSV-Scanner found once `Cargo.lock` was committed: RUSTSEC-2024-0429 (`glib` 0.18, Medium),
+  RUSTSEC-2024-0370 (`proc-macro-error`, unmaintained) and RUSTSEC-2026-0543 (`chrono`, unmaintained).
+- **Why:** all three come from Tauri 2, none from sketch. `glib` 0.18 is gtk-rs 0.18 used by Tauri and WebKitGTK
+  on Linux; its fix (0.20) needs Tauri to change GTK bindings, and sketch never calls `glib::VariantStrIter`, the
+  unsound code. `proc-macro-error` is a build-time macro of `glib-macros`. `chrono` is only an optional
+  dependency of `serde_with` (via `tauri-utils`) that `cargo tree` shows is not built. Tauri 2.12.6 is the
+  latest 2.x, so updating does not help.
+- **Rejected:** going back to an untracked lockfile (hides the advisories instead of recording them); an ignore
+  file at the root (OSV-Scanner only reads it next to the lockfile, checked with the pinned image).
+- **Files:** desktop/src-tauri/osv-scanner.toml (owner), docs/WORKLOG.md
+- **Commits:** this one; the owner's with the ignore file.
+- **Tested:** the CI's pinned OSV-Scanner image run locally on a copy: with the file, 4 vulnerabilities filtered
+  (one is the GHSA alias of the glib advisory), "No issues found", exit 0, no unused ignores.
+- **Pending:** review the entries by 2027-05-18, or when Tauri moves past gtk-rs 0.18.
+
 ## 2026-11-17 — Fixes from a code review: export, editor, offline, desktop lockfile
 - **Phase / issue:** — (review of `development` before the next PR)
 - **What:** PNG export of big drawings is scaled down to fit the browser's canvas limits (16,384 px a side,
