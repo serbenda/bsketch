@@ -16,6 +16,26 @@
 - **Pending:**
 -->
 
+## 2026-11-18 — Toward 10/10: accent colour, measures, audits, P02 prepared
+- **Phase / issue:** P02
+- **What:** the accent colour comes from the logo (blue, AAA contrast in both themes; dark icon on the dark
+  theme's active tool; `theme_color` night blue); the zoom button is at least 32 px tall. P02's phase file with the
+  owner's device checklist and the release steps. A repo posture review (read-only) and a full security audit.
+- **Why:** the owner asked to prepare everything for a 10/10.
+- **Rejected:** the logo's orange as the accent (too little contrast on white for outlines and text).
+- **Measures:** Lighthouse could not be downloaded here (npm is unreachable from this session), so the same
+  things were measured in Chrome over DevTools: on a phone with slow 4G and a 4x slower CPU, first paint and LCP
+  0.58 s, CLS 0, 183 kB in 12 requests; every control has a name, images have alt text, `lang` and viewport set,
+  no tap target under 24 px after the fix.
+- **Repo posture (owner's settings):** `main` unprotected; secret scanning, push protection, Dependabot alerts and
+  private vulnerability reporting off; Pages builds the legacy way from the whole `main` (the portable file is a
+  404 and `CLAUDE.md` is served); actions not restricted. Listed in STATE → Next.
+- **Files:** css/styles.css, css/sketch.css, js/editor.js, manifest.webmanifest, sw.js, CHANGELOG.md,
+  docs/phases/P02-owner-tests-and-release.md, docs/ROADMAP.md, docs/phases/README.md, docs/STATE.md
+- **Commits:** this one, on `feat/v1-prep`.
+- **Tested:** `npm test` 26 pass; `npm run test:e2e` 14 pass; contrast computed; light and dark checked by eye.
+- **Pending:** the security audit's findings; the owner's GitHub settings and device checklist; `v1.0.0`.
+
 ## 2026-11-18 — P06: text fonts
 - **Phase / issue:** P06
 - **What:** a Font choice (Hand, Normal, Code) in the style panel; `font` on text elements, validated, measured,
