@@ -43,6 +43,8 @@ const editor = createEditor($('canvas'), {
     clearTimeout(timer);
     timer = setTimeout(() => store(scene), 400);
   },
+  // The G key: remembered like the menu's switch.
+  onGridChange: (on) => setGridPref(on),
 });
 editor.focus();
 
@@ -58,6 +60,8 @@ function download(data, name, type) {
 }
 
 async function openFile(file) {
+  // Opening replaces the drawing in this browser: ask first, as "New" does.
+  if (editor.getScene().elements.length && !window.confirm(`Open "${file.name}"? It replaces the current drawing (save it first if you want to keep it).`)) return;
   try {
     const scene = parseScene(await file.text());
     editor.setScene(scene);
@@ -96,6 +100,24 @@ $('png').addEventListener('click', async () => {
   if (!png) return notify('This browser could not make the PNG. Try SVG instead.');
   download(png, `${fileName}.png`, 'image/png');
 });
+// Copy as PNG: the selection if there is one, otherwise the whole drawing, ready to paste in a chat or a document.
+async function copyPng() {
+  const sel = editor.getSelection();
+  const scene = { ...editor.getScene(), ...(sel.length ? { elements: sel } : {}) };
+  if (!scene.elements.length) return notify('The drawing is empty.');
+  const transparent = $('transparent').checked;
+  if (!navigator.clipboard?.write || !globalThis.ClipboardItem) return notify('This browser cannot copy images. Use "PNG" instead.');
+  try {
+    // The PNG goes in as a promise so the copy still counts as part of the click (Safari asks for that).
+    const blob = toPngBlob(document, scene, { background: !transparent }).then((b) => b || Promise.reject(new Error('png')));
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    notify(sel.length ? 'Selection copied as PNG.' : 'Drawing copied as PNG.');
+  } catch {
+    notify('Could not copy the image. Use "PNG" instead.');
+  }
+}
+$('copy-png').addEventListener('click', copyPng);
+
 $('svg').addEventListener('click', () => {
   const scene = editor.getScene();
   if (!scene.elements.length) return notify('The drawing is empty.');
@@ -126,7 +148,7 @@ menu.addEventListener('click', (ev) => {
   if (ev.clientX < r.left || ev.clientX > r.right || ev.clientY < r.top || ev.clientY > r.bottom) closeMenu();
 });
 // The file actions close the menu once done.
-for (const id of ['new', 'save', 'png', 'svg']) $(id).addEventListener('click', () => setTimeout(closeMenu, 0));
+for (const id of ['new', 'save', 'png', 'svg', 'copy-png']) $(id).addEventListener('click', () => setTimeout(closeMenu, 0));
 $('file').addEventListener('change', closeMenu);
 
 // Appearance: system, light or dark, remembered in this browser.
@@ -151,6 +173,18 @@ for (const input of document.querySelectorAll('input[name="appearance"]')) {
 }
 darkQuery.addEventListener('change', applyAppearance);
 
+// Grid: shown on screen only, remembered in this browser.
+function setGridPref(on) {
+  prefs = { ...prefs, grid: on };
+  savePrefs(prefsStorage, prefs);
+  $('grid').checked = on;
+}
+$('grid').addEventListener('change', () => {
+  editor.setGrid($('grid').checked);
+  setGridPref($('grid').checked);
+});
+editor.setGrid(prefs.grid);
+
 // Canvas background: saved with the drawing and undoable.
 const swatches = $('backgrounds');
 for (const [color, label] of BACKGROUNDS) {
@@ -174,10 +208,27 @@ for (const [color, label] of BACKGROUNDS) {
 // The menu shows the current choices each time it opens.
 function syncMenu() {
   for (const input of document.querySelectorAll('input[name="appearance"]')) input.checked = input.value === prefs.appearance;
+  $('grid').checked = prefs.grid;
   const bg = editor.getScene().background;
   for (const input of swatches.querySelectorAll('input')) input.checked = input.value === bg;
 }
 applyAppearance();
+
+// Shortcuts for the file actions: Ctrl+S saves, Ctrl+O opens (Cmd on a Mac), Alt+Shift+C copies as PNG
+// (Ctrl/Cmd+Shift+C belongs to the browser's inspector). By key position, so other layouts work too.
+document.addEventListener('keydown', (ev) => {
+  const mod = ev.ctrlKey || ev.metaKey;
+  if (mod && !ev.altKey && !ev.shiftKey && ev.code === 'KeyS') {
+    ev.preventDefault();
+    $('save').click();
+  } else if (mod && !ev.altKey && !ev.shiftKey && ev.code === 'KeyO') {
+    ev.preventDefault();
+    $('file').click();
+  } else if (!mod && ev.altKey && ev.shiftKey && ev.code === 'KeyC') {
+    ev.preventDefault();
+    copyPng();
+  }
+});
 
 // Dropping a file on the page opens it.
 window.addEventListener('dragover', (ev) => {

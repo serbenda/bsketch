@@ -17,6 +17,11 @@ export const FONT_NAME = 'Sketch Hand';
 export const FONT = `"${FONT_NAME}", "Segoe Print", "Bradley Hand", "Comic Sans MS", "Chalkboard SE", cursive`;
 const ARROW_GAP = 6;
 
+// The grid: lines every GRID_SIZE drawing units. snap() rounds a coordinate to the nearest line.
+export const GRID_SIZE = 20;
+export const snap = (v, size = GRID_SIZE) => Math.round(v / size) * size;
+export const snapPoint = (p, size = GRID_SIZE) => ({ x: snap(p.x, size), y: snap(p.y, size) });
+
 export const DEFAULT_STYLE = {
   stroke: '#1e1e1e',
   fill: 'transparent',
@@ -36,8 +41,12 @@ export function emptyScene() {
   return { type: FORMAT, version: VERSION, elements: [], background: '#ffffff' };
 }
 
+// Arrowheads of an arrow: at its end (the default, not stored), its start, both or none.
+export const HEADS = ['end', 'start', 'both', 'none'];
+
 export function createElement(type, x, y, style = {}) {
   const el = { id: newId(), type, x, y, w: 0, h: 0, seed: newSeed(), ...DEFAULT_STYLE, ...style };
+  if (type !== 'arrow' || el.heads === 'end' || !HEADS.includes(el.heads)) delete el.heads;
   if (type === 'draw' || type === 'line' || type === 'arrow') el.points = [{ x: 0, y: 0 }];
   if (type === 'text') el.text = '';
   return el;
@@ -572,6 +581,7 @@ export function cleanElement(raw) {
     if (ref(raw.startId)) el.startId = ref(raw.startId);
     if (ref(raw.endId)) el.endId = ref(raw.endId);
   }
+  if (el.type === 'arrow' && HEADS.includes(raw.heads) && raw.heads !== 'end') el.heads = raw.heads;
   if (ref(raw.group)) el.group = ref(raw.group);
   return el;
 }
@@ -595,6 +605,13 @@ export function parseScene(text) {
 
 export function serializeScene(scene) {
   return `${JSON.stringify({ type: FORMAT, version: VERSION, background: scene.background, elements: scene.elements })}\n`;
+}
+
+// Excalidraw keeps one arrowhead setting per end (null means none; a missing end one means the default arrow).
+function excalidrawHeads(e) {
+  const start = !!e.startArrowhead;
+  const end = e.endArrowhead === undefined ? true : !!e.endArrowhead;
+  return start && end ? 'both' : start ? 'start' : end ? 'end' : 'none';
 }
 
 // The .excalidraw format (public JSON): the types and styles with an equivalent are translated.
@@ -622,6 +639,7 @@ export function fromExcalidraw(data) {
       fontSize: e.fontSize,
       text: e.originalText ?? e.text,
       containerId: e.containerId,
+      heads: excalidrawHeads(e),
       startId: e.startBinding?.elementId,
       endId: e.endBinding?.elementId,
       group: Array.isArray(e.groupIds) ? e.groupIds[e.groupIds.length - 1] : undefined,
@@ -667,9 +685,16 @@ export function drawOps(el) {
     const pts = el.points.map((p) => ({ x: el.x + p.x, y: el.y + p.y }));
     ops.push({ ...base, path: polylinePath(pts, opts) });
     if (el.type === 'arrow' && pts.length > 1) {
-      const a = pts[pts.length - 2];
-      const z = pts[pts.length - 1];
-      ops.push({ ...base, dashed: false, path: arrowHead(a.x, a.y, z.x, z.y, 10 + el.width * 3, opts) });
+      const heads = el.heads || 'end';
+      const size = 10 + el.width * 3;
+      if (heads === 'end' || heads === 'both') {
+        const a = pts[pts.length - 2];
+        const z = pts[pts.length - 1];
+        ops.push({ ...base, dashed: false, path: arrowHead(a.x, a.y, z.x, z.y, size, opts) });
+      }
+      if (heads === 'start' || heads === 'both') {
+        ops.push({ ...base, dashed: false, path: arrowHead(pts[1].x, pts[1].y, pts[0].x, pts[0].y, size, { ...opts, seed: opts.seed + 1 }) });
+      }
     }
     return ops;
   } else {

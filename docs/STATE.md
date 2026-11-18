@@ -8,14 +8,16 @@ Last updated: 2026-11-17
 ## Where we are
 - **Mode:** full
 - **Current stage:** S3 — Release (see [ROADMAP](ROADMAP.md))
-- **Phase in progress:** none; next is P04 — Grid and snapping (to plan)
+- **Phase in progress:** none; next is P02 — the owner's tests on other browsers and devices, and `v0.4.0`
 - **Environment:** GitHub Pages (published by the Pages workflow on `main`), the portable file, and desktop builds as CI artifacts
 - **Working branch:** `development`
 
 ## Current work
-- [P03](phases/P03-options-menu.md) done and on `development`; its PR to `main` is the next one (PR #7 was merged before it).
+- P05 done (ask before opening, Ctrl+S/O, copy as PNG, arrowheads); P04 and P05 go to `main` together.
 
 ## Recently done
+- [P05](phases/P05-everyday-comfort.md): ask before opening, Ctrl+S/Ctrl+O, copy as PNG, arrowheads.
+- [P04](phases/P04-grid-and-snapping.md): the grid (G or the menu), with snapping for new shapes and moves.
 - [P03](phases/P03-options-menu.md): the ☰ side menu (files, export, appearance, canvas background).
 - Fixes from a code review: big PNG export, arrows kept when aligning, Enter on buttons, undo steps, pinch while
   drawing, attached-element caching, the service worker's offline page, `Cargo.lock` committed (see WORKLOG).
@@ -26,14 +28,13 @@ Last updated: 2026-11-17
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. Owner: try P03's menu; then P04 (grid) on `development`.
-2. Owner: review and merge the `development → main` PR with P03's side menu.
-3. Owner: re-run `./scripts/setup-repo.sh` on his Mac for the rules of `main`.
-4. Owner: try the site and the desktop builds on Firefox, Safari, a real phone, macOS and Windows (P02, [R-002](RISKS.md)),
+1. Owner: review and merge the PR with P04 and P05; then P02 (tests on other browsers and devices, `v0.4.0`).
+2. Owner: re-run `./scripts/setup-repo.sh` on his Mac for the rules of `main`.
+3. Owner: try the site and the desktop builds on Firefox, Safari, a real phone, macOS and Windows (P02, [R-002](RISKS.md)),
    including a pinch while drawing and downloading PNG/SVG/.sketch from the desktop app.
-5. Optional (owner, `.github/`): pin the `editorconfig-checker` binary; its download hits GitHub's rate limit now and then.
-6. Decide whether the interface's accent colour (`--accent`, still the old purple) should match the new logo.
-7. Owner: set `docs/images/banner.png` as the repository's social preview (Settings → General).
+4. Optional (owner, `.github/`): pin the `editorconfig-checker` binary; its download hits GitHub's rate limit now and then.
+5. Decide whether the interface's accent colour (`--accent`, still the old purple) should match the new logo.
+6. Owner: set `docs/images/banner.png` as the repository's social preview (Settings → General).
 
 ## Blocked / awaiting decision
 - Nothing.

@@ -16,6 +16,36 @@
 - **Pending:**
 -->
 
+## 2026-11-18 — P05: ask before opening, file shortcuts, copy as PNG, arrowheads
+- **Phase / issue:** P05
+- **What:** opening over a drawing asks first; Ctrl+S/Ctrl+O; Copy as PNG (menu, Alt+Shift+C); arrowheads (End,
+  Start, Both, None) stored as `heads`, validated, imported from Excalidraw. The style panel's nested labels got
+  their gap back (`.sk-panel > .sk-label:first-child`).
+- **Why:** the owner approved the four most useful gaps found after P04.
+- **Rejected:** Ctrl+Shift+C for copying (Chrome's inspector keeps it); storing `heads: 'end'` on every arrow
+  (keeps files and diffs small); reading the clipboard back in the test (headless Chrome denies it; the write is
+  recorded instead).
+- **Files:** js/scene.js, js/editor.js, js/app.js, index.html, css/styles.css, css/sketch.css, sw.js,
+  tests/scene.test.mjs, tests/e2e/editor.e2e.mjs, README.md, CHANGELOG.md, docs/ARCHITECTURE.md, docs/ROADMAP.md,
+  docs/phases/
+- **Commits:** this one.
+- **Tested:** `npm test` 25 pass; `npm run test:e2e` 13 pass; by eye in the browser.
+- **Pending:** copying images from the desktop app (WebKit) is untested.
+
+## 2026-11-18 — P04: grid and snapping
+- **Phase / issue:** P04
+- **What:** a grid on the editor's canvas (G or the menu's "Show grid"), remembered in `sketch.prefs`; new shapes,
+  line and arrow ends, texts and moved selections snap to it; arrow keys move one cell (Shift 1 px).
+- **Why:** the owner asked for a grid among the options (2026-11-17) and approved this plan (2026-11-18).
+- **Rejected:** snapping each element of a moved selection (would break groups); Alt to skip the snap (moves
+  windows on Linux); snapping while resizing or rotating (left for later).
+- **Files:** js/scene.js, js/prefs.js, js/editor.js, js/app.js, index.html, css/styles.css, tests/scene.test.mjs,
+  tests/e2e/editor.e2e.mjs, README.md, CHANGELOG.md, docs/ARCHITECTURE.md, docs/THREAT_MODEL.md, docs/ROADMAP.md,
+  docs/phases/
+- **Commits:** this one.
+- **Tested:** `npm test` 24 pass; `npm run test:e2e` 12 pass (a new grid walkthrough); by eye in light and dark.
+- **Pending:** —
+
 ## 2026-11-18 — P03: the side menu with file actions and options
 - **Phase / issue:** P03
 - **What:** a ☰ button opens a side menu (modal `<dialog>`) with New, Open, Save, PNG, SVG, a Transparent background
@@ -29,7 +59,7 @@
 - **Files:** index.html, js/app.js, js/prefs.js, js/editor.js, js/scene.js, js/render.js, css/styles.css,
   css/sketch.css, sw.js, tests/scene.test.mjs, tests/e2e/editor.e2e.mjs, README.md, CHANGELOG.md,
   docs/ARCHITECTURE.md, docs/THREAT_MODEL.md, docs/ROADMAP.md, docs/phases/
-- **Commits:** 281d585 (merged after PR #7, so in the next PR).
+- **Commits:** 281d585 (PR #8).
 - **Tested:** `npm test` 23 pass; `npm run test:e2e` 11 pass (a new walkthrough through the menu on a dark system);
   the portable build; by eye in the browser, dark system with Light and System, desktop and phone width, no console
   errors.

@@ -16,6 +16,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
   version (`sketch.actual`) is moved there the first time.
 
 ### Added
+- **Arrowheads:** at the end, the start, both ends or none, chosen in the style panel; kept in `.sketch` files and
+  read from `.excalidraw` ones.
+- **Copy as PNG** (☰ menu or Alt+Shift+C): the selection, or the whole drawing, ready to paste in a chat or a
+  document.
+- **Ctrl+S** saves and **Ctrl+O** opens a file (Cmd on a Mac).
+- **Grid:** the **G** key or "Show grid" in the ☰ menu draws a light grid behind the drawing (on screen only, never
+  exported). New shapes, lines, arrows and texts start and end on it, a moved selection lands with its corner on it,
+  and arrow keys move one cell (Shift: 1 px). Remembered in this browser.
 - **Side menu (☰):** the file actions (New, Open, Save, PNG, SVG, Portable) move from the header into a side menu,
   together with the options: **Appearance** (System, Light or Dark, whatever the system theme is, remembered in
   this browser), **Canvas background** (six light colours, saved with the drawing and undoable) and a
@@ -65,6 +73,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
   flow, CI, CodeQL, Dependabot, GitHub Pages publishing and the setup script.
 
 ### Fixed
+- Opening a file (menu, Ctrl+O or dropping it) over a drawing now asks first, as "New" does, instead of replacing it.
 - Exporting a very big drawing to PNG no longer downloads a broken file: it is exported at a smaller scale so it
   fits what the browser allows, and if it still cannot be made the site says so.
 - Aligning or distributing no longer detaches arrows from the shapes they are attached to.

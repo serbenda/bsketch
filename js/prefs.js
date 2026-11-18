@@ -1,9 +1,9 @@
-// The site's preferences, kept in this browser: for now only the appearance (light, dark or the system's).
+// The site's preferences, kept in this browser: the appearance (light, dark or the system's) and the grid.
 // What is stored is never trusted: anything unknown falls back to the default.
 
 export const PREFS_KEY = 'sketch.prefs';
 export const APPEARANCES = ['system', 'light', 'dark'];
-export const DEFAULT_PREFS = Object.freeze({ appearance: 'system' });
+export const DEFAULT_PREFS = Object.freeze({ appearance: 'system', grid: false });
 
 // Canvas colours offered in the menu (light ones: in the dark appearance the canvas is shown inverted).
 export const BACKGROUNDS = [
@@ -18,6 +18,7 @@ export const BACKGROUNDS = [
 export function cleanPrefs(raw) {
   const out = { ...DEFAULT_PREFS };
   if (raw && typeof raw === 'object' && APPEARANCES.includes(raw.appearance)) out.appearance = raw.appearance;
+  if (raw && typeof raw === 'object' && typeof raw.grid === 'boolean') out.grid = raw.grid;
   return out;
 }
 

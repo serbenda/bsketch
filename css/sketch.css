@@ -145,7 +145,8 @@
   margin: 10px 0 5px;
 }
 
-.sk-label:first-child {
+/* Only the panel's very first label: the ones that open a block inside it (Arrowheads, Align) keep their gap. */
+.sk-panel > .sk-label:first-child {
   margin-top: 0;
 }
 

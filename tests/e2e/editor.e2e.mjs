@@ -289,6 +289,111 @@ test('the side menu: appearance, canvas background and keyboard use', { skip }, 
   }
 });
 
+test('the grid: G turns it on, new shapes and moves land on it, and it is remembered', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('g');
+    assert.equal(await page.eval('document.querySelector(".sk-sr[aria-live]").textContent'), 'Grid on');
+    await page.press('r');
+    await page.drag(at(13, 27), at(118, 92));
+    let s = await scene(page);
+    const r = s.elements[0];
+    assert.deepEqual([r.x, r.y, r.w, r.h], [20, 20, 100, 80], 'the box landed on the grid');
+
+    // Moving it by an odd amount keeps its corner on the grid.
+    await page.drag(at(20, 50), at(53, 79));
+    s = await scene(page);
+    assert.deepEqual([s.elements[0].x, s.elements[0].y], [60, 40]);
+    // Arrow keys move one cell; Shift+arrow 1 px.
+    await page.press('ArrowRight');
+    await page.press('ArrowDown', { shift: true });
+    s = await scene(page);
+    assert.deepEqual([s.elements[0].x, s.elements[0].y], [80, 41]);
+    // An arrow from the box to empty space: attached at its start, its free end on the grid.
+    await page.press('a');
+    await page.drag(at(130, 80), at(257, 163));
+    s = await scene(page);
+    const arrow = s.elements.find((e) => e.type === 'arrow');
+    assert.equal(arrow.startId, s.elements[0].id, 'attached to the box');
+    const end = arrow.points[arrow.points.length - 1];
+    assert.deepEqual([arrow.x + end.x, arrow.y + end.y], [260, 160], 'its free end on the grid');
+
+    // Remembered: after a reload the menu's switch is on.
+    await page.reload();
+    await page.waitFor('!!document.querySelector(".sk-canvas")');
+    await page.click('#menu-button');
+    assert.equal(await page.eval('document.getElementById("grid").checked'), true);
+    await page.click('#grid'); // off again from the menu
+    await page.press('Escape');
+    assert.equal(JSON.parse(await page.eval('localStorage.getItem("sketch.prefs")')).grid, false);
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
+test('arrowheads, copy as PNG, Ctrl+S and asking before opening over a drawing', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+
+    // Arrowheads: chosen in the panel before drawing, and changed on a selected arrow.
+    await page.press('a');
+    assert.equal(await page.eval('document.querySelector(\'[aria-label="Arrowheads"]\').closest("div").hidden'), false);
+    await page.click('[aria-label="Arrowheads"] button', 'Both');
+    await page.drag(at(-100, 0), at(100, 0));
+    let s = await scene(page);
+    assert.equal(s.elements[0].heads, 'both');
+    await page.click('[aria-label="Arrowheads"] button', 'None');
+    s = await scene(page);
+    assert.equal(s.elements[0].heads, 'none');
+    await page.click('[aria-label="Arrowheads"] button', 'End');
+    s = await scene(page);
+    assert.equal(s.elements[0].heads, undefined, 'the default is not stored');
+
+    // Copy as PNG (Alt+Shift+C): what reaches the clipboard is a real PNG. Headless Chrome cannot read the
+    // clipboard back, so the write itself is recorded.
+    await page.eval(`navigator.clipboard.write = async (items) => {
+      const blob = await items[0].getType('image/png');
+      const head = new Uint8Array(await blob.slice(0, 4).arrayBuffer());
+      window.__clip = { types: items.flatMap((i) => i.types), size: blob.size, png: head[1] === 0x50 && head[2] === 0x4e && head[3] === 0x47 };
+    }`);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', key: 'C', code: 'KeyC', windowsVirtualKeyCode: 67, modifiers: 1 | 8 });
+    await page.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'C', code: 'KeyC', windowsVirtualKeyCode: 67, modifiers: 1 | 8 });
+    await page.waitFor('document.querySelector("#status").textContent.includes("copied as PNG")');
+    const clip = await page.eval('window.__clip');
+    assert.deepEqual(clip.types, ['image/png']);
+    assert.ok(clip.png && clip.size > 1000, `a PNG of ${clip.size} bytes`);
+
+    // Ctrl+S saves: a .sketch file is downloaded.
+    await page.eval('window.__downloads = []; HTMLAnchorElement.prototype.click = function () { window.__downloads.push(this.download); }');
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('s', { ctrl: true });
+    assert.deepEqual(await page.eval('window.__downloads'), ['drawing.sketch']);
+
+    // Opening a file over a drawing asks first; saying no keeps the drawing.
+    await page.eval('window.__asked = ""; window.confirm = (m) => { window.__asked = m; return false; }');
+    const dir = await mkdtemp(join(tmpdir(), 'sketch-'));
+    const file = join(dir, 'other.sketch');
+    await writeFile(file, JSON.stringify({ type: 'sketch', version: 1, background: '#ffffff', elements: [] }));
+    const { root } = await page.send('DOM.getDocument', {});
+    const { nodeId } = await page.send('DOM.querySelector', { nodeId: root.nodeId, selector: '#file' });
+    await page.send('DOM.setFileInputFiles', { nodeId, files: [file] });
+    await page.waitFor('window.__asked.includes("other.sketch")');
+    s = await scene(page);
+    assert.equal(s.elements.length, 1, 'the drawing is still there');
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
 test('a drawing with 2,000 elements pans smoothly', { skip }, async () => {
   const page = await browser.newPage();
   try {
