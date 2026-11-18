@@ -356,3 +356,24 @@ test('arrowheads: stored only on arrows and only when not the default, validated
   assert.equal(ex({ startArrowhead: 'arrow', endArrowhead: null }), 'start');
   assert.equal(ex({ startArrowhead: null, endArrowhead: null }), 'none');
 });
+
+test('fonts: stored only on texts and only when not the handwriting one, validated, measured, exported and imported', () => {
+  assert.equal(E.createElement('rectangle', 0, 0, { font: 'code' }).font, undefined, 'not on shapes');
+  assert.equal(E.createElement('text', 0, 0, { font: 'hand' }).font, undefined, 'the default is not stored');
+  assert.equal(E.createElement('text', 0, 0, { font: 'code' }).font, 'code');
+  assert.equal(E.createElement('text', 0, 0, { font: 'toString' }).font, undefined, 'only real font names');
+  const raw = { type: 'text', x: 0, y: 0, text: 'hello world', fontSize: 20 };
+  assert.equal(E.cleanElement({ ...raw, font: 'normal' }).font, 'normal');
+  assert.equal(E.cleanElement({ ...raw, font: 'Comic; }' }).font, undefined);
+  assert.equal(E.cleanElement({ ...raw, font: '__proto__' }).font, undefined);
+  // The measurer is told each text's font (here a fake one: monospaced letters are wider).
+  E.setTextMeasurer((t, f, family) => t.length * f * (family === E.FONTS.code ? 0.6 : 0.5));
+  const hand = E.cleanElement(raw);
+  const code = E.cleanElement({ ...raw, font: 'code' });
+  assert.ok(E.bounds(code).w > E.bounds(hand).w, 'a monospaced text is measured wider');
+  assert.equal(E.fontOf(code), E.FONTS.code);
+  const svg = toSvgString({ ...E.emptyScene(), elements: [code] });
+  assert.ok(svg.includes('monospace'), 'the SVG uses the text\'s font');
+  const ex = (fontFamily) => E.fromExcalidraw({ type: 'excalidraw', elements: [{ id: 't', type: 'text', x: 0, y: 0, width: 50, height: 25, text: 'x', fontSize: 20, fontFamily }] }).elements[0].font;
+  assert.deepEqual([ex(1), ex(2), ex(3), ex(5), ex(6), ex(8), ex(99)], [undefined, 'normal', 'code', undefined, 'normal', 'code', undefined]);
+});

@@ -15,6 +15,14 @@ export const VERSION = 1;
 export const LINE_HEIGHT = 1.25;
 export const FONT_NAME = 'Sketch Hand';
 export const FONT = `"${FONT_NAME}", "Segoe Print", "Bradley Hand", "Comic Sans MS", "Chalkboard SE", cursive`;
+// Text fonts: the handwriting one (the default, not stored) and two from the system, so nothing more is
+// downloaded and the site still works offline.
+export const FONTS = {
+  hand: FONT,
+  normal: 'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+  code: 'ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace',
+};
+export const fontOf = (el) => FONTS[el.font] || FONT;
 const ARROW_GAP = 6;
 
 // The grid: lines every GRID_SIZE drawing units. snap() rounds a coordinate to the nearest line.
@@ -47,6 +55,7 @@ export const HEADS = ['end', 'start', 'both', 'none'];
 export function createElement(type, x, y, style = {}) {
   const el = { id: newId(), type, x, y, w: 0, h: 0, seed: newSeed(), ...DEFAULT_STYLE, ...style };
   if (type !== 'arrow' || el.heads === 'end' || !HEADS.includes(el.heads)) delete el.heads;
+  if (type !== 'text' || el.font === 'hand' || !Object.hasOwn(FONTS, String(el.font))) delete el.font;
   if (type === 'draw' || type === 'line' || type === 'arrow') el.points = [{ x: 0, y: 0 }];
   if (type === 'text') el.text = '';
   return el;
@@ -59,7 +68,8 @@ const isBindable = (el) => isContainer(el) || (el.type === 'text' && !el.contain
 
 // --- Text: measuring and lines ---
 // The real measure comes from the renderer (canvas.measureText); without a DOM it is estimated.
-let measure = (text, fontSize) => text.length * fontSize * 0.5;
+// measure(text, fontSize, family): `family` is one of FONTS.
+let measure = (text, fontSize, family = FONT) => text.length * fontSize * (family === FONTS.code ? 0.6 : family === FONTS.normal ? 0.55 : 0.5);
 // Elements are never changed in place (every change creates a new one), so their box can be cached per
 // object. A new text measurer starts the cache again.
 let boxes = new WeakMap();
@@ -67,29 +77,29 @@ export function setTextMeasurer(fn) {
   measure = fn;
   boxes = new WeakMap();
 }
-export const measureText = (text, fontSize) => measure(text, fontSize);
+export const measureText = (text, fontSize, family = FONT) => measure(text, fontSize, family);
 // Forgets the measured boxes (the font they were measured with has just changed, e.g. it loaded).
 export function forgetTextBoxes() {
   boxes = new WeakMap();
 }
 
-function wrap(line, width, fontSize) {
-  if (measure(line, fontSize) <= width) return [line];
+function wrap(line, width, fontSize, family) {
+  if (measure(line, fontSize, family) <= width) return [line];
   const out = [];
   let cur = '';
   for (const word of line.split(/(\s+)/)) {
     if (!word) continue;
     const next = cur + word;
-    if (measure(next, fontSize) <= width || !cur.trim()) {
+    if (measure(next, fontSize, family) <= width || !cur.trim()) {
       cur = next;
     } else {
       out.push(cur.trimEnd());
       cur = word.trimStart();
     }
     // A word much wider than the box is split by letters (if it is only a little wider, it stays).
-    while (measure(cur, fontSize) > width * 1.6 && cur.length > 1) {
+    while (measure(cur, fontSize, family) > width * 1.6 && cur.length > 1) {
       let n = cur.length - 1;
-      while (n > 1 && measure(cur.slice(0, n), fontSize) > width) n--;
+      while (n > 1 && measure(cur.slice(0, n), fontSize, family) > width) n--;
       out.push(cur.slice(0, n));
       cur = cur.slice(n);
     }
@@ -102,7 +112,7 @@ function wrap(line, width, fontSize) {
 export function textLines(el) {
   const raw = String(el.text || '').split('\n');
   if (!el.containerId || !(el.w > 0)) return raw;
-  return raw.flatMap((l) => wrap(l, el.w, el.fontSize));
+  return raw.flatMap((l) => wrap(l, el.w, el.fontSize, fontOf(el)));
 }
 
 // --- Geometry ---
@@ -133,7 +143,7 @@ function computeBounds(el) {
   }
   if (el.type === 'text') {
     const lines = textLines(el);
-    const w = el.containerId && el.w > 0 ? el.w : Math.max(...lines.map((l) => measure(l, el.fontSize)), el.fontSize * 0.5);
+    const w = el.containerId && el.w > 0 ? el.w : Math.max(...lines.map((l) => measure(l, el.fontSize, fontOf(el))), el.fontSize * 0.5);
     return { x: el.x, y: el.y, w, h: lines.length * el.fontSize * LINE_HEIGHT };
   }
   return { x: Math.min(el.x, el.x + el.w), y: Math.min(el.y, el.y + el.h), w: Math.abs(el.w), h: Math.abs(el.h) };
@@ -572,6 +582,7 @@ export function cleanElement(raw) {
   }
   if (el.type === 'text') {
     el.text = String(raw.text ?? '').slice(0, 10000);
+    if (raw.font !== 'hand' && typeof raw.font === 'string' && Object.hasOwn(FONTS, raw.font)) el.font = raw.font;
     if (ref(raw.containerId)) {
       el.containerId = ref(raw.containerId);
       el.align = 'center';
@@ -607,6 +618,10 @@ export function serializeScene(scene) {
   return `${JSON.stringify({ type: FORMAT, version: VERSION, background: scene.background, elements: scene.elements })}\n`;
 }
 
+// Excalidraw's font numbers: handwriting (Virgil, Excalifont), normal (Helvetica, Nunito), code (Cascadia,
+// Comic Shanns). Anything else stays in the handwriting font.
+const EXCALIDRAW_FONTS = { 1: 'hand', 5: 'hand', 2: 'normal', 6: 'normal', 3: 'code', 8: 'code' };
+
 // Excalidraw keeps one arrowhead setting per end (null means none; a missing end one means the default arrow).
 function excalidrawHeads(e) {
   const start = !!e.startArrowhead;
@@ -637,6 +652,7 @@ export function fromExcalidraw(data) {
       roughness: e.roughness,
       opacity: e.opacity != null ? num(e.opacity, 100) / 100 : 1,
       fontSize: e.fontSize,
+      font: EXCALIDRAW_FONTS[e.fontFamily],
       text: e.originalText ?? e.text,
       containerId: e.containerId,
       heads: excalidrawHeads(e),

@@ -20,6 +20,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
   version (`sketch.actual`) is moved there the first time.
 
 ### Added
+- **Fonts for text:** Hand (the handwriting one, as before), Normal and Code, in the style panel. Normal and Code
+  are the system's own fonts, so nothing more is downloaded.
 - **Arrowheads:** at the end, the start, both ends or none, chosen in the style panel; kept in `.sketch` files and
   read from `.excalidraw` ones.
 - **Copy as PNG** (☰ menu or Alt+Shift+C): the selection, or the whole drawing, ready to paste in a chat or a

@@ -13,3 +13,4 @@ Each block of work has a phase file `PNN-short-title.md` created with `/new-phas
 | [P03](P03-options-menu.md) | S3 | Options menu: appearance, canvas background, transparent export | ✅ |
 | [P04](P04-grid-and-snapping.md) | S3 | Grid and snapping | ✅ |
 | [P05](P05-everyday-comfort.md) | S3 | Ask before opening, file shortcuts, copy as PNG, arrowheads | ✅ |
+| [P06](P06-text-fonts.md) | S3 | Text fonts: Hand, Normal, Code | ✅ |
