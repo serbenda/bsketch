@@ -16,6 +16,25 @@
 - **Pending:**
 -->
 
+## 2026-11-19 — project-template 1.0.1: git and gh only on the project's repository
+- **Phase / issue:** — (security audit follow-up)
+- **What:** synced project-template 1.0.1 (`scripts/sync-from-template.sh --apply`): the new `guard.sh` (git and gh
+  only on the project's repository, submodules, `clone`/`ls-remote` from folders, nested repositories in `git add`,
+  grouped risky options, changed hooks in linked worktrees), its tests and the sync script; and, by hand, the
+  `env` block of `.claude/settings.json` that gives every git `safe.bareRepository=explicit` and
+  `core.fsmonitor=false`.
+- **Why:** the High finding of this project's security audit (2026-11-18): git, outside the sandbox, could be
+  pointed at a planted repository whose config runs programs. Fixed in the template (PRs #21–#23, release v1.0.1)
+  and synced here.
+- **Rejected:** copying the template's settings.json whole (this project's permissions are its own); merging the
+  other "review" files (ci.yml, dependabot.yml, DoD, SETUP differ because this project adapted them).
+- **Files:** .claude/hooks/guard.sh, .claude/settings.json, scripts/test-guard.sh, scripts/test-scripts.sh,
+  scripts/sync-from-template.sh, .claude/TEMPLATE_VERSION
+- **Commits:** the owner's.
+- **Tested:** scripts/test-guard.sh passes here after the sync; scripts/test-scripts.sh is the template's own and is
+  skipped in a project (as CI does: it tests setup-repo on a copy of the template).
+- **Pending:** —
+
 ## 2026-11-19 — Build provenance for the desktop executables
 - **Phase / issue:** P02
 - **What:** the Desktop workflow signs a provenance attestation for each executable it builds
