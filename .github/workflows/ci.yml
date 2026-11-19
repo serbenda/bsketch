@@ -339,7 +339,9 @@ jobs:
           curl -fsSLo ec.tar.gz "https://github.com/editorconfig-checker/editorconfig-checker/releases/download/$EC_VERSION/editorconfig-checker-linux-amd64.tar.gz"
           echo "$EC_SHA256  ec.tar.gz" | sha256sum -c -
           mkdir -p "$RUNNER_TEMP/ec" && tar -xzf ec.tar.gz -C "$RUNNER_TEMP/ec" && rm ec.tar.gz
-          ec="$(find "$RUNNER_TEMP/ec" -type f -name 'ec-linux-amd64' | head -n 1)"
+          ec="$(find "$RUNNER_TEMP/ec" -type f ! -iname '*.md' ! -iname 'license*' ! -iname '*.txt' | head -n 1)"
+          [ -n "$ec" ] || { echo "::error::no binary in the editorconfig-checker archive"; ls -R "$RUNNER_TEMP/ec"; exit 1; }
+          chmod +x "$ec"
           "$ec" -disable-indent-size -exclude 'LICENSE|\.git/|\.claude/skills/|fonts/'
 
       - name: Valid HTML
