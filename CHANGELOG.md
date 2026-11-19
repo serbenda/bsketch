@@ -83,6 +83,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
   flow, CI, CodeQL, Dependabot, GitHub Pages publishing and the setup script.
 
 ### Fixed
+- Security audit: a small file with a giant filled shape, or with one very long word inside a shape, can no longer
+  hang the page (coordinates are capped at ±1,000,000, the hachure fill has at most 2,000 lines, and long words are
+  split by halving). The SVG export writes only numbers into numeric attributes, even for scenes an embedding
+  app passes without validating them.
 - Opening a file (menu, Ctrl+O or dropping it) over a drawing now asks first, as "New" does, instead of replacing it.
 - Exporting a very big drawing to PNG no longer downloads a broken file: it is exported at a smaller scale so it
   fits what the browser allows, and if it still cannot be made the site says so.

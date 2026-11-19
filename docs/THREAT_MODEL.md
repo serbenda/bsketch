@@ -31,9 +31,9 @@ Last reviewed: 2026-11-17
 ## Threats and controls
 | Threat | Entry point | Control | How it is checked |
 |---|---|---|---|
-| Script injection through drawing text or attributes (XSS) | Files, storage, Snowlog | Texts rendered with `textContent` or escaped; colors and fields validated by `cleanElement`; no `innerHTML`; Trusted Types required | Unit test "opening: validates whatever comes from the file"; SAST |
+| Script injection through drawing text or attributes (XSS) | Files, storage, Snowlog | Texts rendered with `textContent` or escaped; colors and fields validated by `cleanElement`; every number in SVG markup forced to a number (for scenes an embedder passes without `parseScene`); no `innerHTML`; Trusted Types required | Unit test "opening: validates whatever comes from the file"; SAST |
 | Data exfiltration from a malicious file or injected code | Files, any script | CSP `connect-src 'none'` (site and portable), `default-src 'none'`, no third-party scripts | CSP in `index.html` and the portable build; e2e checks no request leaves |
-| Denial of service with huge files | Files | Limits: 20,000 elements, 5,000 points, 10,000 characters per text, clamped sizes | Unit tests |
+| Denial of service with huge files | Files | Limits: 20,000 elements, 5,000 points, 10,000 characters per text, clamped sizes; coordinates within ±1e6; at most 2,000 hachure lines per shape; long words split by halving | Unit tests "security: …" |
 | Page escaping the desktop app | Desktop webview | No commands, plugins or global Tauri API exposed | `desktop/src-tauri` review; WebDriver smoke test |
 | Leaked secrets | Repo | No secrets needed; Gitleaks in pre-commit and CI | Secrets job |
 | Vulnerable or malicious dependency | CI, desktop build | Actions pinned by SHA; Tauri CLI pinned; Dependabot with a 7-day cooldown | Dependencies job; Dependabot |

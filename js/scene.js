@@ -98,10 +98,16 @@ function wrap(line, width, fontSize, family) {
     }
     // A word much wider than the box is split by letters (if it is only a little wider, it stays).
     while (measure(cur, fontSize, family) > width * 1.6 && cur.length > 1) {
-      let n = cur.length - 1;
-      while (n > 1 && measure(cur.slice(0, n), fontSize, family) > width) n--;
-      out.push(cur.slice(0, n));
-      cur = cur.slice(n);
+      // The longest start that fits, found by halving (not letter by letter: a long word stays fast).
+      let lo = 1;
+      let hi = cur.length - 1;
+      while (lo < hi) {
+        const mid = Math.ceil((lo + hi) / 2);
+        if (measure(cur.slice(0, mid), fontSize, family) <= width) lo = mid;
+        else hi = mid - 1;
+      }
+      out.push(cur.slice(0, lo));
+      cur = cur.slice(lo);
     }
   }
   out.push(cur.trimEnd());
@@ -551,6 +557,10 @@ const COLOR_RE = /^(#[0-9a-f]{3,8}|transparent|rgba?\([\d\s.,%]+\)|[a-z]{3,20})$
 const color = (v, d) => (typeof v === 'string' && COLOR_RE.test(v.trim()) ? v.trim() : d);
 export const isColor = (v) => typeof v === 'string' && COLOR_RE.test(v) && v === v.trim();
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+// Coordinates and sizes from a file stay within ±1e6: far bigger than any real drawing, small enough that
+// nothing built from them (strokes, fills, exports) can grow without bound.
+export const MAX_COORD = 1e6;
+const coord = (v) => clamp(num(v), -MAX_COORD, MAX_COORD);
 const ref = (v) => (typeof v === 'string' && v.length > 0 && v.length <= 64 ? v : null);
 
 export function cleanElement(raw) {
@@ -558,10 +568,10 @@ export function cleanElement(raw) {
   const el = {
     id: ref(raw.id) || newId(),
     type: raw.type,
-    x: num(raw.x),
-    y: num(raw.y),
-    w: num(raw.w),
-    h: num(raw.h),
+    x: coord(raw.x),
+    y: coord(raw.y),
+    w: coord(raw.w),
+    h: coord(raw.h),
     seed: Math.floor(num(raw.seed, newSeed())) >>> 0,
     stroke: color(raw.stroke, DEFAULT_STYLE.stroke),
     fill: color(raw.fill, DEFAULT_STYLE.fill),
@@ -573,7 +583,7 @@ export function cleanElement(raw) {
     fontSize: clamp(num(raw.fontSize, 24), 6, 400),
   };
   if (isLinear(el)) {
-    const pts = Array.isArray(raw.points) ? raw.points.slice(0, 5000).map((p) => ({ x: num(p?.x), y: num(p?.y) })) : [];
+    const pts = Array.isArray(raw.points) ? raw.points.slice(0, 5000).map((p) => ({ x: coord(p?.x), y: coord(p?.y) })) : [];
     if (!pts.length) return null;
     el.points = pts;
   } else {

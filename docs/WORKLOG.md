@@ -16,6 +16,42 @@
 - **Pending:**
 -->
 
+## 2026-11-19 — CI: editorconfig-checker pinned by URL and SHA-256
+- **Phase / issue:** P02
+- **What:** the "Formatting (.editorconfig)" step downloads editorconfig-checker v4.0.2 by its release URL, checks
+  its SHA-256 and runs the archive's binary, instead of `npx editorconfig-checker@6.2.0` (owner's commits on
+  `.github/`).
+- **Why:** the npm wrapper asked GitHub's API, without a token, for the *latest* release: unpinned, and it hit the
+  rate limit now and then, failing "Tests" for no reason in the code.
+- **Rejected:** giving the wrapper a token (still unpinned); the first version looked for a binary named
+  `ec-linux-amd64`, which the v4 archive doesn't have, so it now takes the archive's one non-documentation file.
+- **Files:** .github/workflows/ci.yml
+- **Commits:** 74ad71b, and the owner's fix to find the binary.
+- **Tested:** PR #13's "Tests" job passes with the pinned binary.
+- **Pending:** —
+
+## 2026-11-19 — Security audit: fixes in the engine, the rest for the owner
+- **Phase / issue:** P02
+- **What:** a full security audit (the repo's `security-audit` skill; artifacts outside the repo). Fixed here:
+  coordinates and points capped at ±1e6 in `cleanElement` (`MAX_COORD`); `hachurePath` widens its gap so one shape
+  never draws more than 2,000 lines; `wrap()` finds where to split a long word by halving; `toSvgString` forces every
+  number it writes to a number.
+- **Why:** confirmed findings: a 144-byte file (`w=h=1e9`, hachure fill) hung the tab and, being saved before the
+  first paint, froze it on every reload (Medium); a ~10 kB word inside a shape took millions of measures (Low).
+  Needs-validation: numeric fields interpolated raw into SVG when an embedder passes an unvalidated scene.
+- **Rejected:** dropping the hachure for big shapes (would change how drawings look); validating every scene in
+  `setScene`/`mergeScenes` (the SVG fix covers the sink; the embedder's side is Snowlog's).
+- **Not fixed here (owner's files):** the guard hook lets an unsandboxed `git` run a foreign repo's config
+  (`core.fsmonitor`, `diff.external`) — High, in `.claude/hooks/guard.sh`; `sync-from-template.sh --apply` runs
+  `.git/config` filter drivers on the host (Medium) and writes through a predictable temp name (Low); gh api
+  denylist gaps in the guard (to validate). These come from project-template and belong there too.
+- **Files:** js/scene.js, js/stroke.js, js/render.js, tests/scene.test.mjs, docs/THREAT_MODEL.md, CHANGELOG.md
+- **Commits:** this one.
+- **Tested:** `npm test` 29 pass (three "security: …" tests); against the old engine the same inputs kept
+  `w=1e9`, made 353,554 hachure commands for a 1e6 box, 561,377 measures for a 3,000-letter word and a `<script>` in
+  the SVG. `npm run test:e2e` 14 pass.
+- **Pending:** the owner's items above.
+
 ## 2026-11-18 — Toward 10/10: accent colour, measures, audits, P02 prepared
 - **Phase / issue:** P02
 - **What:** the accent colour comes from the logo (blue, AAA contrast in both themes; dark icon on the dark
