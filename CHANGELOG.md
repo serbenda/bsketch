@@ -3,6 +3,8 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioned with [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [1.0.0] - 2026-11-19
 ### Changed
 - Opening a file (menu, Ctrl+O or dropping it) now opens it as a new drawing, so the one open is never lost; a
   saved file takes the drawing's name.

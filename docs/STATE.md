@@ -13,7 +13,8 @@ Last updated: 2026-11-19
 - **Working branch:** `development`
 
 ## Current work
-- [P07](phases/P07-everyday-use.md) done on `development`; its PR to `main` is open.
+- P02: version 1.0.0 prepared; the agent checked the published site in Chrome (desktop and phone emulation). The
+  owner's devices remain, then the `v1.0.0` tag and release.
 
 ## Recently done
 - [P07](phases/P07-everyday-use.md): several drawings, elbow and curved arrows, export only the selection, the
@@ -39,9 +40,6 @@ Last updated: 2026-11-19
 ## Next
 1. Owner: P02's checklist on other browsers and devices ([P02](phases/P02-owner-tests-and-release.md)); then
    `v1.0.0` (notes drafted outside the repo).
-2. Owner: set `docs/images/banner.png` as the repository's social preview; point Snowlog's update script to
-   `serbenda/bsketch`.
-3. Optional (owner): add `Tests` and `Hook (macOS bash 3.2)` to the checks required on `main`.
 
 ## Blocked / awaiting decision
 - Nothing.

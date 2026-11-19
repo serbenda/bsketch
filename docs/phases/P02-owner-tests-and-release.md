@@ -40,6 +40,23 @@ Mark each one ✅, or ❌ with what happened.
 | Install as an app ("Install app" / "Add to Home Screen") | | | | | — | — | — |
 | Portable file: download it from the menu, open it with a double click | | | | — | — | — | — |
 
+## The agent's checks (2026-11-19)
+On the published site (https://bendi.dev/bsketch/, service worker `sketch-v10`), in Chrome on macOS:
+- ✅ box, ellipse and an arrow attached at both ends; text inside the box; the arrow follows the moved box;
+- ✅ the grid (G); the dark appearance; reloads and keeps the drawing offline;
+- ✅ no console errors and no request to any other host.
+
+In Chrome emulating a phone (390×844, touch):
+- ✅ a rectangle drawn with a finger;
+- ✅ a pinch zooms (100 % → 325 %) and leaves nothing behind.
+
+Snowlog (its `development`, in Chrome): a drawing with an elbow arrow and text is saved encrypted and opens again
+after locking and unlocking.
+
+Not possible from the agent's machine: Safari (needs "Allow remote automation", a system setting), Firefox (not
+installed), a real phone, the desktop apps, the clipboard paste and the "Install app" prompt. Those columns stay
+the owner's.
+
 ## Release steps (once the checklist is green)
 1. Bump the version to `1.0.0` in `package.json`, `desktop/src-tauri/tauri.conf.json`,
    `desktop/src-tauri/Cargo.toml` (and its root entry in `Cargo.lock`), and turn the CHANGELOG's *Unreleased* into
