@@ -4,6 +4,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
 
 ## [Unreleased]
 ### Changed
+- Opening a file (menu, Ctrl+O or dropping it) now opens it as a new drawing, so the one open is never lost; a
+  saved file takes the drawing's name.
 - The interface's accent colour is now a blue taken from the logo (`#3451b2`, `#9db2ff` in dark), with more
   contrast than the old purple (7:1); the active tool's icon is dark on the dark theme's light accent, and the
   installed app's title bar is the logo's night blue.
@@ -24,6 +26,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
   version (`sketch.actual`) is moved there the first time.
 
 ### Added
+- **Several drawings** in this browser: the ☰ menu lists them; create, open, rename and delete them. The one open
+  is still kept under `sketch.current`, so drawings saved by older versions become the first one.
+- **Elbow and curved arrows** (and lines): a Route choice in the style panel; kept in `.sketch` files and read from
+  Excalidraw's elbow arrows.
+- **Export only the selection** to PNG or SVG (a toggle in the ☰ menu).
+- **Grid when resizing and rotating:** resizes and dragged line ends land on the grid, and rotation goes in 15°
+  steps while it is shown.
+- **Spanish interface:** English or Spanish, chosen in the ☰ menu (Language) or taken from the browser.
 - **Fonts for text:** Hand (the handwriting one, as before), Normal and Code, in the style panel. Normal and Code
   are the system's own fonts, so nothing more is downloaded.
 - **Arrowheads:** at the end, the start, both ends or none, chosen in the style panel; kept in `.sketch` files and

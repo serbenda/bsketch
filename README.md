@@ -42,6 +42,7 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 - Hachure or solid fill, colors, stroke width, dashed lines and three levels of sloppiness.
 - Arrowheads at the end, the start, both ends or none.
 - Three fonts for text: handwriting, normal and code.
+- Arrows and lines straight, **with an elbow** or **curved**.
 
 **Editing**
 - Select, move, resize, **rotate**, **group**, **align and distribute**, duplicate, reorder and delete.
@@ -49,11 +50,13 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 - Fully usable with the keyboard, with descriptions for screen readers.
 
 **Files and options** (the ☰ menu)
+- **Several drawings** kept in this browser: create, switch, rename and delete them from the menu.
 - Saves and opens `.sketch` files, opens `.excalidraw` files, exports to **PNG** and **SVG**, also with a
-  transparent background, and copies the drawing or the selection to the clipboard as a PNG.
+  transparent background or **only the selection**, and copies the drawing or the selection to the clipboard as a PNG.
 - **Appearance:** light, dark or the system's, whatever the system theme is.
 - **Canvas background:** six light colours, saved with the drawing.
-- **Grid:** shown on screen only; new shapes and moves snap to it.
+- **Grid:** shown on screen only; new shapes, moves and resizes snap to it, and rotation goes in 15° steps.
+- **Language:** English or Spanish, chosen in the menu or taken from the browser.
 - Embedded in [Snowlog](https://github.com/serbenda/snowlog), where drawings are stored end-to-end encrypted and
   shown inside notes.
 
