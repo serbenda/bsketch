@@ -16,6 +16,20 @@
 - **Pending:**
 -->
 
+## 2026-11-19 — CI: editorconfig-checker pinned by URL and SHA-256
+- **Phase / issue:** P02
+- **What:** the "Formatting (.editorconfig)" step downloads editorconfig-checker v4.0.2 by its release URL, checks
+  its SHA-256 and runs the archive's binary, instead of `npx editorconfig-checker@6.2.0` (owner's commits on
+  `.github/`).
+- **Why:** the npm wrapper asked GitHub's API, without a token, for the *latest* release: unpinned, and it hit the
+  rate limit now and then, failing "Tests" for no reason in the code.
+- **Rejected:** giving the wrapper a token (still unpinned); the first version looked for a binary named
+  `ec-linux-amd64`, which the v4 archive doesn't have, so it now takes the archive's one non-documentation file.
+- **Files:** .github/workflows/ci.yml
+- **Commits:** 74ad71b, and the owner's fix to find the binary.
+- **Tested:** PR #13's "Tests" job passes with the pinned binary.
+- **Pending:** —
+
 ## 2026-11-19 — Security audit: fixes in the engine, the rest for the owner
 - **Phase / issue:** P02
 - **What:** a full security audit (the repo's `security-audit` skill; artifacts outside the repo). Fixed here:
