@@ -16,6 +16,19 @@
 - **Pending:**
 -->
 
+## 2026-11-19 — Version 1.0.0 and the agent's checks for P02
+- **Phase / issue:** P02
+- **What:** version 1.0.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's
+  changes become `[1.0.0] - 2026-11-19`; the agent's checks on the published site added to P02. `Tests` and
+  `Hook (macOS bash 3.2)` are now required on `main`; the repository's social preview is the banner (1280×640).
+- **Why:** the owner asked to prepare the release and run what can be run from here.
+- **Rejected:** tagging from the agent (tags are the owner's: the ruleset and the guardrails block it).
+- **Files:** package.json, desktop/src-tauri/tauri.conf.json, desktop/src-tauri/Cargo.toml,
+  desktop/src-tauri/Cargo.lock, CHANGELOG.md, docs/phases/P02-owner-tests-and-release.md, docs/STATE.md
+- **Commits:** this one.
+- **Tested:** live smoke script on bendi.dev (desktop and phone emulation) all green; `npm test` 32 pass.
+- **Pending:** the owner's devices (Safari, Firefox, a real phone, the desktop apps), then the tag and release.
+
 ## 2026-11-19 — P07: several drawings, routes, export the selection, grid on resize, Spanish
 - **Phase / issue:** P07
 - **What:** several drawings in the browser (`js/drawings.js`, a list in the ☰ menu); elbow and curved arrows and
