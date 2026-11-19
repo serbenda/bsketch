@@ -5,12 +5,29 @@ import { createEditor } from './editor.js';
 import { emptyScene, parseScene, serializeScene } from './scene.js';
 import { toSvgString, toPngBlob } from './render.js';
 import { loadPrefs, savePrefs, BACKGROUNDS } from './prefs.js';
+import { pickLang, translator, fill } from './i18n.js';
 import { loadIndex, saveIndex, activeOf, createDrawing, openDrawing, renameDrawing, deleteDrawing, touch, nextName } from './drawings.js';
 
 const KEY = 'sketch.current';
 const OLD_KEY = 'sketch.actual'; // before 0.4.0: read once and moved to KEY
 const $ = (id) => document.getElementById(id);
 const statusLine = $('status');
+
+// The interface's language: the one chosen in the menu, or the browser's (English if it isn't one we have).
+const earlyPrefs = (() => { try { return loadPrefs(localStorage); } catch { return loadPrefs(null); } })();
+const lang = pickLang(earlyPrefs.lang, navigator.languages || [navigator.language]);
+const t = translator(lang);
+document.documentElement.lang = lang;
+// The page's own text (menu, buttons, labels, titles) in that language; the editor gets t() and does its own.
+for (const n of document.querySelectorAll('body *:not(script):not(style)')) {
+  if (n.closest('#canvas')) continue;
+  for (const a of ['title', 'aria-label']) if (n.hasAttribute(a)) n.setAttribute(a, t(n.getAttribute(a)));
+  for (const c of n.childNodes) {
+    if (c.nodeType !== 3 || !c.textContent.trim()) continue;
+    const s = c.textContent.trim();
+    if (t(s) !== s) c.textContent = c.textContent.replace(s, t(s));
+  }
+}
 
 function notify(text) {
   statusLine.textContent = text;
@@ -32,7 +49,7 @@ function store(scene) {
     storage.setItem(KEY, serializeScene(scene));
     storage.removeItem(OLD_KEY);
   } catch {
-    notify('Could not save in this browser. Use "Save" so you do not lose the drawing.');
+    notify(t('Could not save in this browser. Use "Save" so you do not lose the drawing.'));
   }
 }
 
@@ -41,7 +58,7 @@ function store(scene) {
 const ls = (() => { try { return localStorage; } catch { return null; } })();
 const memory = new Map();
 const storage = ls || { getItem: (k) => memory.get(k) ?? null, setItem: (k, v) => memory.set(k, v), removeItem: (k) => memory.delete(k) };
-const drawings = loadIndex(storage);
+const drawings = loadIndex(storage, `${t('Drawing')} 1`);
 try { saveIndex(storage, drawings); } catch { /* full storage: the open drawing still works */ }
 // The file name for Save and exports: the open drawing's name.
 const fileName = () => (activeOf(drawings)?.name || 'drawing').replace(/[\\/:*?"<>|]+/g, '-');
@@ -58,6 +75,7 @@ const editor = createEditor($('canvas'), {
   },
   // The G key: remembered like the menu's switch.
   onGridChange: (on) => setGridPref(on),
+  t,
 });
 editor.focus();
 
@@ -90,25 +108,25 @@ async function openFile(file) {
   try {
     scene = parseScene(await file.text());
   } catch {
-    return notify('That file is not a sketch or Excalidraw drawing.');
+    return notify(t('That file is not a sketch or Excalidraw drawing.'));
   }
   try {
     flush();
     createDrawing(storage, drawings, file.name.replace(/\.(sketch|excalidraw|json)$/i, ''), scene);
     showActive();
-    notify(`Opened "${file.name}": ${scene.elements.length} elements.`);
+    notify(fill(t('Opened "{name}": {n} elements.'), { name: file.name, n: scene.elements.length }));
   } catch {
-    notify('Could not keep another drawing in this browser (its storage is full): delete some first.');
+    notify(t('Could not keep another drawing in this browser (its storage is full): delete some first.'));
   }
 }
 
 $('new').addEventListener('click', () => {
   try {
     flush();
-    createDrawing(storage, drawings, nextName(drawings));
+    createDrawing(storage, drawings, nextName(drawings, t('Drawing')));
     showActive();
   } catch {
-    notify('Could not keep another drawing in this browser (its storage is full): delete some first.');
+    notify(t('Could not keep another drawing in this browser (its storage is full): delete some first.'));
   }
 });
 
@@ -135,14 +153,14 @@ function renderDrawings() {
 }
 $('rename').addEventListener('click', () => {
   const d = activeOf(drawings);
-  const name = window.prompt('Name of this drawing:', d?.name || '');
+  const name = window.prompt(t('Name of this drawing:'), d?.name || '');
   if (name === null || !d) return;
   renameDrawing(storage, drawings, d.id, name);
   renderDrawings();
 });
 $('delete').addEventListener('click', () => {
   const d = activeOf(drawings);
-  if (!d || !window.confirm(`Delete "${d.name}" from this browser? It can't be undone (Save it first if you want to keep a copy).`)) return;
+  if (!d || !window.confirm(fill(t('Delete "{name}" from this browser? It can\'t be undone (Save it first if you want to keep a copy).'), { name: d.name }))) return;
   clearTimeout(timer);
   deleteDrawing(storage, drawings, d.id);
   showActive();
@@ -155,7 +173,7 @@ $('file').addEventListener('change', (ev) => {
 });
 $('save').addEventListener('click', () => {
   download(serializeScene(editor.getScene()), `${fileName()}.sketch`, 'application/json');
-  notify('Downloaded. You can open it again with "Open…".');
+  notify(t('Downloaded. You can open it again with "Open…".'));
 });
 // What PNG and SVG export: the whole drawing, or only the selection when that box is ticked.
 function exportScene() {
@@ -165,32 +183,32 @@ function exportScene() {
 }
 $('png').addEventListener('click', async () => {
   const scene = exportScene();
-  if (!scene.elements.length) return notify($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.');
+  if (!scene.elements.length) return notify(t($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.'));
   const png = await toPngBlob(document, scene, { background: !$('transparent').checked });
-  if (!png) return notify('This browser could not make the PNG. Try SVG instead.');
+  if (!png) return notify(t('This browser could not make the PNG. Try SVG instead.'));
   download(png, `${fileName()}.png`, 'image/png');
 });
 // Copy as PNG: the selection if there is one, otherwise the whole drawing, ready to paste in a chat or a document.
 async function copyPng() {
   const sel = editor.getSelection();
   const scene = { ...editor.getScene(), ...(sel.length ? { elements: sel } : {}) };
-  if (!scene.elements.length) return notify('The drawing is empty.');
+  if (!scene.elements.length) return notify(t('The drawing is empty.'));
   const transparent = $('transparent').checked;
-  if (!navigator.clipboard?.write || !globalThis.ClipboardItem) return notify('This browser cannot copy images. Use "PNG" instead.');
+  if (!navigator.clipboard?.write || !globalThis.ClipboardItem) return notify(t('This browser cannot copy images. Use "PNG" instead.'));
   try {
     // The PNG goes in as a promise so the copy still counts as part of the click (Safari asks for that).
     const blob = toPngBlob(document, scene, { background: !transparent }).then((b) => b || Promise.reject(new Error('png')));
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-    notify(sel.length ? 'Selection copied as PNG.' : 'Drawing copied as PNG.');
+    notify(t(sel.length ? 'Selection copied as PNG.' : 'Drawing copied as PNG.'));
   } catch {
-    notify('Could not copy the image. Use "PNG" instead.');
+    notify(t('Could not copy the image. Use "PNG" instead.'));
   }
 }
 $('copy-png').addEventListener('click', copyPng);
 
 $('svg').addEventListener('click', () => {
   const scene = exportScene();
-  if (!scene.elements.length) return notify($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.');
+  if (!scene.elements.length) return notify(t($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.'));
   download(toSvgString(scene, { background: !$('transparent').checked }), `${fileName()}.svg`, 'image/svg+xml');
 });
 
@@ -243,6 +261,16 @@ for (const input of document.querySelectorAll('input[name="appearance"]')) {
 }
 darkQuery.addEventListener('change', applyAppearance);
 
+// Language: the interface is built once in it, so a change reloads the page (the drawing is already saved).
+for (const input of document.querySelectorAll('input[name="lang"]')) {
+  input.addEventListener('change', () => {
+    prefs = { ...prefs, lang: input.value };
+    savePrefs(prefsStorage, prefs);
+    flush();
+    location.reload();
+  });
+}
+
 // Grid: shown on screen only, remembered in this browser.
 function setGridPref(on) {
   prefs = { ...prefs, grid: on };
@@ -267,9 +295,9 @@ for (const [color, label] of BACKGROUNDS) {
   chip.style.backgroundColor = color;
   const name = document.createElement('span');
   name.className = 'visually-hidden';
-  name.textContent = label;
+  name.textContent = t(label);
   const wrap = document.createElement('label');
-  wrap.title = label;
+  wrap.title = t(label);
   wrap.append(input, chip, name);
   input.addEventListener('change', () => editor.setBackground(color));
   swatches.append(wrap);
@@ -278,6 +306,7 @@ for (const [color, label] of BACKGROUNDS) {
 // The menu shows the current choices each time it opens.
 function syncMenu() {
   renderDrawings();
+  for (const input of document.querySelectorAll('input[name="lang"]')) input.checked = input.value === prefs.lang;
   for (const input of document.querySelectorAll('input[name="appearance"]')) input.checked = input.value === prefs.appearance;
   $('grid').checked = prefs.grid;
   const bg = editor.getScene().background;

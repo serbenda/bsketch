@@ -14,6 +14,8 @@ export function findChrome() {
 export async function launch(chrome = findChrome()) {
   const profile = mkdtempSync(join(tmpdir(), 'sketch-e2e-'));
   const proc = spawn(chrome, [
+    // English whatever the machine's language: the walkthroughs find buttons by their English names.
+    '--lang=en-US', '--accept-lang=en-US',
     '--headless=new', '--no-sandbox', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
     '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--window-size=1280,800', 'about:blank',
   ], { stdio: ['ignore', 'ignore', 'pipe'] });

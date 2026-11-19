@@ -30,13 +30,13 @@ export function cleanIndex(raw) {
 }
 
 // The index from storage, or a new one with the drawing open now as its only entry.
-export function loadIndex(storage) {
+export function loadIndex(storage, firstName = 'Drawing 1') {
   try {
     const idx = cleanIndex(JSON.parse(storage.getItem(INDEX_KEY) || 'null'));
     if (idx) return idx;
   } catch { /* broken or no storage: start again */ }
   const id = newId();
-  return { active: id, list: [{ id, name: 'Drawing 1', updated: Date.now() }] };
+  return { active: id, list: [{ id, name: firstName, updated: Date.now() }] };
 }
 
 export function saveIndex(storage, idx) {

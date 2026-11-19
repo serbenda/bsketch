@@ -74,7 +74,8 @@ function el(tag, attrs = {}, ...children) {
   return n;
 }
 
-export function createEditor(container, { scene: initial, onChange = () => {}, onGridChange = () => {}, readOnly = false } = {}) {
+// t: translates the interface's English text (the site passes its own; by default English as written).
+export function createEditor(container, { scene: initial, onChange = () => {}, onGridChange = () => {}, readOnly = false, t: tr = (s) => s } = {}) {
   measureWithCanvas(document);
   let scene = initial ? structuredClone(initial) : E.emptyScene();
   scene.elements = E.syncBindings(scene.elements);
@@ -91,41 +92,45 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   let clipboard = null;
 
   // --- DOM ---
+  // el() with the interface's text translated: string children, aria-label and title.
+  const ui = (tag, attrs = {}, ...children) => el(tag,
+    Object.fromEntries(Object.entries(attrs).map(([k, v]) => [k, (k === 'aria-label' || k === 'title') && typeof v === 'string' ? tr(v) : v])),
+    ...children.flat().map((c) => (typeof c === 'string' ? tr(c) : c)));
   const helpId = `sk-help-${Math.random().toString(36).slice(2, 8)}`;
-  const root = el('div', { class: `sk-editor${readOnly ? ' sk-readonly' : ''}`, tabindex: '0', role: 'application', 'aria-label': readOnly ? 'Drawing' : 'Whiteboard', 'aria-describedby': readOnly ? null : helpId });
-  const help = el('p', { class: 'sk-sr', id: helpId },
+  const root = ui('div', { class: `sk-editor${readOnly ? ' sk-readonly' : ''}`, tabindex: '0', role: 'application', 'aria-label': readOnly ? 'Drawing' : 'Whiteboard', 'aria-describedby': readOnly ? null : helpId });
+  const help = ui('p', { class: 'sk-sr', id: helpId },
     'Tools: V select, R rectangle, D diamond, O ellipse, A arrow, L line, P pencil, T text, E eraser; G shows the grid. '
     + 'Enter creates the chosen shape in the center, or writes inside the selected one. Tab and Shift+Tab go through the elements; '
     + 'arrow keys move them; Alt+arrow keys resize them; [ and ] rotate them; Delete removes them; Escape clears the selection.');
-  const canvas = el('canvas', { class: 'sk-canvas', 'aria-label': 'Drawing canvas' });
-  const textBox = el('textarea', { class: 'sk-textbox', 'aria-label': 'Text', spellcheck: 'false', hidden: true });
-  const status = el('div', { class: 'sk-sr', 'aria-live': 'polite' });
+  const canvas = ui('canvas', { class: 'sk-canvas', 'aria-label': 'Drawing canvas' });
+  const textBox = ui('textarea', { class: 'sk-textbox', 'aria-label': 'Text', spellcheck: 'false', hidden: true });
+  const status = ui('div', { class: 'sk-sr', 'aria-live': 'polite' });
   const toolButtons = new Map();
-  const toolbar = el('div', { class: 'sk-toolbar', role: 'toolbar', 'aria-label': 'Tools' },
+  const toolbar = ui('div', { class: 'sk-toolbar', role: 'toolbar', 'aria-label': 'Tools' },
     ...TOOLS.map(([id, label, key]) => {
-      const b = el('button', { class: 'sk-btn', type: 'button', title: `${label} (${key})`, 'aria-label': label, 'aria-pressed': 'false', onclick: () => setTool(id) }, icon(id));
+      const b = ui('button', { class: 'sk-btn', type: 'button', title: `${tr(label)} (${key})`, 'aria-label': label, 'aria-pressed': 'false', onclick: () => setTool(id) }, icon(id));
       toolButtons.set(id, b);
       return b;
     }));
   const swatch = (color, onPick, label) => {
-    const b = el('button', {
+    const b = ui('button', {
       class: `sk-swatch${color === 'transparent' ? ' sk-none' : ''}`, type: 'button', title: label, 'aria-label': label, 'data-color': color, onclick: () => onPick(color),
     });
     if (color !== 'transparent') b.style.backgroundColor = color;
     return b;
   };
-  const btn = (name, label, onclick) => el('button', { class: 'sk-btn', type: 'button', title: label, 'aria-label': label.replace(/ \(.*\)$/, ''), onclick }, icon(name));
-  const strokeColor = el('input', { type: 'color', class: 'sk-color', 'aria-label': 'Other stroke color', value: style.stroke });
-  const fillColor = el('input', { type: 'color', class: 'sk-color', 'aria-label': 'Other fill color', value: '#a5d8ff' });
-  const seg = (name, options, onPick) => el('div', { class: 'sk-seg', role: 'group', 'aria-label': name },
-    ...options.map(([value, label]) => el('button', { class: 'sk-segbtn', type: 'button', 'data-value': String(value), onclick: () => onPick(value) }, label)));
+  const btn = (name, label, onclick) => ui('button', { class: 'sk-btn', type: 'button', title: label, 'aria-label': label.replace(/ \(.*\)$/, ''), onclick }, icon(name));
+  const strokeColor = ui('input', { type: 'color', class: 'sk-color', 'aria-label': 'Other stroke color', value: style.stroke });
+  const fillColor = ui('input', { type: 'color', class: 'sk-color', 'aria-label': 'Other fill color', value: '#a5d8ff' });
+  const seg = (name, options, onPick) => ui('div', { class: 'sk-seg', role: 'group', 'aria-label': name },
+    ...options.map(([value, label]) => ui('button', { class: 'sk-segbtn', type: 'button', 'data-value': String(value), onclick: () => onPick(value) }, label)));
   const groupBtn = btn('group', 'Group (Ctrl+G)', () => groupSelected());
   const ungroupBtn = btn('ungroup', 'Ungroup (Ctrl+Shift+G)', () => ungroupSelected());
   const distH = btn('distH', 'Distribute horizontally', () => distribute('x'));
   const distV = btn('distV', 'Distribute vertically', () => distribute('y'));
-  const alignBlock = el('div', {},
-    el('div', { class: 'sk-label' }, 'Align'),
-    el('div', { class: 'sk-row' },
+  const alignBlock = ui('div', {},
+    ui('div', { class: 'sk-label' }, 'Align'),
+    ui('div', { class: 'sk-row' },
       btn('alignLeft', 'Align left', () => align('left')),
       btn('alignCenter', 'Center horizontally', () => align('center')),
       btn('alignRight', 'Align right', () => align('right')),
@@ -134,45 +139,45 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       btn('alignBottom', 'Align bottom', () => align('bottom')),
       distH, distV));
   const headsSeg = seg('Arrowheads', [['end', 'End'], ['start', 'Start'], ['both', 'Both'], ['none', 'None']], (v) => setStyle({ heads: v }));
-  const headsBlock = el('div', {}, el('div', { class: 'sk-label' }, 'Arrowheads'), headsSeg);
+  const headsBlock = ui('div', {}, ui('div', { class: 'sk-label' }, 'Arrowheads'), headsSeg);
   const routeSeg = seg('Route', [['straight', 'Straight'], ['elbow', 'Elbow'], ['curve', 'Curve']], (v) => setStyle({ route: v }));
-  const routeBlock = el('div', {}, el('div', { class: 'sk-label' }, 'Route'), routeSeg);
-  const panel = el('div', { class: 'sk-panel', 'aria-label': 'Style' },
-    el('div', { class: 'sk-label' }, 'Stroke'),
-    el('div', { class: 'sk-row', 'data-prop': 'stroke' }, ...STROKES.map((c) => swatch(c, (v) => setStyle({ stroke: v }), `Stroke ${c}`)), strokeColor),
-    el('div', { class: 'sk-label' }, 'Fill'),
-    el('div', { class: 'sk-row', 'data-prop': 'fill' }, ...FILLS.map((c) => swatch(c, (v) => setStyle({ fill: v }), c === 'transparent' ? 'No fill' : `Fill ${c}`)), fillColor),
+  const routeBlock = ui('div', {}, ui('div', { class: 'sk-label' }, 'Route'), routeSeg);
+  const panel = ui('div', { class: 'sk-panel', 'aria-label': 'Style' },
+    ui('div', { class: 'sk-label' }, 'Stroke'),
+    ui('div', { class: 'sk-row', 'data-prop': 'stroke' }, ...STROKES.map((c) => swatch(c, (v) => setStyle({ stroke: v }), `${tr('Stroke')} ${c}`)), strokeColor),
+    ui('div', { class: 'sk-label' }, 'Fill'),
+    ui('div', { class: 'sk-row', 'data-prop': 'fill' }, ...FILLS.map((c) => swatch(c, (v) => setStyle({ fill: v }), c === 'transparent' ? 'No fill' : `${tr('Fill')} ${c}`)), fillColor),
     seg('Fill style', [['hachure', 'Hachure'], ['solid', 'Solid']], (v) => setStyle({ fillStyle: v })),
-    el('div', { class: 'sk-label' }, 'Width'),
+    ui('div', { class: 'sk-label' }, 'Width'),
     seg('Stroke width', [[1, 'Thin'], [2, 'Medium'], [4, 'Bold']], (v) => setStyle({ width: v })),
-    el('div', { class: 'sk-label' }, 'Line'),
+    ui('div', { class: 'sk-label' }, 'Line'),
     seg('Line style', [[false, 'Solid'], [true, 'Dashed']], (v) => setStyle({ dashed: v })),
     headsBlock,
     routeBlock,
-    el('div', { class: 'sk-label' }, 'Sloppiness'),
+    ui('div', { class: 'sk-label' }, 'Sloppiness'),
     seg('Sloppiness', [[0, 'Straight'], [1, 'Hand-drawn'], [2, 'Sketchy']], (v) => setStyle({ roughness: v })),
-    el('div', { class: 'sk-label' }, 'Text'),
+    ui('div', { class: 'sk-label' }, 'Text'),
     seg('Font', [['hand', 'Hand'], ['normal', 'Normal'], ['code', 'Code']], (v) => setStyle({ font: v })),
     seg('Text size', [[16, 'S'], [24, 'M'], [36, 'L'], [56, 'XL']], (v) => setStyle({ fontSize: v })),
     alignBlock,
-    el('div', { class: 'sk-label' }, 'Layers and actions'),
-    el('div', { class: 'sk-row' },
+    ui('div', { class: 'sk-label' }, 'Layers and actions'),
+    ui('div', { class: 'sk-row' },
       btn('front', 'Bring to front', () => reorder(1)),
       btn('back', 'Send to back', () => reorder(-1)),
       btn('copy', 'Duplicate (Ctrl+D)', () => duplicate()),
       groupBtn, ungroupBtn,
       btn('trash', 'Delete (Del)', () => removeSelected())));
-  const zoomLabel = el('button', { class: 'sk-zoomlabel', type: 'button', title: 'Reset to 100%', 'aria-label': 'Reset to 100%', onclick: () => zoomAt(1 / view.zoom) }, '100%');
-  const bottom = el('div', { class: 'sk-bottom' },
-    el('div', { class: 'sk-group' },
+  const zoomLabel = ui('button', { class: 'sk-zoomlabel', type: 'button', title: 'Reset to 100%', 'aria-label': 'Reset to 100%', onclick: () => zoomAt(1 / view.zoom) }, '100%');
+  const bottom = ui('div', { class: 'sk-bottom' },
+    ui('div', { class: 'sk-group' },
       btn('minus', 'Zoom out', () => zoomAt(1 / 1.2)),
       zoomLabel,
       btn('plus', 'Zoom in', () => zoomAt(1.2)),
       btn('fit', 'Fit the whole drawing', () => zoomToFit())),
-    el('div', { class: 'sk-group' },
+    ui('div', { class: 'sk-group' },
       btn('undo', 'Undo (Ctrl+Z)', () => doUndo()),
       btn('redo', 'Redo (Ctrl+Y)', () => doRedo())));
-  const stage = el('div', { class: 'sk-stage' }, canvas, textBox);
+  const stage = ui('div', { class: 'sk-stage' }, canvas, textBox);
   if (readOnly) root.append(stage);
   else root.append(stage, toolbar, panel, bottom, status, help);
   container.append(root);
@@ -205,7 +210,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   const NAMES = { rectangle: 'rectangle', ellipse: 'ellipse', diamond: 'diamond', line: 'line', arrow: 'arrow', draw: 'drawing', text: 'text' };
   function announce() {
     const p = primary();
-    status.textContent = !p.length ? '' : p.length === 1 ? `Selected: ${NAMES[p[0].type]}` : `Selected: ${p.length} elements`;
+    status.textContent = !p.length ? '' : p.length === 1 ? `${tr('Selected:')} ${tr(NAMES[p[0].type])}` : tr('Selected: {n} elements').replace('{n}', p.length);
   }
 
   // The selection's frame: one element (with its rotation), the ends of a line, or a box.
@@ -1233,7 +1238,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   function setGrid(on) {
     if (grid === !!on) return;
     grid = !!on;
-    status.textContent = grid ? 'Grid on' : 'Grid off';
+    status.textContent = tr(grid ? 'Grid on' : 'Grid off');
     redraw();
   }
   // 'light' or 'dark' forces the editor's appearance; anything else follows the system.

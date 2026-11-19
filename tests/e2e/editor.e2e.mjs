@@ -493,6 +493,29 @@ test('several drawings, elbow arrows, exporting only the selection, resizing on 
   }
 });
 
+test('the interface in Spanish, chosen in the menu', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    await page.click('#menu-button');
+    await page.click('input[name="lang"][value="es"]');
+    await page.waitFor('document.documentElement.lang === "es" && !!document.querySelector(".sk-canvas")');
+    await page.waitFor('!!document.querySelector(\'.sk-toolbar button[aria-label="Rectángulo"]\')');
+    assert.equal(await page.eval('document.getElementById("new").textContent.trim()'), 'Dibujo nuevo');
+    assert.equal(await page.eval('document.querySelector(".sk-panel").getAttribute("aria-label")'), 'Estilo');
+    assert.equal(await page.eval('document.getElementById("menu-button").title'), 'Menú');
+    assert.equal(JSON.parse(await page.eval('localStorage.getItem("sketch.prefs")')).lang, 'es');
+    // Every label, title and button text of the interface is in Spanish (keys and symbols aside).
+    const english = await page.eval(`[...document.querySelectorAll('button, label, legend, h2, h3, [aria-label], [title]')]
+      .flatMap((n) => [n.getAttribute('aria-label'), n.getAttribute('title'), n.children.length ? '' : n.textContent])
+      .map((x) => (x || '').trim()).filter((x) => /\b(the|and|Select|Rectangle|Drawing|Undo|Save|Open|Export|Menu|Grid|Fill|Stroke)\b/.test(x))`);
+    assert.deepEqual(english, [], `still in English: ${english.join(' | ')}`);
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
 test('a drawing with 2,000 elements pans smoothly', { skip }, async () => {
   const page = await browser.newPage();
   try {
