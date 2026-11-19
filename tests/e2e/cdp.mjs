@@ -75,6 +75,10 @@ const KEYS = {
 };
 
 // A new page in an isolated context (like a private window: its own storage).
+// A value as a JavaScript string literal that is safe to put inside code: JSON plus escaping <, >, / and the
+// U+2028/U+2029 line separators (which JSON leaves as they are).
+const lit = (v) => JSON.stringify(String(v)).replace(/[<>/\u2028\u2029]/g, (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`);
+
 async function openPage(browser, { initScript, offline = false, width = 1280, height = 800, mobile = false } = {}) {
   const { browserContextId } = await browser.send('Target.createBrowserContext');
   const { targetId } = await browser.send('Target.createTarget', { url: 'about:blank', browserContextId });
@@ -149,14 +153,14 @@ async function openPage(browser, { initScript, offline = false, width = 1280, he
       }
     },
     // Finds an element by selector and, if given, by its text.
-    sel: (css, text) => `[...document.querySelectorAll(${JSON.stringify(css)})].find((e) => ${text ? `e.textContent.includes(${JSON.stringify(text)})` : 'true'} && e.offsetParent !== null)`,
+    sel: (css, text) => `[...document.querySelectorAll(${lit(css)})].find((e) => ${text ? `e.textContent.includes(${lit(text)})` : 'true'} && e.offsetParent !== null)`,
     async click(css, text) {
       await page.waitFor(`!!${page.sel(css, text)}`);
       await page.eval(`${page.sel(css, text)}.click()`);
     },
     async fill(css, value) {
       await page.waitFor(`!!${page.sel(css)}`);
-      await page.eval(`(() => { const e = ${page.sel(css)}; e.focus(); e.value = ${JSON.stringify(value)}; e.dispatchEvent(new Event('input', { bubbles: true })); })()`);
+      await page.eval(`(() => { const e = ${page.sel(css)}; e.focus(); e.value = ${lit(value)}; e.dispatchEvent(new Event('input', { bubbles: true })); })()`);
     },
     async type(text) {
       for (const part of text.split(/(\n)/)) {

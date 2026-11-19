@@ -16,6 +16,26 @@
 - **Pending:**
 -->
 
+## 2026-11-19 — Hardening: test driver literals, desktop CSP checked, provenance prepared
+- **Phase / issue:** P02
+- **What:** the e2e driver (`tests/e2e/cdp.mjs`) builds code with `lit()`, which escapes `<`, `>`, `/` and the
+  U+2028/U+2029 separators on top of JSON (for CodeQL's four `js/bad-code-sanitization` alerts). The portable
+  walkthrough now checks the file's CSP (`default-src 'none'`, `connect-src 'none'`, script by hash, Trusted Types,
+  `base-uri`/`form-action 'none'`) and that a request is refused; that CSP is the desktop app's only one. A script
+  for the owner adds build provenance attestations to the desktop executables (`.github/`).
+- **Why:** findings of the repo posture review and the security audit, toward a 10/10.
+- **Rejected:** a CSP in `tauri.conf.json` as well (Tauri would rewrite the HTML and add its own policy; the
+  page's meta CSP already applies in the webviews and is now tested). Pinning `@tauri-apps/cli`'s tree with a
+  `package-lock.json` was tried and left for later: npm's registry is unreachable from this session (a TLS
+  interception on the network), also from Docker, and turning TLS checks off is not an option.
+- **Files:** tests/e2e/cdp.mjs, tests/e2e/editor.e2e.mjs, docs/THREAT_MODEL.md
+- **Commits:** this one; the owner's with the attestation step.
+- **Tested:** `lit()` round-trips quotes, backslashes, `</script>` and the separators with none of `<` or `>` left;
+  `npm test` 29 pass; `npm run test:e2e` 14 pass, with the new CSP checks; the attestation patch applied to a copy
+  of `desktop.yml`.
+- **Pending:** the lockfile for `@tauri-apps/cli` (generate it where npm is reachable, then `npm ci` in
+  `desktop.yml` and an `npm` entry in Dependabot).
+
 ## 2026-11-19 — CI: editorconfig-checker pinned by URL and SHA-256
 - **Phase / issue:** P02
 - **What:** the "Formatting (.editorconfig)" step downloads editorconfig-checker v4.0.2 by its release URL, checks
