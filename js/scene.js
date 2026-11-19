@@ -52,9 +52,45 @@ export function emptyScene() {
 // Arrowheads of an arrow: at its end (the default, not stored), its start, both or none.
 export const HEADS = ['end', 'start', 'both', 'none'];
 
+// How a line or an arrow goes from one end to the other: straight (the default, not stored), with right-angle
+// elbows, or along a gentle curve. Only for lines and arrows with two points (their ends).
+export const ROUTES = ['straight', 'elbow', 'curve'];
+
+// The points a line or arrow is drawn through, from its two ends and its route (absolute coordinates).
+export function routePoints(el) {
+  const pts = el.points.map((p) => ({ x: el.x + p.x, y: el.y + p.y }));
+  if (!el.route || el.route === 'straight' || pts.length !== 2) return pts;
+  const [a, z] = pts;
+  const dx = z.x - a.x;
+  const dy = z.y - a.y;
+  if (el.route === 'elbow') {
+    if (Math.abs(dx) < 1 || Math.abs(dy) < 1) return pts;
+    // Along the longer direction first, turning halfway.
+    if (Math.abs(dx) >= Math.abs(dy)) {
+      const mx = a.x + dx / 2;
+      return [a, { x: mx, y: a.y }, { x: mx, y: z.y }, z];
+    }
+    const my = a.y + dy / 2;
+    return [a, { x: a.x, y: my }, { x: z.x, y: my }, z];
+  }
+  // curve: a quadratic arc whose control point sits off the middle, to the left of the way from a to z
+  const len = Math.hypot(dx, dy);
+  if (len < 1) return pts;
+  const c = { x: a.x + dx / 2 - (dy / len) * len * 0.25, y: a.y + dy / 2 + (dx / len) * len * 0.25 };
+  const out = [];
+  const n = 16;
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const u = 1 - t;
+    out.push({ x: u * u * a.x + 2 * u * t * c.x + t * t * z.x, y: u * u * a.y + 2 * u * t * c.y + t * t * z.y });
+  }
+  return out;
+}
+
 export function createElement(type, x, y, style = {}) {
   const el = { id: newId(), type, x, y, w: 0, h: 0, seed: newSeed(), ...DEFAULT_STYLE, ...style };
   if (type !== 'arrow' || el.heads === 'end' || !HEADS.includes(el.heads)) delete el.heads;
+  if ((type !== 'arrow' && type !== 'line') || el.route === 'straight' || !ROUTES.includes(el.route)) delete el.route;
   if (type !== 'text' || el.font === 'hand' || !Object.hasOwn(FONTS, String(el.font))) delete el.font;
   if (type === 'draw' || type === 'line' || type === 'arrow') el.points = [{ x: 0, y: 0 }];
   if (type === 'text') el.text = '';
@@ -141,8 +177,9 @@ export function bounds(el) {
 
 function computeBounds(el) {
   if (isLinear(el) && el.points?.length) {
-    const xs = el.points.map((p) => el.x + p.x);
-    const ys = el.points.map((p) => el.y + p.y);
+    const rp = el.type === 'draw' ? el.points.map((p) => ({ x: el.x + p.x, y: el.y + p.y })) : routePoints(el);
+    const xs = rp.map((p) => p.x);
+    const ys = rp.map((p) => p.y);
     const x = Math.min(...xs);
     const y = Math.min(...ys);
     return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
@@ -207,7 +244,7 @@ export function hitTest(el, x, y, tol = 6) {
   const filled = el.fill && el.fill !== 'transparent';
   if (el.type === 'text') return true;
   if (isLinear(el)) {
-    const pts = el.points.map((p) => ({ x: el.x + p.x, y: el.y + p.y }));
+    const pts = el.type === 'draw' ? el.points.map((p) => ({ x: el.x + p.x, y: el.y + p.y })) : routePoints(el);
     if (pts.length === 1) return Math.hypot(x - pts[0].x, y - pts[0].y) <= tol + el.width;
     return pts.some((p, i) => i > 0 && distToSegment(x, y, pts[i - 1].x, pts[i - 1].y, p.x, p.y) <= tol + el.width / 2);
   }
@@ -603,6 +640,7 @@ export function cleanElement(raw) {
     if (ref(raw.endId)) el.endId = ref(raw.endId);
   }
   if (el.type === 'arrow' && HEADS.includes(raw.heads) && raw.heads !== 'end') el.heads = raw.heads;
+  if ((el.type === 'arrow' || el.type === 'line') && ROUTES.includes(raw.route) && raw.route !== 'straight' && el.points.length === 2) el.route = raw.route;
   if (ref(raw.group)) el.group = ref(raw.group);
   return el;
 }
@@ -666,6 +704,7 @@ export function fromExcalidraw(data) {
       text: e.originalText ?? e.text,
       containerId: e.containerId,
       heads: excalidrawHeads(e),
+      route: e.elbowed ? 'elbow' : undefined,
       startId: e.startBinding?.elementId,
       endId: e.endBinding?.elementId,
       group: Array.isArray(e.groupIds) ? e.groupIds[e.groupIds.length - 1] : undefined,
@@ -708,8 +747,9 @@ export function drawOps(el) {
     ops.push({ ...base, path: freehandPath(el.points.map((p) => ({ x: el.x + p.x, y: el.y + p.y }))) });
     return ops;
   } else if (el.type === 'line' || el.type === 'arrow') {
-    const pts = el.points.map((p) => ({ x: el.x + p.x, y: el.y + p.y }));
-    ops.push({ ...base, path: polylinePath(pts, opts) });
+    const pts = routePoints(el);
+    // A curve is drawn smooth (the hand-drawn wobble is for straight strokes); straight and elbow lines wobble.
+    ops.push({ ...base, path: el.route === 'curve' ? freehandPath(pts) : polylinePath(pts, opts) });
     if (el.type === 'arrow' && pts.length > 1) {
       const heads = el.heads || 'end';
       const size = 10 + el.width * 3;

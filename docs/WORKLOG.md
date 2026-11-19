@@ -16,6 +16,20 @@
 - **Pending:**
 -->
 
+## 2026-11-19 — P07: several drawings, routes, export the selection, grid on resize, Spanish
+- **Phase / issue:** P07
+- **What:** several drawings in the browser (`js/drawings.js`, a list in the ☰ menu); elbow and curved arrows and
+  lines (`route`, `routePoints`); export only the selection; the grid on resizes, dragged ends and rotation; the
+  interface in English or Spanish (`js/i18n.js`, the `lang` pref).
+- **Why:** the owner asked for "uso diario, calidad y detalles" after the 10/10 review.
+- **Rejected:** a drawings index that keeps the open drawing under its own key (it would break drawings saved by
+  older versions and Snowlog's expectations); translating with a library (no dependencies).
+- **Files:** js/drawings.js, js/i18n.js, js/scene.js, js/editor.js, js/app.js, js/prefs.js, index.html,
+  css/styles.css, sw.js, tests/, README.md, CHANGELOG.md, docs/
+- **Commits:** 17946da, acf8ff9 and the docs commit.
+- **Tested:** `npm test` 32 pass; `npm run test:e2e` 16 pass.
+- **Pending:** Snowlog's update script still copies the old file names; a Tauri lockfile (npm unreachable here).
+
 ## 2026-11-19 — project-template 1.0.1: git and gh only on the project's repository
 - **Phase / issue:** — (security audit follow-up)
 - **What:** synced project-template 1.0.1 (`scripts/sync-from-template.sh --apply`): the new `guard.sh` (git and gh

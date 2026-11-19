@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import * as E from '../js/scene.js';
 import { toSvgString, pngScale, PNG_MAX_SIDE, PNG_MAX_AREA } from '../js/render.js';
 import { loadPrefs, savePrefs, cleanPrefs, BACKGROUNDS, PREFS_KEY } from '../js/prefs.js';
+import * as D from '../js/drawings.js';
+import { pickLang, translator, fill } from '../js/i18n.js';
 import { polylinePath, ellipsePath, toSvgD, hachurePath, MAX_HACHURE_LINES } from '../js/stroke.js';
 
 test('the hand-drawn stroke is always the same for the same seed', () => {
@@ -303,12 +305,12 @@ test('the text boxes are measured again after forgetting them', () => {
 test('preferences: only known values are kept, anything else falls back to the default', () => {
   const mem = new Map();
   const storage = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, v) };
-  const DEF = { appearance: 'system', grid: false };
+  const DEF = { appearance: 'system', grid: false, lang: 'auto' };
   assert.deepEqual(loadPrefs(storage), DEF, 'nothing stored');
-  assert.ok(savePrefs(storage, { appearance: 'dark', grid: true, extra: '<script>' }));
-  assert.equal(mem.get(PREFS_KEY), '{"appearance":"dark","grid":true}', 'unknown fields are not stored');
-  assert.deepEqual(loadPrefs(storage), { appearance: 'dark', grid: true });
-  mem.set(PREFS_KEY, '{"appearance":"purple","grid":"yes"}');
+  assert.ok(savePrefs(storage, { appearance: 'dark', grid: true, lang: 'es', extra: '<script>' }));
+  assert.equal(mem.get(PREFS_KEY), '{"appearance":"dark","grid":true,"lang":"es"}', 'unknown fields are not stored');
+  assert.deepEqual(loadPrefs(storage), { appearance: 'dark', grid: true, lang: 'es' });
+  mem.set(PREFS_KEY, '{"appearance":"purple","grid":"yes","lang":"klingon"}');
   assert.deepEqual(loadPrefs(storage), DEF, 'an unknown appearance and a grid that is not a boolean');
   mem.set(PREFS_KEY, 'not json');
   assert.deepEqual(loadPrefs(storage), DEF, 'broken JSON');
@@ -407,4 +409,67 @@ test('security: numbers written into the SVG cannot carry markup, even from a sc
   const merged = E.mergeScenes(E.emptyScene(), E.emptyScene(), { ...E.emptyScene(), elements: [r, t] }).scene;
   const svg = toSvgString(merged);
   assert.ok(!svg.includes('<script'), 'no markup from numeric fields');
+});
+
+test('arrow routes: elbows and curves go through the right points, are stored only when not straight, and validated', () => {
+  const arrow = (route, z = { x: 200, y: 100 }) => ({ ...E.createElement('arrow', 0, 0, { route }), points: [{ x: 0, y: 0 }, z] });
+  assert.equal(E.createElement('rectangle', 0, 0, { route: 'elbow' }).route, undefined, 'not on shapes');
+  assert.equal(arrow('straight').route, undefined, 'straight is the default and is not stored');
+  assert.deepEqual(E.routePoints(arrow('elbow')), [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 100 }, { x: 200, y: 100 }], 'wider than tall: across, down, across');
+  assert.deepEqual(E.routePoints(arrow('elbow', { x: 100, y: 200 })).map((p) => [p.x, p.y]), [[0, 0], [0, 100], [100, 100], [100, 200]], 'taller than wide: down first');
+  const curve = E.routePoints(arrow('curve'));
+  assert.equal(curve.length, 17);
+  assert.deepEqual([curve[0], curve[16]], [{ x: 0, y: 0 }, { x: 200, y: 100 }], 'a curve keeps its ends');
+  assert.equal(E.bounds(arrow('straight', { x: 200, y: 0 })).h, 0);
+  assert.ok(E.bounds(arrow('curve', { x: 200, y: 0 })).h > 20, 'a curve’s box includes its bulge');
+  assert.ok(E.hitTest(arrow('elbow'), 100, 50), 'hit on the elbow’s middle segment');
+  assert.ok(!E.hitTest(arrow('straight'), 100, 10), 'which a straight arrow does not cross');
+  const raw = { type: 'arrow', x: 0, y: 0, points: [{ x: 0, y: 0 }, { x: 10, y: 10 }] };
+  assert.equal(E.cleanElement({ ...raw, route: 'curve' }).route, 'curve');
+  assert.equal(E.cleanElement({ ...raw, route: 'zigzag' }).route, undefined);
+  assert.equal(E.cleanElement({ ...raw, route: 'elbow', points: [{ x: 0, y: 0 }, { x: 5, y: 5 }, { x: 9, y: 0 }] }).route, undefined, 'only with two points');
+  assert.ok(E.drawOps(arrow('elbow')).length === 2 && toSvgString({ ...E.emptyScene(), elements: [arrow('curve')] }).includes('<path'));
+});
+
+test('drawings in the browser: create, switch, rename and delete keep every drawing in its place', () => {
+  const mem = new Map();
+  const st = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
+  const scene = (n) => E.serializeScene({ ...E.emptyScene(), elements: Array.from({ length: n }, () => ({ ...E.createElement('rectangle', 0, 0), w: 10, h: 10 })) });
+  mem.set(D.CURRENT_KEY, scene(2));
+  const idx = D.loadIndex(st);
+  assert.equal(idx.list.length, 1, 'the drawing open before becomes the first');
+  const first = idx.active;
+  const second = D.createDrawing(st, idx, 'Plan B');
+  assert.equal(idx.active, second);
+  assert.equal(JSON.parse(mem.get(D.CURRENT_KEY)).elements.length, 0, 'the new one opens empty');
+  assert.equal(JSON.parse(mem.get(D.itemKey(first))).elements.length, 2, 'the first is kept under its own key');
+  mem.set(D.CURRENT_KEY, scene(1));
+  assert.ok(D.openDrawing(st, idx, first));
+  assert.equal(JSON.parse(mem.get(D.CURRENT_KEY)).elements.length, 2);
+  assert.equal(JSON.parse(mem.get(D.itemKey(second))).elements.length, 1, 'switching keeps the other one’s changes');
+  assert.equal(mem.get(D.itemKey(first)), undefined, 'the open one lives only in sketch.current');
+  D.renameDrawing(st, idx, first, '  Roadmap  ');
+  assert.equal(D.activeOf(idx).name, 'Roadmap');
+  D.deleteDrawing(st, idx, first);
+  assert.deepEqual(idx.list.map((d) => d.name), ['Plan B']);
+  assert.equal(JSON.parse(mem.get(D.CURRENT_KEY)).elements.length, 1, 'deleting the open one opens the next');
+  D.deleteDrawing(st, idx, idx.active);
+  assert.equal(idx.list.length, 1, 'deleting the last leaves a new empty one');
+  assert.deepEqual(D.loadIndex(st), idx, 'the index is saved');
+  mem.set(D.INDEX_KEY, JSON.stringify({ active: '../x', list: [{ id: '../x', name: '<b>' }] }));
+  assert.notEqual(D.loadIndex(st).active, '../x', 'a broken or hostile index starts again');
+  assert.equal(D.cleanIndex({ active: 'abcd1', list: [{ id: 'abcd1', name: 'x'.repeat(500) }] }).list[0].name.length, 80);
+});
+
+test('languages: the chosen one, else the browser\'s, else English; untranslated text stays English', () => {
+  assert.equal(pickLang('es', ['en-US']), 'es');
+  assert.equal(pickLang('auto', ['es-ES', 'en']), 'es');
+  assert.equal(pickLang('auto', ['fr-FR', 'de']), 'en');
+  assert.equal(pickLang('auto', []), 'en');
+  const es = translator('es');
+  assert.equal(es('Rectangle'), 'Rectángulo');
+  assert.equal(es('Not in the dictionary'), 'Not in the dictionary');
+  assert.equal(es('toString'), 'toString', 'only real entries');
+  assert.equal(fill(es('Opened "{name}": {n} elements.'), { name: 'a.sketch', n: 3 }), 'Abierto «a.sketch»: 3 elementos.');
+  assert.equal(translator('en')('Rectangle'), 'Rectangle');
 });

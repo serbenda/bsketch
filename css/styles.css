@@ -185,6 +185,28 @@ fieldset.drawer-section legend {
   background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
+.drawer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+.drawing-item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drawing-item[aria-current="true"] {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  font-weight: 600;
+}
+
 .drawer-row {
   display: flex;
   gap: 0.35rem;

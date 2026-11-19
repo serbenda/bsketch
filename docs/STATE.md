@@ -3,7 +3,7 @@
 > **Single source of truth for status.** Claude reads it at the start of every session (`/status`) and updates it when closing a phase (`/close-phase`).
 > At most **150 lines**: replace what is outdated instead of piling up, and **link** documents instead of copying them.
 
-Last updated: 2026-11-17
+Last updated: 2026-11-19
 
 ## Where we are
 - **Mode:** full
@@ -13,9 +13,12 @@ Last updated: 2026-11-17
 - **Working branch:** `development`
 
 ## Current work
-- P05 done (ask before opening, Ctrl+S/O, copy as PNG, arrowheads); P04 and P05 go to `main` together.
+- [P07](phases/P07-everyday-use.md) done on `development`; its PR to `main` is open.
 
 ## Recently done
+- [P07](phases/P07-everyday-use.md): several drawings, elbow and curved arrows, export only the selection, the
+  grid on resize and rotation, the interface in Spanish.
+- project-template 1.0.1 synced (the security audit's High finding fixed), PR #15.
 - GitHub hardened (2026-11-19): rulesets on main, development and tags; secret scanning and push protection;
   Dependabot alerts; private vulnerability reporting; Pages from the workflow; actions restricted and SHA-pinned;
   editorconfig-checker pinned in CI. Security audit fixes in the engine (PR #13).
@@ -36,11 +39,9 @@ Last updated: 2026-11-17
 ## Next
 1. Owner: P02's checklist on other browsers and devices ([P02](phases/P02-owner-tests-and-release.md)); then
    `v1.0.0` (notes drafted outside the repo).
-2. Owner, in project-template: the security audit's High finding in `.claude/hooks/guard.sh` (an unsandboxed
-   `git` can run a foreign repo's config) and the two in `scripts/sync-from-template.sh`; then sync them here.
-3. Owner: set `docs/images/banner.png` as the repository's social preview; point Snowlog's update script to
+2. Owner: set `docs/images/banner.png` as the repository's social preview; point Snowlog's update script to
    `serbenda/bsketch`.
-4. Optional (owner): add `Tests` and `Hook (macOS bash 3.2)` to the checks required on `main`.
+3. Optional (owner): add `Tests` and `Hook (macOS bash 3.2)` to the checks required on `main`.
 
 ## Blocked / awaiting decision
 - Nothing.

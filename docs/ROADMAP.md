@@ -26,3 +26,4 @@ S0–S2 were done before the project adopted the template (2026-11-13 to 2026-11
 | P04 | [Grid and snapping (new shapes and moves first)](phases/P04-grid-and-snapping.md) | ✅ |
 | P05 | [Everyday comfort: ask before opening, file shortcuts, copy as PNG, arrowheads](phases/P05-everyday-comfort.md) | ✅ |
 | P06 | [Text fonts: Hand, Normal, Code](phases/P06-text-fonts.md) | ✅ |
+| P07 | [Everyday use: several drawings, elbow and curved arrows, export the selection, grid on resize, Spanish](phases/P07-everyday-use.md) | ✅ |
