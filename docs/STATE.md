@@ -16,6 +16,9 @@ Last updated: 2026-11-17
 - P05 done (ask before opening, Ctrl+S/O, copy as PNG, arrowheads); P04 and P05 go to `main` together.
 
 ## Recently done
+- GitHub hardened (2026-11-19): rulesets on main, development and tags; secret scanning and push protection;
+  Dependabot alerts; private vulnerability reporting; Pages from the workflow; actions restricted and SHA-pinned;
+  editorconfig-checker pinned in CI. Security audit fixes in the engine (PR #13).
 - [P06](phases/P06-text-fonts.md): text fonts (Hand, Normal, Code), PR #11.
 - Renamed to **bsketch** with an SB logo ([ADR 0005](decisions/0005-rename-to-bsketch.md)); the repository is
   `serbenda/bsketch` and the site `/bsketch/`.
@@ -31,18 +34,13 @@ Last updated: 2026-11-17
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. Owner, in GitHub (from the repo posture review, 2026-11-18):
-   - run `./scripts/setup-repo.sh` as admin: `main` has **no protection** today, and secret scanning, push
-     protection, Dependabot alerts and private vulnerability reporting are off (SECURITY.md says otherwise);
-   - Settings → Pages → Source: **GitHub Actions** (today the legacy build publishes the whole `main`, so the
-     portable file is a 404 and files like `CLAUDE.md` are served); and Enforce HTTPS;
-   - Settings → Actions → General: allow only GitHub's and selected actions, require full-SHA pinning;
-   - add `Tests` and `Hook (macOS bash 3.2)` to the required checks.
-2. Owner: pin `editorconfig-checker` in CI (a script is ready; its download hits GitHub's rate limit).
-3. Owner: P02's checklist on other browsers and devices ([P02](phases/P02-owner-tests-and-release.md)); then
-   `v1.0.0`.
-4. Owner: set `docs/images/banner.png` as the repository's social preview; point Snowlog's update script to
+1. Owner: P02's checklist on other browsers and devices ([P02](phases/P02-owner-tests-and-release.md)); then
+   `v1.0.0` (notes drafted outside the repo).
+2. Owner, in project-template: the security audit's High finding in `.claude/hooks/guard.sh` (an unsandboxed
+   `git` can run a foreign repo's config) and the two in `scripts/sync-from-template.sh`; then sync them here.
+3. Owner: set `docs/images/banner.png` as the repository's social preview; point Snowlog's update script to
    `serbenda/bsketch`.
+4. Optional (owner): add `Tests` and `Hook (macOS bash 3.2)` to the checks required on `main`.
 
 ## Blocked / awaiting decision
 - Nothing.

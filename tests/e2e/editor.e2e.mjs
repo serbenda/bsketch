@@ -570,6 +570,13 @@ test('the portable version opens with a double click and works offline', { skip 
     assert.ok(await page.eval('document.fonts.check(\'24px "Sketch Hand"\')'), 'the font is inside');
     assert.deepEqual(page.requests.filter((u) => !/^(file|data|blob):/.test(u)), [], 'requests nothing outside');
     assert.deepEqual(page.errors, []);
+    // Its CSP is the only one the desktop app has ("csp": null in tauri.conf.json): no network, no outside script.
+    const csp = await page.eval('document.querySelector(\'meta[http-equiv="Content-Security-Policy"]\').content');
+    for (const d of ["default-src 'none'", "connect-src 'none'", "require-trusted-types-for 'script'", "base-uri 'none'", "form-action 'none'"]) {
+      assert.ok(csp.includes(d), `CSP has ${d}`);
+    }
+    assert.match(csp, /script-src 'sha256-[A-Za-z0-9+/=]+'(;|$)/, 'only the script it carries, by hash');
+    assert.equal(await page.eval('fetch("https://example.com/").then(() => "sent", () => "blocked")'), 'blocked', 'a request is refused');
   } finally {
     await page.close();
   }
