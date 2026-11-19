@@ -335,7 +335,7 @@ test('the grid: G turns it on, new shapes and moves land on it, and it is rememb
   }
 });
 
-test('arrowheads, copy as PNG, Ctrl+S and asking before opening over a drawing', { skip }, async () => {
+test('arrowheads, copy as PNG, Ctrl+S and opening a file as a new drawing', { skip }, async () => {
   const page = await browser.newPage();
   try {
     await open(page);
@@ -375,19 +375,22 @@ test('arrowheads, copy as PNG, Ctrl+S and asking before opening over a drawing',
     await page.eval('window.__downloads = []; HTMLAnchorElement.prototype.click = function () { window.__downloads.push(this.download); }');
     await page.eval('document.querySelector(".sk-editor").focus()');
     await page.press('s', { ctrl: true });
-    assert.deepEqual(await page.eval('window.__downloads'), ['drawing.sketch']);
+    assert.deepEqual(await page.eval('window.__downloads'), ['Drawing 1.sketch'], 'named after the drawing');
 
-    // Opening a file over a drawing asks first; saying no keeps the drawing.
-    await page.eval('window.__asked = ""; window.confirm = (m) => { window.__asked = m; return false; }');
+    // Opening a file makes a new drawing with it: the one open stays in this browser's list.
     const dir = await mkdtemp(join(tmpdir(), 'sketch-'));
     const file = join(dir, 'other.sketch');
     await writeFile(file, JSON.stringify({ type: 'sketch', version: 1, background: '#ffffff', elements: [] }));
     const { root } = await page.send('DOM.getDocument', {});
     const { nodeId } = await page.send('DOM.querySelector', { nodeId: root.nodeId, selector: '#file' });
     await page.send('DOM.setFileInputFiles', { nodeId, files: [file] });
-    await page.waitFor('window.__asked.includes("other.sketch")');
+    await page.waitFor('document.querySelector("#status").textContent.includes("other.sketch")');
     s = await scene(page);
-    assert.equal(s.elements.length, 1, 'the drawing is still there');
+    assert.equal(s.elements.length, 0, 'the file is open');
+    const idx = JSON.parse(await page.eval('localStorage.getItem("sketch.drawings")'));
+    assert.deepEqual(idx.list.map((d) => d.name), ['other', 'Drawing 1']);
+    const kept = JSON.parse(await page.eval(`localStorage.getItem("sketch.drawing.${idx.list[1].id}")`));
+    assert.equal(kept.elements.length, 1, 'the drawing that was open is still there');
     assert.deepEqual(page.errors, []);
   } finally {
     await page.close();
@@ -419,6 +422,71 @@ test('fonts: a text written in the code font keeps it, and the font can be chang
     await page.click('[aria-label="Font"] button', 'Hand');
     s = await scene(page);
     assert.equal(s.elements[0].font, undefined, 'the handwriting font is the default and is not stored');
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
+test('several drawings, elbow arrows, exporting only the selection, resizing on the grid', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('r');
+    await page.drag(at(-200, -40), at(-100, 40));
+    // An elbow arrow, chosen in the panel before drawing it.
+    await page.press('a');
+    await page.click('[aria-label="Route"] button', 'Elbow');
+    await page.drag(at(0, -80), at(150, 60));
+    let s = await scene(page);
+    assert.equal(s.elements.find((e) => e.type === 'arrow').route, 'elbow');
+
+    // Export only the selection: the SVG holds the box's paths and not the arrow's.
+    await page.eval('window.__blobs = []; URL.createObjectURL = (b) => { window.__blobs.push(b); return "blob:x"; }; HTMLAnchorElement.prototype.click = function () {}');
+    await page.press('v');
+    await page.mouseClick(at(-200, 0));
+    await page.click('#menu-button');
+    await page.click('#only-selection');
+    await page.click('#svg');
+    const svg = await page.eval('window.__blobs[0].text()');
+    assert.ok(svg.includes('<path'), 'an SVG was made');
+    const box = s.elements.find((e) => e.type === 'rectangle');
+    assert.ok(svg.includes(`viewBox="${box.x - 20}`), `the SVG frames the box only: ${svg.slice(0, 120)}`);
+    await page.press('Escape');
+
+    // Several drawings: a new one, back to the first, rename, delete.
+    await page.click('#menu-button');
+    await page.click('#new');
+    await page.waitFor('JSON.parse(localStorage.getItem("sketch.drawings")).list.length === 2');
+    s = await scene(page);
+    assert.equal(s.elements.length, 0, 'the new drawing is empty');
+    await page.click('#menu-button');
+    await page.click('#drawings button', 'Drawing 1');
+    s = await scene(page);
+    assert.equal(s.elements.length, 2, 'the first drawing is back');
+    await page.eval('window.prompt = () => "Architecture"; window.confirm = () => true');
+    await page.click('#menu-button');
+    await page.click('#rename');
+    assert.equal(await page.eval('document.querySelector("#drawings [aria-current=true]").textContent'), 'Architecture');
+    await page.click('#delete');
+    await page.waitFor('JSON.parse(localStorage.getItem("sketch.drawings")).list.length === 1');
+    await page.press('Escape');
+
+    // Resizing on the grid: the dragged edge lands on it.
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('g');
+    await page.press('r');
+    await page.drag(at(20, 20), at(100, 80));
+    s = await scene(page);
+    const r = s.elements[s.elements.length - 1];
+    await page.press('v');
+    await page.mouseClick(at(r.x + r.w / 2, r.y));
+    await page.drag(at(r.x + r.w + 5, r.y + r.h / 2), at(r.x + r.w + 37, r.y + r.h / 2));
+    s = await scene(page);
+    const r2 = s.elements.find((e) => e.id === r.id);
+    assert.equal((r2.x + r2.w) % 20, 0, `the right edge is on the grid: ${r2.x + r2.w}`);
     assert.deepEqual(page.errors, []);
   } finally {
     await page.close();

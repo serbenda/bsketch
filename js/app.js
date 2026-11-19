@@ -5,12 +5,12 @@ import { createEditor } from './editor.js';
 import { emptyScene, parseScene, serializeScene } from './scene.js';
 import { toSvgString, toPngBlob } from './render.js';
 import { loadPrefs, savePrefs, BACKGROUNDS } from './prefs.js';
+import { loadIndex, saveIndex, activeOf, createDrawing, openDrawing, renameDrawing, deleteDrawing, touch, nextName } from './drawings.js';
 
 const KEY = 'sketch.current';
 const OLD_KEY = 'sketch.actual'; // before 0.4.0: read once and moved to KEY
 const $ = (id) => document.getElementById(id);
 const statusLine = $('status');
-let fileName = 'drawing';
 
 function notify(text) {
   statusLine.textContent = text;
@@ -20,7 +20,7 @@ function notify(text) {
 
 function saved() {
   try {
-    const raw = localStorage.getItem(KEY) ?? localStorage.getItem(OLD_KEY);
+    const raw = storage.getItem(KEY) ?? storage.getItem(OLD_KEY);
     return raw ? parseScene(raw) : null;
   } catch {
     return null;
@@ -29,19 +29,32 @@ function saved() {
 
 function store(scene) {
   try {
-    localStorage.setItem(KEY, serializeScene(scene));
-    localStorage.removeItem(OLD_KEY);
+    storage.setItem(KEY, serializeScene(scene));
+    storage.removeItem(OLD_KEY);
   } catch {
     notify('Could not save in this browser. Use "Save" so you do not lose the drawing.');
   }
 }
+
+// The drawings kept in this browser (see drawings.js). Storage that can't be read (blocked site data) leaves just
+// the one drawing open, as before.
+const ls = (() => { try { return localStorage; } catch { return null; } })();
+const memory = new Map();
+const storage = ls || { getItem: (k) => memory.get(k) ?? null, setItem: (k, v) => memory.set(k, v), removeItem: (k) => memory.delete(k) };
+const drawings = loadIndex(storage);
+try { saveIndex(storage, drawings); } catch { /* full storage: the open drawing still works */ }
+// The file name for Save and exports: the open drawing's name.
+const fileName = () => (activeOf(drawings)?.name || 'drawing').replace(/[\\/:*?"<>|]+/g, '-');
 
 let timer = 0;
 const editor = createEditor($('canvas'), {
   scene: saved() || emptyScene(),
   onChange: (scene) => {
     clearTimeout(timer);
-    timer = setTimeout(() => store(scene), 400);
+    timer = setTimeout(() => {
+      store(scene);
+      try { touch(storage, drawings); } catch { /* see store() */ }
+    }, 400);
   },
   // The G key: remembered like the menu's switch.
   onGridChange: (on) => setGridPref(on),
@@ -59,29 +72,80 @@ function download(data, name, type) {
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
+// Saves the open drawing now (not 400 ms later), before another one takes its place.
+function flush() {
+  clearTimeout(timer);
+  store(editor.getScene());
+}
+// Shows the drawing that is open now (after creating, opening or deleting one).
+function showActive() {
+  editor.setScene(saved() || emptyScene());
+  renderDrawings();
+  editor.focus();
+}
+
+// Opening a file makes a new drawing with it: the one open stays in the list.
 async function openFile(file) {
-  // Opening replaces the drawing in this browser: ask first, as "New" does.
-  if (editor.getScene().elements.length && !window.confirm(`Open "${file.name}"? It replaces the current drawing (save it first if you want to keep it).`)) return;
+  let scene;
   try {
-    const scene = parseScene(await file.text());
-    editor.setScene(scene);
-    store(scene);
-    fileName = file.name.replace(/\.(sketch|excalidraw|json)$/i, '') || 'drawing';
+    scene = parseScene(await file.text());
+  } catch {
+    return notify('That file is not a sketch or Excalidraw drawing.');
+  }
+  try {
+    flush();
+    createDrawing(storage, drawings, file.name.replace(/\.(sketch|excalidraw|json)$/i, ''), scene);
+    showActive();
     notify(`Opened "${file.name}": ${scene.elements.length} elements.`);
   } catch {
-    notify('That file is not a sketch or Excalidraw drawing.');
+    notify('Could not keep another drawing in this browser (its storage is full): delete some first.');
   }
 }
 
 $('new').addEventListener('click', () => {
-  if (editor.getScene().elements.length && !window.confirm('Start a new drawing? The current one will be removed from this browser (save it first if you want to keep it).')) return;
-  editor.setScene(emptyScene());
-  fileName = 'drawing';
   try {
-    localStorage.removeItem(KEY);
-    localStorage.removeItem(OLD_KEY);
-  } catch { /* no storage */ }
-  editor.focus();
+    flush();
+    createDrawing(storage, drawings, nextName(drawings));
+    showActive();
+  } catch {
+    notify('Could not keep another drawing in this browser (its storage is full): delete some first.');
+  }
+});
+
+// --- The list of drawings in the menu ---
+const drawingList = $('drawings');
+function renderDrawings() {
+  drawingList.replaceChildren(...drawings.list.map((d) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'drawer-item drawing-item';
+    b.textContent = d.name;
+    if (d.id === drawings.active) b.setAttribute('aria-current', 'true');
+    b.addEventListener('click', () => {
+      if (d.id === drawings.active) return closeMenu();
+      flush();
+      openDrawing(storage, drawings, d.id);
+      showActive();
+      closeMenu();
+    });
+    const li = document.createElement('li');
+    li.append(b);
+    return li;
+  }));
+}
+$('rename').addEventListener('click', () => {
+  const d = activeOf(drawings);
+  const name = window.prompt('Name of this drawing:', d?.name || '');
+  if (name === null || !d) return;
+  renameDrawing(storage, drawings, d.id, name);
+  renderDrawings();
+});
+$('delete').addEventListener('click', () => {
+  const d = activeOf(drawings);
+  if (!d || !window.confirm(`Delete "${d.name}" from this browser? It can't be undone (Save it first if you want to keep a copy).`)) return;
+  clearTimeout(timer);
+  deleteDrawing(storage, drawings, d.id);
+  showActive();
 });
 $('open').addEventListener('click', () => $('file').click());
 $('file').addEventListener('change', (ev) => {
@@ -90,15 +154,21 @@ $('file').addEventListener('change', (ev) => {
   if (file) openFile(file);
 });
 $('save').addEventListener('click', () => {
-  download(serializeScene(editor.getScene()), `${fileName}.sketch`, 'application/json');
+  download(serializeScene(editor.getScene()), `${fileName()}.sketch`, 'application/json');
   notify('Downloaded. You can open it again with "Open…".');
 });
-$('png').addEventListener('click', async () => {
+// What PNG and SVG export: the whole drawing, or only the selection when that box is ticked.
+function exportScene() {
   const scene = editor.getScene();
-  if (!scene.elements.length) return notify('The drawing is empty.');
+  if (!$('only-selection').checked) return scene;
+  return { ...scene, elements: editor.getSelection() };
+}
+$('png').addEventListener('click', async () => {
+  const scene = exportScene();
+  if (!scene.elements.length) return notify($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.');
   const png = await toPngBlob(document, scene, { background: !$('transparent').checked });
   if (!png) return notify('This browser could not make the PNG. Try SVG instead.');
-  download(png, `${fileName}.png`, 'image/png');
+  download(png, `${fileName()}.png`, 'image/png');
 });
 // Copy as PNG: the selection if there is one, otherwise the whole drawing, ready to paste in a chat or a document.
 async function copyPng() {
@@ -119,9 +189,9 @@ async function copyPng() {
 $('copy-png').addEventListener('click', copyPng);
 
 $('svg').addEventListener('click', () => {
-  const scene = editor.getScene();
-  if (!scene.elements.length) return notify('The drawing is empty.');
-  download(toSvgString(scene, { background: !$('transparent').checked }), `${fileName}.svg`, 'image/svg+xml');
+  const scene = exportScene();
+  if (!scene.elements.length) return notify($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.');
+  download(toSvgString(scene, { background: !$('transparent').checked }), `${fileName()}.svg`, 'image/svg+xml');
 });
 
 // --- The side menu: file actions and options ---
@@ -207,6 +277,7 @@ for (const [color, label] of BACKGROUNDS) {
 
 // The menu shows the current choices each time it opens.
 function syncMenu() {
+  renderDrawings();
   for (const input of document.querySelectorAll('input[name="appearance"]')) input.checked = input.value === prefs.appearance;
   $('grid').checked = prefs.grid;
   const bg = editor.getScene().background;

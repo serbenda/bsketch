@@ -31,6 +31,14 @@
       <h2 id="menu-title">Menu</h2>
       <button type="button" id="menu-close" class="drawer-close" title="Close the menu"><span aria-hidden="true">×</span><span class="visually-hidden">Close the menu</span></button>
     </div>
+    <section class="drawer-section" aria-labelledby="menu-drawings">
+      <h3 id="menu-drawings">Drawings in this browser</h3>
+      <ul id="drawings" class="drawer-list"></ul>
+      <div class="drawer-row">
+        <button type="button" id="rename" class="drawer-item">Rename…</button>
+        <button type="button" id="delete" class="drawer-item">Delete…</button>
+      </div>
+    </section>
     <section class="drawer-section" aria-labelledby="menu-file">
       <h3 id="menu-file">File</h3>
       <button type="button" id="new" class="drawer-item">New drawing</button>
@@ -45,6 +53,7 @@
       </div>
       <button type="button" id="copy-png" class="drawer-item">Copy as PNG <kbd>Alt+Shift+C</kbd></button>
       <label class="drawer-check"><input type="checkbox" id="transparent"> Transparent background</label>
+      <label class="drawer-check"><input type="checkbox" id="only-selection"> Only the selection</label>
       <a id="portable" class="drawer-item" href="bsketch-portable.html" download title="A single file that opens with a double click, offline">Portable version</a>
     </section>
     <fieldset class="drawer-section">

@@ -135,6 +135,8 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       distH, distV));
   const headsSeg = seg('Arrowheads', [['end', 'End'], ['start', 'Start'], ['both', 'Both'], ['none', 'None']], (v) => setStyle({ heads: v }));
   const headsBlock = el('div', {}, el('div', { class: 'sk-label' }, 'Arrowheads'), headsSeg);
+  const routeSeg = seg('Route', [['straight', 'Straight'], ['elbow', 'Elbow'], ['curve', 'Curve']], (v) => setStyle({ route: v }));
+  const routeBlock = el('div', {}, el('div', { class: 'sk-label' }, 'Route'), routeSeg);
   const panel = el('div', { class: 'sk-panel', 'aria-label': 'Style' },
     el('div', { class: 'sk-label' }, 'Stroke'),
     el('div', { class: 'sk-row', 'data-prop': 'stroke' }, ...STROKES.map((c) => swatch(c, (v) => setStyle({ stroke: v }), `Stroke ${c}`)), strokeColor),
@@ -146,6 +148,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     el('div', { class: 'sk-label' }, 'Line'),
     seg('Line style', [[false, 'Solid'], [true, 'Dashed']], (v) => setStyle({ dashed: v })),
     headsBlock,
+    routeBlock,
     el('div', { class: 'sk-label' }, 'Sloppiness'),
     seg('Sloppiness', [[0, 'Straight'], [1, 'Hand-drawn'], [2, 'Sketchy']], (v) => setStyle({ roughness: v })),
     el('div', { class: 'sk-label' }, 'Text'),
@@ -428,6 +431,11 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
           const { heads, ...rest } = { ...e, ...patch };
           return heads === 'end' ? rest : { ...rest, heads };
         }
+        if ('route' in patch) {
+          if ((e.type !== 'arrow' && e.type !== 'line') || e.points.length !== 2) return e;
+          const { route, ...rest } = { ...e, ...patch };
+          return route === 'straight' ? rest : { ...rest, route };
+        }
         if ('font' in patch) {
           if (e.type !== 'text') return e;
           const { font, ...rest } = { ...e, ...patch };
@@ -462,13 +470,16 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       b.setAttribute('aria-pressed', String(cur[prop] === b.dataset.color));
     }
     const segs = panel.querySelectorAll('.sk-seg');
-    const props = ['fillStyle', 'width', 'dashed', 'heads', 'roughness', 'font', 'fontSize'];
+    const props = ['fillStyle', 'width', 'dashed', 'heads', 'route', 'roughness', 'font', 'fontSize'];
     const arrow = s.length ? s.filter((e) => e.type === 'arrow').pop() : null;
     headsBlock.hidden = !(arrow || (!s.length && tool === 'arrow'));
     const heads = (arrow || style).heads || 'end';
+    const lineEl = s.length ? s.filter((e) => e.type === 'arrow' || e.type === 'line').pop() : null;
+    routeBlock.hidden = !(lineEl || (!s.length && (tool === 'arrow' || tool === 'line')));
+    const route = (lineEl || style).route || 'straight';
     segs.forEach((g, i) => {
       const textEl = s.filter((e) => e.type === 'text').pop();
-      const value = props[i] === 'heads' ? heads : props[i] === 'font' ? (textEl || style).font || 'hand' : cur[props[i]];
+      const value = props[i] === 'heads' ? heads : props[i] === 'route' ? route : props[i] === 'font' ? (textEl || style).font || 'hand' : cur[props[i]];
       for (const b of g.children) b.setAttribute('aria-pressed', String(String(value) === b.dataset.value));
     });
     const n = s.length ? units().length : 0;
@@ -913,10 +924,11 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       let { x, y } = b;
       let x2 = b.x + b.w;
       let y2 = b.y + b.h;
-      if (action.handle.includes('w')) x = p.x;
-      if (action.handle.includes('e')) x2 = p.x;
-      if (action.handle.includes('n')) y = p.y;
-      if (action.handle.includes('s')) y2 = p.y;
+      const q = grid ? E.snapPoint(p) : p;  // on the grid, the edges being dragged land on it
+      if (action.handle.includes('w')) x = q.x;
+      if (action.handle.includes('e')) x2 = q.x;
+      if (action.handle.includes('n')) y = q.y;
+      if (action.handle.includes('s')) y2 = q.y;
       if (ev.shiftKey && b.w && b.h) {
         // Keep the aspect ratio.
         const k = Math.max((x2 - x) / b.w, (y2 - y) / b.h);
@@ -929,12 +941,14 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       const orig = new Map(action.orig.map((o) => [o.id, o]));
       update(scene.elements.map((e) => (orig.has(e.id) ? E.resizeElement(orig.get(e.id), b, to) : e)));
     } else if (action.kind === 'resize1') {
-      const next = E.resizeByHandle(action.orig, action.handle, p, { keepRatio: ev.shiftKey });
+      // On the grid (and not rotated, where the grid's lines don't run along the edges) the edge lands on it.
+      const q = grid && !action.orig.angle ? E.snapPoint(p) : p;
+      const next = E.resizeByHandle(action.orig, action.handle, q, { keepRatio: ev.shiftKey });
       update(scene.elements.map((e) => (e.id === next.id ? next : e)));
     } else if (action.kind === 'rotate') {
       let delta = Math.atan2(p.y - action.c.y, p.x - action.c.x) - action.a0;
-      if (ev.shiftKey) {
-        // In 15-degree steps.
+      if (ev.shiftKey || grid) {
+        // In 15-degree steps (Shift, or with the grid on).
         const step = Math.PI / 12;
         const base = action.single ? action.single.angle || 0 : 0;
         delta = Math.round((base + delta) / step) * step - base;
@@ -944,7 +958,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     } else if (action.kind === 'endpoint') {
       const o = action.orig;
       const pts = o.points.map((q) => ({ x: o.x + q.x, y: o.y + q.y }));
-      pts[action.idx] = p;
+      pts[action.idx] = grid ? E.snapPoint(p) : p;  // an end that attaches to a shape goes to its outline anyway
       const key = action.idx === 0 ? 'startId' : 'endId';
       const other = action.idx === 0 ? o.endId : o.startId;
       action.target = o.type === 'arrow' ? bindTarget(p, other) : null;
