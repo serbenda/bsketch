@@ -16,6 +16,18 @@
 - **Pending:**
 -->
 
+## 2026-11-19 — Build provenance for the desktop executables
+- **Phase / issue:** P02
+- **What:** the Desktop workflow signs a provenance attestation for each executable it builds
+  (`actions/attest-build-provenance` v4.2.2, pinned by SHA); only the build job gets `id-token: write` and
+  `attestations: write`. A download can be checked with `gh attestation verify <file> -R serbenda/bsketch`.
+- **Why:** the repo posture review: the executables were uploaded with nothing tying them to this repository's CI.
+- **Rejected:** signing the executables with a code-signing certificate (costs money; R-001, the owner's call).
+- **Files:** .github/workflows/desktop.yml
+- **Commits:** 8985f4d (owner).
+- **Tested:** the patch applied to a copy first; the Desktop run on `development` after the push.
+- **Pending:** —
+
 ## 2026-11-19 — Hardening: test driver literals, desktop CSP checked, provenance prepared
 - **Phase / issue:** P02
 - **What:** the e2e driver (`tests/e2e/cdp.mjs`) builds code with `lit()`, which escapes `<`, `>`, `/` and the
