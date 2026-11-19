@@ -123,6 +123,9 @@ export function paintScene(ctx, scene, { view = { x: 0, y: 0, zoom: 1 }, width, 
   ctx.restore();
 }
 
+// Every number written into SVG markup goes through n(): a scene that skipped parseScene (an embedder's own
+// object) can't slip markup in through a numeric field.
+const n = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 // Scene → SVG as text (to download). `padding` around the drawing.
@@ -136,8 +139,9 @@ export function toSvgString(scene, { padding = 20, background = true } = {}) {
   for (const el of scene.elements) {
     if (el.type === 'text') {
       const L = textLayout(el);
-      const lines = L.lines.map((l) => `<text x="${l.x}" y="${l.y}" font-size="${el.fontSize}" font-family="${esc(fontOf(el))}" fill="${esc(el.stroke)}" opacity="${el.opacity}" text-anchor="${L.anchor}" dominant-baseline="hanging">${esc(l.t)}</text>`).join('');
-      parts.push(L.angle ? `<g transform="rotate(${(L.angle * 180) / Math.PI} ${L.c.x} ${L.c.y})">${lines}</g>` : lines);
+      const anchor = L.anchor === 'middle' ? 'middle' : 'start';
+      const lines = L.lines.map((l) => `<text x="${n(l.x)}" y="${n(l.y)}" font-size="${n(el.fontSize, 24)}" font-family="${esc(fontOf(el))}" fill="${esc(el.stroke)}" opacity="${n(el.opacity, 1)}" text-anchor="${anchor}" dominant-baseline="hanging">${esc(l.t)}</text>`).join('');
+      parts.push(L.angle ? `<g transform="rotate(${(n(L.angle) * 180) / Math.PI} ${n(L.c.x)} ${n(L.c.y)})">${lines}</g>` : lines);
       continue;
     }
     for (const op of drawOps(el)) {
@@ -149,12 +153,12 @@ export function toSvgString(scene, { padding = 20, background = true } = {}) {
       }
       const style = op.fill
         ? `fill="${esc(op.fill)}" stroke="none"`
-        : `fill="none" stroke="${esc(op.stroke)}" stroke-width="${op.width}" stroke-linecap="round" stroke-linejoin="round"${op.dashed ? ` stroke-dasharray="${op.width * 4} ${op.width * 3}"` : ''}`;
-      parts.push(`<path d="${toSvgD(op.path)}" ${style} opacity="${op.opacity ?? 1}"${clip}/>`);
+        : `fill="none" stroke="${esc(op.stroke)}" stroke-width="${n(op.width, 2)}" stroke-linecap="round" stroke-linejoin="round"${op.dashed ? ` stroke-dasharray="${n(op.width, 2) * 4} ${n(op.width, 2) * 3}"` : ''}`;
+      parts.push(`<path d="${toSvgD(op.path)}" ${style} opacity="${n(op.opacity, 1)}"${clip}/>`);
     }
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="${b.x - padding} ${b.y - padding} ${W} ${H}">`
-    + (background ? `<rect x="${b.x - padding}" y="${b.y - padding}" width="${W}" height="${H}" fill="${esc(scene.background || '#ffffff')}"/>` : '')
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(W)}" height="${n(H)}" viewBox="${n(b.x - padding)} ${n(b.y - padding)} ${n(W)} ${n(H)}">`
+    + (background ? `<rect x="${n(b.x - padding)}" y="${n(b.y - padding)}" width="${n(W)}" height="${n(H)}" fill="${esc(scene.background || '#ffffff')}"/>` : '')
     + `${parts.join('')}</svg>\n`;
 }
 

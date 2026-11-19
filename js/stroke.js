@@ -88,6 +88,7 @@ export function freehandPath(points) {
 }
 
 // Hachure fill: parallel lines at 45° covering the box; clipped to the shape when painted.
+export const MAX_HACHURE_LINES = 2000;
 export function hachurePath(x, y, w, h, { gap = 8, seed = 1, roughness = 1 } = {}) {
   const rand = rng(seed + 7);
   const out = [];
@@ -95,8 +96,9 @@ export function hachurePath(x, y, w, h, { gap = 8, seed = 1, roughness = 1 } = {
   const y0 = Math.min(y, y + h);
   const W = Math.abs(w);
   const H = Math.abs(h);
-  // Lines x + y = c crossing the box, `gap` apart perpendicularly.
-  const step = gap * Math.SQRT2;
+  // Lines x + y = c crossing the box, `gap` apart perpendicularly. A huge box gets wider gaps, so one shape never
+  // makes more than MAX_HACHURE_LINES lines (a small file with a giant shape must not hang the page).
+  const step = Math.max(gap * Math.SQRT2, (W + H) / MAX_HACHURE_LINES);
   for (let c = x0 + y0 + step / 2; c < x0 + y0 + W + H; c += step) {
     const xa = Math.max(x0, c - (y0 + H));
     const xb = Math.min(x0 + W, c - y0);

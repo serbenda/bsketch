@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as E from '../js/scene.js';
 import { toSvgString, pngScale, PNG_MAX_SIDE, PNG_MAX_AREA } from '../js/render.js';
 import { loadPrefs, savePrefs, cleanPrefs, BACKGROUNDS, PREFS_KEY } from '../js/prefs.js';
-import { polylinePath, ellipsePath, toSvgD } from '../js/stroke.js';
+import { polylinePath, ellipsePath, toSvgD, hachurePath, MAX_HACHURE_LINES } from '../js/stroke.js';
 
 test('the hand-drawn stroke is always the same for the same seed', () => {
   const pts = [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 100, y: 50 }];
@@ -376,4 +376,35 @@ test('fonts: stored only on texts and only when not the handwriting one, validat
   assert.ok(svg.includes('monospace'), 'the SVG uses the text\'s font');
   const ex = (fontFamily) => E.fromExcalidraw({ type: 'excalidraw', elements: [{ id: 't', type: 'text', x: 0, y: 0, width: 50, height: 25, text: 'x', fontSize: 20, fontFamily }] }).elements[0].font;
   assert.deepEqual([ex(1), ex(2), ex(3), ex(5), ex(6), ex(8), ex(99)], [undefined, 'normal', 'code', undefined, 'normal', 'code', undefined]);
+});
+
+test('security: a giant shape in a file cannot make the fill or the export grow without bound', () => {
+  const s = E.parseScene('{"type":"sketch","version":1,"elements":[{"type":"rectangle","x":-1e300,"y":0,"w":1e9,"h":1e9,"fill":"#000000","fillStyle":"hachure"}]}');
+  const r = s.elements[0];
+  assert.deepEqual([r.x, r.w, r.h], [-E.MAX_COORD, E.MAX_COORD, E.MAX_COORD], 'coordinates are capped when opened');
+  const line = E.parseScene('{"type":"sketch","version":1,"elements":[{"type":"line","x":0,"y":0,"points":[{"x":0,"y":0},{"x":5e12,"y":-5e12}]}]}').elements[0];
+  assert.deepEqual(line.points[1], { x: E.MAX_COORD, y: -E.MAX_COORD }, 'points too');
+  assert.ok(hachurePath(0, 0, 1e9, 1e9).length <= MAX_HACHURE_LINES * 2, 'at most MAX_HACHURE_LINES lines, even for a shape that skipped parseScene');
+  const t0 = Date.now();
+  toSvgString(s);
+  assert.ok(Date.now() - t0 < 2000, 'the SVG export stays fast');
+});
+
+test('security: one very long word inside a shape is split quickly', () => {
+  const box = { ...E.createElement('rectangle', 0, 0), w: 120, h: 80 };
+  const t = { ...E.createElement('text', 0, 0), text: 'x'.repeat(10000), containerId: box.id, w: 100 };
+  let calls = 0;
+  E.setTextMeasurer((txt, f) => { calls++; return txt.length * f * 0.5; });
+  const lines = E.textLines(t);
+  assert.ok(lines.length > 100 && lines.every((l) => l.length <= 9), `${lines.length} lines`);
+  assert.ok(calls < 50000, `${calls} measures (letter by letter it was millions)`);
+});
+
+test('security: numbers written into the SVG cannot carry markup, even from a scene that skipped parseScene', () => {
+  const evil = '"><script>alert(1)</script><x a="';
+  const r = { ...E.createElement('rectangle', 0, 0), w: 50, h: 50, opacity: evil, width: evil };
+  const t = { ...E.createElement('text', 0, 80), text: 'hi', fontSize: evil, opacity: evil };
+  const merged = E.mergeScenes(E.emptyScene(), E.emptyScene(), { ...E.emptyScene(), elements: [r, t] }).scene;
+  const svg = toSvgString(merged);
+  assert.ok(!svg.includes('<script'), 'no markup from numeric fields');
 });
