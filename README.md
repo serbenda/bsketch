@@ -9,6 +9,7 @@ Sketch diagrams, flows and wireframes in the browser: no account, nothing to ins
 
 [![CI](https://github.com/serbenda/bsketch/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/serbenda/bsketch/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/serbenda/bsketch/badge)](https://scorecard.dev/viewer/?uri=github.com/serbenda/bsketch)
 ![No network](https://img.shields.io/badge/network-none-brightgreen.svg)
 
 <picture>
