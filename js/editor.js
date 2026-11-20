@@ -1,11 +1,14 @@
 // Drawing editor: toolbar, canvas and style panel. It mounts in any container (the sketch site or
 // Snowlog) and never uses innerHTML: everything is built with the DOM.
 //
-//   const ed = createEditor(container, { scene, onChange, readOnly })
-//   ed.getScene() · ed.setScene(scene) · ed.zoomToFit() · ed.focus() · ed.destroy()
+//   const ed = createEditor(container, { scene, onChange, readOnly, library, onNotice })
+//   ed.getScene() · ed.setScene(scene) · ed.insertImage(file) · ed.zoomToFit() · ed.focus() · ed.destroy()
+//
+// `library` (optional) is where the library of reusable pieces lives: { load(): Promise<text|null>,
+// save(text): Promise }. Without it the editor has no library. `onNotice(text)` shows a short message.
 
 import * as E from './scene.js';
-import { paintScene, measureWithCanvas, fontReady } from './render.js';
+import { paintScene, measureWithCanvas, fontReady, onImageReady, toSvgElement } from './render.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -40,13 +43,22 @@ const ICONS = {
   distV: 'M4 4h16 M4 20h16 M8 10h8v4H8z',
   group: 'M3 3h18v18H3z M7 7h5v5H7z M12 12h5v5h-5z',
   ungroup: 'M4 4h7v7H4z M13 13h7v7h-7z',
+  frame: 'M7 3v18 M17 3v18 M3 7h18 M3 17h18',
+  image: 'M4 5h16v14H4z M4 16l5-5 4 4 2-2 5 5 M15 9.5a1.5 1.5 0 1 0 0 .01',
+  library: 'M5 4h4v16H5z M10 4h4v16h-4z M15.5 5l3.8-1 3.7 15-3.8 1z',
+  plusBox: 'M4 4h16v16H4z M12 8v8 M8 12h8',
+  download: 'M12 4v11 M7 10l5 5 5-5 M5 20h14',
+  upload: 'M12 16V5 M7 10l5-5 5 5 M5 20h14',
+  close: 'M6 6l12 12 M18 6L6 18',
 };
 
 const TOOLS = [
   ['select', 'Select', 'V'], ['hand', 'Pan the canvas', 'H'], ['rectangle', 'Rectangle', 'R'],
   ['diamond', 'Diamond', 'D'], ['ellipse', 'Ellipse', 'O'], ['arrow', 'Arrow', 'A'], ['line', 'Line', 'L'],
-  ['draw', 'Pencil', 'P'], ['text', 'Text', 'T'], ['eraser', 'Eraser', 'E'],
+  ['draw', 'Pencil', 'P'], ['text', 'Text', 'T'], ['frame', 'Frame', 'F'], ['eraser', 'Eraser', 'E'],
 ];
+const IMAGE_ACCEPT = 'image/png,image/jpeg,image/gif,image/webp';
+const IMAGE_MAX_SIDE = 2560; // bigger pictures are scaled down when inserted (they would fill the browser's storage)
 
 const STROKES = ['#1e1e1e', '#e03131', '#2f9e44', '#1971c2', '#f08c00', '#9c36b5'];
 const FILLS = ['transparent', '#ffc9c9', '#b2f2bb', '#a5d8ff', '#ffec99', '#eebefa'];
@@ -75,7 +87,7 @@ function el(tag, attrs = {}, ...children) {
 }
 
 // t: translates the interface's English text (the site passes its own; by default English as written).
-export function createEditor(container, { scene: initial, onChange = () => {}, onGridChange = () => {}, readOnly = false, t: tr = (s) => s } = {}) {
+export function createEditor(container, { scene: initial, onChange = () => {}, onGridChange = () => {}, readOnly = false, t: tr = (s) => s, library = null, onNotice = () => {} } = {}) {
   measureWithCanvas(document);
   let scene = initial ? structuredClone(initial) : E.emptyScene();
   scene.elements = E.syncBindings(scene.elements);
@@ -99,19 +111,23 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   const helpId = `sk-help-${Math.random().toString(36).slice(2, 8)}`;
   const root = ui('div', { class: `sk-editor${readOnly ? ' sk-readonly' : ''}`, tabindex: '0', role: 'application', 'aria-label': readOnly ? 'Drawing' : 'Whiteboard', 'aria-describedby': readOnly ? null : helpId });
   const help = ui('p', { class: 'sk-sr', id: helpId },
-    'Tools: V select, R rectangle, D diamond, O ellipse, A arrow, L line, P pencil, T text, E eraser; G shows the grid. '
+    'Tools: V select, R rectangle, D diamond, O ellipse, A arrow, L line, P pencil, T text, F frame, E eraser; I inserts an image; G shows the grid. '
     + 'Enter creates the chosen shape in the center, or writes inside the selected one. Tab and Shift+Tab go through the elements; '
     + 'arrow keys move them; Alt+arrow keys resize them; [ and ] rotate them; Delete removes them; Escape clears the selection.');
   const canvas = ui('canvas', { class: 'sk-canvas', 'aria-label': 'Drawing canvas' });
   const textBox = ui('textarea', { class: 'sk-textbox', 'aria-label': 'Text', spellcheck: 'false', hidden: true });
   const status = ui('div', { class: 'sk-sr', 'aria-live': 'polite' });
   const toolButtons = new Map();
+  const imageInput = ui('input', { type: 'file', accept: IMAGE_ACCEPT, hidden: true, 'aria-label': 'Insert an image' });
+  const libraryButton = library ? ui('button', { class: 'sk-btn', type: 'button', title: `${tr('Library')} (Shift+L)`, 'aria-label': 'Library', 'aria-pressed': 'false', onclick: () => toggleLibrary() }, icon('library')) : null;
   const toolbar = ui('div', { class: 'sk-toolbar', role: 'toolbar', 'aria-label': 'Tools' },
     ...TOOLS.map(([id, label, key]) => {
       const b = ui('button', { class: 'sk-btn', type: 'button', title: `${tr(label)} (${key})`, 'aria-label': label, 'aria-pressed': 'false', onclick: () => setTool(id) }, icon(id));
       toolButtons.set(id, b);
       return b;
-    }));
+    }),
+    ui('button', { class: 'sk-btn', type: 'button', title: `${tr('Insert an image')} (I)`, 'aria-label': 'Insert an image', onclick: () => imageInput.click() }, icon('image')),
+    libraryButton);
   const swatch = (color, onPick, label) => {
     const b = ui('button', {
       class: `sk-swatch${color === 'transparent' ? ' sk-none' : ''}`, type: 'button', title: label, 'aria-label': label, 'data-color': color, onclick: () => onPick(color),
@@ -177,9 +193,22 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     ui('div', { class: 'sk-group' },
       btn('undo', 'Undo (Ctrl+Z)', () => doUndo()),
       btn('redo', 'Redo (Ctrl+Y)', () => doRedo())));
+  // The library: pieces kept to use again (only when the page gives the editor a place to keep them).
+  const libList = ui('ul', { class: 'sk-liblist', 'aria-label': 'Library items' });
+  const libEmpty = ui('p', { class: 'sk-libempty' }, 'Select something and press "Add" to keep it here.');
+  const libFile = ui('input', { type: 'file', accept: '.bsketchlib,.excalidrawlib,application/json', hidden: true, 'aria-label': 'Import a library' });
+  const libPanel = ui('div', { class: 'sk-panel sk-library', 'aria-label': 'Library', hidden: true },
+    ui('div', { class: 'sk-libhead' },
+      ui('div', { class: 'sk-label' }, 'Library'),
+      btn('close', 'Close the library', () => toggleLibrary(false))),
+    ui('div', { class: 'sk-row' },
+      ui('button', { class: 'sk-textbtn', type: 'button', onclick: () => addToLibrary() }, icon('plusBox'), ui('span', {}, 'Add')),
+      btn('upload', 'Import a library', () => libFile.click()),
+      btn('download', 'Export the library', () => exportLibrary())),
+    libEmpty, libList, libFile);
   const stage = ui('div', { class: 'sk-stage' }, canvas, textBox);
   if (readOnly) root.append(stage);
-  else root.append(stage, toolbar, panel, bottom, status, help);
+  else root.append(stage, toolbar, panel, ...(library ? [libPanel] : []), bottom, status, help, imageInput);
   container.append(root);
   const ctx = canvas.getContext('2d');
 
@@ -207,7 +236,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     selected = expand(ids);
     announce();
   }
-  const NAMES = { rectangle: 'rectangle', ellipse: 'ellipse', diamond: 'diamond', line: 'line', arrow: 'arrow', draw: 'drawing', text: 'text' };
+  const NAMES = { rectangle: 'rectangle', ellipse: 'ellipse', diamond: 'diamond', line: 'line', arrow: 'arrow', draw: 'drawing', text: 'text', image: 'image', frame: 'frame' };
   function announce() {
     const p = primary();
     status.textContent = !p.length ? '' : p.length === 1 ? `${tr('Selected:')} ${tr(NAMES[p[0].type])}` : tr('Selected: {n} elements').replace('{n}', p.length);
@@ -237,8 +266,9 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     const y2 = f.y + f.h + pad;
     const c = { x: f.x + f.w / 2, y: f.y + f.h / 2 };
     const raw = { nw: [x1, y1], ne: [x2, y1], sw: [x1, y2], se: [x2, y2], n: [c.x, y1], s: [c.x, y2], w: [x1, c.y], e: [x2, c.y], rot: [c.x, y1 - 22 / view.zoom] };
-    // Small boxes get only the corners.
+    // Small boxes get only the corners; frames stay upright.
     if (f.w * view.zoom < 30 || f.h * view.zoom < 30) for (const k of ['n', 's', 'e', 'w']) delete raw[k];
+    if (f.el?.type === 'frame' || (f.kind === 'many' && primary().every((e) => e.type === 'frame'))) delete raw.rot;
     const out = {};
     for (const [k, [x, y]] of Object.entries(raw)) {
       const p = E.rotatePoint({ x, y }, c, f.angle);
@@ -311,7 +341,8 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     ctx.fillStyle = scene.background || '#ffffff';
     ctx.fillRect(0, 0, r.width, r.height);
     if (grid) paintGrid(r.width, r.height);
-    paintScene(ctx, hidden, { view, width: r.width, height: r.height, background: false });
+    const inverted = getComputedStyle(canvas).filter.includes('invert');
+    paintScene(ctx, hidden, { view, width: r.width, height: r.height, background: false, imageFilter: inverted ? 'hue-rotate(180deg) invert(100%)' : '' });
     ctx.save();
     ctx.translate(view.x, view.y);
     ctx.scale(view.zoom, view.zoom);
@@ -469,7 +500,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   function syncPanel() {
     const s = primary();
     const cur = s.length ? s[s.length - 1] : style;
-    panel.hidden = readOnly || (tool === 'select' && !s.length) || tool === 'hand' || tool === 'eraser';
+    panel.hidden = readOnly || (tool === 'select' && !s.length) || tool === 'hand' || tool === 'eraser' || tool === 'frame' || (s.length > 0 && s.every((e) => e.type === 'frame' || e.type === 'image'));
     for (const b of panel.querySelectorAll('.sk-swatch')) {
       const prop = b.parentElement.dataset.prop;
       b.setAttribute('aria-pressed', String(cur[prop] === b.dataset.color));
@@ -495,9 +526,222 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     ungroupBtn.hidden = !s.some((e) => e.group);
   }
 
+  // Frames go behind everything (what is drawn inside them stays on top).
   function addElement(e) {
-    scene.elements.push(e);
+    if (e.type === 'frame') scene.elements.unshift(e);
+    else scene.elements.push(e);
   }
+  const frameName = () => `${tr('Frame')} ${scene.elements.filter((e) => e.type === 'frame').length + 1}`;
+  // What moves with the selection: frames carry what is inside them.
+  function withFrameContents(ids) {
+    const out = new Set(ids);
+    for (const f of scene.elements) if (f.type === 'frame' && ids.has(f.id)) for (const e of E.inFrame(scene.elements, f)) out.add(e.id);
+    return expand([...out]);
+  }
+  function renameFrame(f) {
+    const name = window.prompt(tr('Name of this frame:'), f.name || '');
+    if (name === null) return;
+    commit();
+    update(scene.elements.map((e) => (e.id === f.id ? { ...e, name: name.replace(/\s+/g, ' ').trim().slice(0, 100) } : e)));
+    changed();
+  }
+
+  // --- Images ---
+  function readAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result));
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(file);
+    });
+  }
+  // A picture file → { data, w, h } ready to keep (scaled down if it is very big), or null if it isn't one we take.
+  async function loadPicture(file) {
+    const type = String(file?.type || '').replace('image/', '');
+    if (!E.IMAGE_TYPES.includes(type) || file.size > 50 * 1024 * 1024) return null;
+    const data = await readAsDataUrl(file);
+    const img = new Image();
+    img.src = data;
+    await img.decode();
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+    if (!w || !h) return null;
+    if (E.isImageData(data) && data.length <= 3 * 1024 * 1024 && Math.max(w, h) <= IMAGE_MAX_SIDE) return { data, w, h };
+    const k = Math.min(1, IMAGE_MAX_SIDE / Math.max(w, h));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(w * k));
+    c.height = Math.max(1, Math.round(h * k));
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    let out = c.toDataURL(type === 'png' ? 'image/png' : 'image/jpeg', 0.88);
+    if (!E.isImageData(out) || out.length > 3 * 1024 * 1024) out = c.toDataURL('image/jpeg', 0.8);
+    return E.isImageData(out) ? { data: out, w: c.width, h: c.height } : null;
+  }
+  // Puts a picture in the drawing, centered on `at` (the view's center by default), at a size that fits the view.
+  async function insertImage(file, at = null) {
+    if (readOnly) return false;
+    let pic = null;
+    try {
+      pic = await loadPicture(file);
+    } catch { /* not a picture the browser can read */ }
+    if (!pic) {
+      onNotice(tr('That file is not a picture bsketch can use (PNG, JPEG, GIF or WebP).'));
+      return false;
+    }
+    const files = scene.files || {};
+    let fileId = Object.keys(files).find((k) => files[k] === pic.data);
+    if (!fileId) {
+      fileId = E.newId();
+      scene.files = { ...files, [fileId]: pic.data };
+    }
+    const r = canvas.getBoundingClientRect();
+    const k = Math.min(1, (r.width * 0.6) / view.zoom / pic.w, (r.height * 0.6) / view.zoom / pic.h);
+    const w = pic.w * k;
+    const h = pic.h * k;
+    const c = at || viewCenter();
+    finishText();
+    commit();
+    const e = { ...E.createElement('image', c.x - w / 2, c.y - h / 2, { ...style, fill: 'transparent' }), w, h, fileId };
+    update([...scene.elements, e]);
+    setTool('select');
+    select([e.id]);
+    changed();
+    return true;
+  }
+  imageInput.addEventListener('change', () => {
+    const [file] = imageInput.files;
+    imageInput.value = '';
+    if (file) insertImage(file);
+  });
+  // Pictures dropped on the canvas go where they are dropped.
+  const pictureIn = (dt) => [...(dt?.files || [])].find((f) => E.IMAGE_TYPES.includes(String(f.type).replace('image/', '')));
+  stage.addEventListener('dragover', (ev) => {
+    if (readOnly || ![...(ev.dataTransfer?.items || [])].some((i) => i.kind === 'file' && i.type.startsWith('image/'))) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+  });
+  stage.addEventListener('drop', (ev) => {
+    const file = readOnly ? null : pictureIn(ev.dataTransfer);
+    if (!file) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    insertImage(file, toWorld(ev.clientX, ev.clientY));
+  });
+  // Pasting: a picture from the clipboard goes in; otherwise what was copied in the editor (Ctrl+C) is pasted.
+  let pastedPicture = false;
+  root.addEventListener('paste', (ev) => {
+    if (readOnly || ev.target.closest('input, textarea')) return;
+    const file = [...(ev.clipboardData?.items || [])].find((i) => i.kind === 'file' && i.type.startsWith('image/'))?.getAsFile();
+    if (!file) return;
+    ev.preventDefault();
+    pastedPicture = true;
+    insertImage(file);
+  });
+
+  // --- Library ---
+  let libItems = null; // loaded the first time the library opens
+  async function loadLibrary() {
+    if (libItems) return libItems;
+    libItems = [];
+    try {
+      const raw = await library.load();
+      if (raw) libItems = E.parseLibrary(raw);
+    } catch { /* an unreadable library starts empty */ }
+    return libItems;
+  }
+  async function saveLibrary() {
+    try {
+      await library.save(E.serializeLibrary(libItems));
+    } catch {
+      onNotice(tr('Could not keep the library in this browser.'));
+    }
+  }
+  function renderLibrary() {
+    libEmpty.hidden = libItems.length > 0;
+    libList.replaceChildren(...libItems.map((it, i) => {
+      const thumb = toSvgElement(document, { ...E.emptyScene(), elements: it.elements, files: it.files }, { padding: 6, background: false });
+      thumb.setAttribute('class', 'sk-libthumb');
+      thumb.removeAttribute('width');
+      thumb.setAttribute('aria-hidden', 'true');
+      const label = it.name || `${tr('Item')} ${i + 1}`;
+      const use = el('button', { class: 'sk-libitem', type: 'button', title: label, 'aria-label': `${tr('Insert')}: ${label}`, onclick: () => insertFromLibrary(it) }, thumb);
+      const del = el('button', { class: 'sk-libdel', type: 'button', title: tr('Remove from the library'), 'aria-label': `${tr('Remove from the library')}: ${label}`, onclick: () => removeFromLibrary(it.id) }, icon('close'));
+      return el('li', {}, use, del);
+    }));
+  }
+  async function toggleLibrary(open = libPanel.hidden) {
+    if (!library) return;
+    libPanel.hidden = !open;
+    libraryButton.setAttribute('aria-pressed', String(open));
+    if (open) {
+      await loadLibrary();
+      renderLibrary();
+    }
+  }
+  async function addToLibrary() {
+    const s = selection();
+    if (!s.length) {
+      onNotice(tr('Select what you want to keep in the library first.'));
+      return;
+    }
+    await loadLibrary();
+    if (libItems.length >= E.MAX_LIBRARY_ITEMS) return onNotice(tr('The library is full: remove something first.'));
+    const elements = structuredClone(s);
+    libItems = [{ id: E.newId(), name: '', elements, files: E.filesFor(elements, scene.files) }, ...libItems];
+    renderLibrary();
+    await saveLibrary();
+  }
+  async function removeFromLibrary(id) {
+    libItems = libItems.filter((it) => it.id !== id);
+    renderLibrary();
+    await saveLibrary();
+  }
+  // An item goes in as new copies in the middle of the view, selected.
+  function insertFromLibrary(it) {
+    if (readOnly) return;
+    const b = E.sceneBounds(it.elements);
+    const c = viewCenter();
+    let dx = c.x - (b.x + b.w / 2);
+    let dy = c.y - (b.y + b.h / 2);
+    if (grid) {
+      dx = E.snap(b.x + dx) - b.x;
+      dy = E.snap(b.y + dy) - b.y;
+    }
+    finishText();
+    commit();
+    const copies = E.cloneElements(it.elements, dx, dy);
+    const files = { ...(scene.files || {}) };
+    for (const [k, v] of Object.entries(it.files || {})) if (!Object.hasOwn(files, k)) files[k] = v;
+    scene.files = files;
+    update([...copies.filter((e) => e.type === 'frame'), ...scene.elements, ...copies.filter((e) => e.type !== 'frame')]);
+    setTool('select');
+    select(copies.map((e) => e.id));
+    changed();
+  }
+  function exportLibrary() {
+    if (!libItems?.length) return onNotice(tr('The library is empty.'));
+    const url = URL.createObjectURL(new Blob([E.serializeLibrary(libItems)], { type: 'application/json' }));
+    const a = el('a', { href: url, download: 'library.bsketchlib' });
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  }
+  libFile.addEventListener('change', async () => {
+    const [file] = libFile.files;
+    libFile.value = '';
+    if (!file) return;
+    let items;
+    try {
+      items = E.parseLibrary(await file.text());
+    } catch {
+      return onNotice(tr('That file is not a library.'));
+    }
+    await loadLibrary();
+    libItems = [...items, ...libItems].slice(0, E.MAX_LIBRARY_ITEMS);
+    renderLibrary();
+    await saveLibrary();
+    onNotice(tr('Added to the library: {n}.').replace('{n}', items.length));
+  });
 
   // Moves some elements. An arrow moved without its shape is no longer attached to it; `keep` is
   // everything that moves in the same operation (aligning moves each unit on its own).
@@ -624,8 +868,10 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     commit();
     let e;
     if (tool === 'line' || tool === 'arrow') e = { ...E.createElement(tool, c.x - 80, c.y, style), points: [{ x: 0, y: 0 }, { x: 160, y: 0 }] };
+    else if (tool === 'frame') e = { ...E.createElement('frame', c.x - 200, c.y - 150, style), w: 400, h: 300, name: frameName() };
     else e = { ...E.createElement(tool, c.x - 80, c.y - 40, style), w: 160, h: 80 };
-    update([...scene.elements, e]);
+    addElement(e);
+    update(scene.elements);
     setTool('select');
     select([e.id]);
     changed();
@@ -838,7 +1084,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
           select([hit.id]);
         }
         commit();
-        action = { kind: 'move', start: p, orig: scene.elements.map((e) => e), ids: new Set(selected), moved: false };
+        action = { kind: 'move', start: p, orig: scene.elements.map((e) => e), ids: withFrameContents(selected), moved: false };
       } else {
         if (!ev.shiftKey) selected.clear();
         action = { kind: 'marquee', start: p, box: { x: p.x, y: p.y, w: 0, h: 0 }, base: new Set(selected) };
@@ -857,6 +1103,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     // On the grid, the shape starts on it (an arrow still attaches to the shape under the pointer).
     const at = grid && tool !== 'draw' ? E.snapPoint(p) : p;
     const e = E.createElement(tool, at.x, at.y, tool === 'draw' ? { ...style, fill: 'transparent' } : style);
+    if (tool === 'frame') e.name = frameName();
     if (tool === 'arrow') {
       const s = bindTarget(p);
       if (s) e.startId = s;
@@ -1056,6 +1303,10 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       editText(hit.id);
       return;
     }
+    if (hit?.type === 'frame') {
+      renameFrame(hit);
+      return;
+    }
     const shape = E.shapeAt(scene.elements, p.x, p.y, { containersOnly: true });
     if (shape) editInside(shape);
     else if (!hit) newText(p);
@@ -1089,10 +1340,14 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     if (mod && k === 'g') { ev.preventDefault(); if (ev.shiftKey) ungroupSelected(); else groupSelected(); return; }
     if (mod && k === 'c') { clipboard = selection().map((e) => structuredClone(e)); return; }
     if (mod && k === 'v' && clipboard?.length) {
-      ev.preventDefault();
-      commit();
-      clipboard = pasteCopies(clipboard, 24);
-      changed();
+      // The paste event comes first if the clipboard holds a picture; otherwise the copied elements go in.
+      pastedPicture = false;
+      setTimeout(() => {
+        if (pastedPicture || !clipboard?.length) return;
+        commit();
+        clipboard = pasteCopies(clipboard, 24);
+        changed();
+      }, 0);
       return;
     }
     if (mod && (k === '+' || k === '=')) { ev.preventDefault(); zoomAt(1.2); return; }
@@ -1152,6 +1407,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     }
     if (ev.key === 'Enter' && primary().length === 1) {
       const s = primary()[0];
+      if (s.type === 'frame') { ev.preventDefault(); renameFrame(s); return; }
       if (s.type === 'text') { ev.preventDefault(); commit(); editText(s.id); return; }
       if (E.isContainer(s)) { ev.preventDefault(); editInside(s); return; }
     }
@@ -1162,10 +1418,12 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       const dx = ev.key === 'ArrowLeft' ? -d : ev.key === 'ArrowRight' ? d : 0;
       const dy = ev.key === 'ArrowUp' ? -d : ev.key === 'ArrowDown' ? d : 0;
       commit();
-      update(moved(scene.elements, selected, dx, dy));
+      update(moved(scene.elements, withFrameContents(selected), dx, dy));
       changed();
       return;
     }
+    if (k === 'i' && !ev.altKey) { ev.preventDefault(); imageInput.click(); return; }
+    if (k === 'l' && ev.shiftKey && library) { ev.preventDefault(); toggleLibrary(); return; }
     if (k === 'g' && !ev.altKey) {
       ev.preventDefault();
       setGrid(!grid);
@@ -1200,6 +1458,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
 
   const ro = new ResizeObserver(() => redraw());
   ro.observe(canvas);
+  const offImages = onImageReady(() => redraw());
 
   // Once the handwriting font loads, texts measure differently: lay them out again.
   let alive = true;
@@ -1253,6 +1512,9 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   return {
     // A copy of the selected elements (with the texts inside selected shapes), or [] if nothing is selected.
     getSelection: () => structuredClone(selection()),
+    // The selected elements with what is inside the selected frames (for exporting a frame).
+    getSelectionWithFrames: () => structuredClone(scene.elements.filter((e) => withFrameContents(selected).has(e.id))),
+    insertImage,
     setBackground,
     setGrid,
     setTheme,
@@ -1266,6 +1528,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       finishText();
       alive = false;
       ro.disconnect();
+      offImages();
       cancelAnimationFrame(raf);
       root.remove();
     },

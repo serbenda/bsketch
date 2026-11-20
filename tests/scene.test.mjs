@@ -524,3 +524,80 @@ test('languages: the chosen one, else the browser\'s, else English; untranslated
   assert.equal(fill(es('Opened "{name}": {n} elements.'), { name: 'a.sketch', n: 3 }), 'Abierto «a.sketch»: 3 elementos.');
   assert.equal(translator('en')('Rectangle'), 'Rectangle');
 });
+
+test('images: only checked pictures are kept, once per scene, and they travel with the elements that use them', () => {
+  const png = 'data:image/png;base64,iVBORw0KGgo=';
+  const raw = {
+    type: 'sketch', version: 1, background: '#ffffff',
+    elements: [
+      { id: 'i1', type: 'image', x: 0, y: 0, w: 100, h: 50, fileId: 'f1' },
+      { id: 'i2', type: 'image', x: 0, y: 0, w: 100, h: 50, fileId: 'svg' },
+      { id: 'i3', type: 'image', x: 0, y: 0, w: 100, h: 50, fileId: 'gone' },
+      { id: 'i4', type: 'image', x: 0, y: 0, w: 100, h: 50 },
+    ],
+    files: { f1: png, svg: 'data:image/svg+xml;base64,PHN2Zz4=', unused: png, remote: 'https://example.com/x.png', html: 'data:text/html;base64,PGI+' },
+  };
+  const s = E.parseScene(JSON.stringify(raw));
+  assert.deepEqual(s.elements.map((e) => e.id), ['i1'], 'an image without an allowed picture is dropped');
+  assert.deepEqual(s.files, { f1: png }, 'SVG, remote and unused pictures are not kept');
+  assert.deepEqual(JSON.parse(E.serializeScene({ ...s, files: { ...s.files, extra: png } })).files, { f1: png }, 'saving keeps only what is used');
+  assert.equal(JSON.parse(E.serializeScene({ ...s, elements: [] })).files, undefined);
+  assert.ok(!E.isImageData(`data:image/png;base64,${'A'.repeat(E.MAX_IMAGE_CHARS)}`), 'too big');
+  // Excalidraw's pictures come in with their files.
+  const ex = E.parseScene(JSON.stringify({ type: 'excalidraw', elements: [{ id: 'x', type: 'image', x: 1, y: 2, width: 30, height: 20, fileId: 'abc' }], files: { abc: { mimeType: 'image/png', dataURL: png } } }));
+  assert.equal(ex.elements[0].type, 'image');
+  assert.equal(ex.files.abc, png);
+  // A merge keeps the pictures either side uses.
+  const theirs = { ...s, elements: [...s.elements, { ...s.elements[0], id: 'j', fileId: 'f2' }], files: { f1: png, f2: png } };
+  const merged = E.mergeScenes(s, s, theirs).scene;
+  assert.deepEqual(Object.keys(merged.files).sort(), ['f1', 'f2']);
+  // Pictures keep their proportions when resized (Shift stretches them).
+  const img = s.elements[0];
+  const r = E.resizeByHandle(img, 'e', { x: 200, y: 25 });
+  assert.equal(r.w / r.h, 2);
+  const stretched = E.resizeByHandle(img, 'e', { x: 200, y: 25 }, { keepRatio: true });
+  assert.equal(stretched.w / stretched.h, 4, 'Shift stretches it');
+  // An SVG export embeds only checked pictures.
+  const svg = toSvgString(s);
+  assert.ok(svg.includes(`<image href="${png}"`));
+  assert.ok(!toSvgString({ ...s, files: { f1: 'javascript:alert(1)' } }).includes('<image'));
+});
+
+test('frames: a title, inside elements move with them, they stay upright and behind', () => {
+  const f = { ...E.createElement('frame', 0, 0), w: 300, h: 200, name: '  Login\n screen  ' };
+  const inside = { ...E.createElement('rectangle', 20, 20), w: 50, h: 50 };
+  const outside = { ...E.createElement('rectangle', 400, 20), w: 50, h: 50 };
+  const s = E.parseScene(E.serializeScene({ ...E.emptyScene(), elements: [f, inside, outside] }));
+  const frame = s.elements[0];
+  assert.equal(frame.name, 'Login screen');
+  assert.deepEqual(E.inFrame(s.elements, frame).map((e) => e.id), [inside.id]);
+  assert.equal(E.rotateElement(frame, { x: 0, y: 0 }, 1), frame, 'frames do not rotate');
+  assert.equal(E.cleanElement({ ...frame, angle: 1 }).angle, undefined);
+  assert.ok(E.hitTest(frame, 10, -10), 'the title picks the frame');
+  assert.ok(!E.hitTest(frame, 150, 100), 'its inside does not (what is drawn there stays easy to pick)');
+  assert.ok(toSvgString(s).includes('>Login screen</text>'));
+  assert.equal(E.cleanElement({ ...frame, name: { toString: 1 } }).name, '');
+});
+
+test('library: our own and Excalidraw\'s libraries are read and checked; saving keeps only what each item uses', () => {
+  const png = 'data:image/png;base64,iVBORw0KGgo=';
+  const rect = { id: 'r', type: 'rectangle', x: 0, y: 0, w: 10, h: 10 };
+  const ours = E.parseLibrary(JSON.stringify({ type: 'bsketchlib', version: 1, items: [
+    { name: ' Box ', elements: [rect] },
+    { name: 'Pic', elements: [{ id: 'i', type: 'image', x: 0, y: 0, w: 5, h: 5, fileId: 'f' }], files: { f: png, other: png } },
+    { name: 'empty', elements: [] },
+    { name: 'bad', elements: [{ type: 'script' }] },
+  ] }));
+  assert.deepEqual(ours.map((i) => i.name), ['Box', 'Pic']);
+  assert.deepEqual(ours[1].files, { f: png });
+  const v2 = E.parseLibrary(JSON.stringify({ type: 'excalidrawlib', version: 2, libraryItems: [{ name: 'Server', elements: [{ id: 'a', type: 'rectangle', x: 0, y: 0, width: 40, height: 20 }] }] }));
+  assert.equal(v2[0].name, 'Server');
+  assert.equal(v2[0].elements[0].w, 40);
+  const v1 = E.parseLibrary(JSON.stringify({ type: 'excalidrawlib', version: 1, library: [[{ id: 'a', type: 'ellipse', x: 0, y: 0, width: 40, height: 20 }]] }));
+  assert.equal(v1[0].elements[0].type, 'ellipse');
+  assert.throws(() => E.parseLibrary('{"type":"sketch"}'), /bad_file/);
+  assert.throws(() => E.parseLibrary('nope'), /bad_file/);
+  const again = E.parseLibrary(E.serializeLibrary(ours));
+  assert.deepEqual(again.map((i) => [i.name, i.elements.length, Object.keys(i.files || {})]), [['Box', 1, []], ['Pic', 1, ['f']]]);
+  assert.equal(E.parseLibrary(JSON.stringify({ type: 'bsketchlib', items: Array.from({ length: 300 }, () => ({ elements: [rect] })) })).length, E.MAX_LIBRARY_ITEMS);
+});

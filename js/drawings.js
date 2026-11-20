@@ -101,7 +101,7 @@ export function refreshIndex(storage, idx) {
   if (!fresh) return false;
   const mine = activeOf(idx);
   if (mine && !fresh.list.some((d) => d.id === mine.id)) fresh.list.unshift(mine);
-  idx.list = fresh.list;
+  idx.list = fresh.list.slice(0, MAX_DRAWINGS);
   return true;
 }
 

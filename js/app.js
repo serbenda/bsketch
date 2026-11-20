@@ -42,6 +42,7 @@ const storage = ls || { getItem: (k) => memory.get(k) ?? null, setItem: (k, v) =
 const drawings = loadIndex(storage, `${t('Drawing')} 1`);
 try { saveIndex(storage, drawings); } catch { /* full storage: the open drawing still works */ }
 let scenes = null; // the scene store, once open
+const LIBRARY_ID = '_library';
 
 // The open drawing as stored, or null.
 async function saved() {
@@ -76,6 +77,12 @@ const editor = createEditor($('canvas'), {
   },
   // The G key: remembered like the menu's switch.
   onGridChange: (on) => setGridPref(on),
+  // The library lives with the drawings (in IndexedDB), under an id no drawing can have.
+  library: {
+    load: async () => (scenes ? scenes.get(LIBRARY_ID) : null),
+    save: async (text) => { if (scenes) await scenes.set(LIBRARY_ID, text); },
+  },
+  onNotice: (text) => notify(text),
   t,
 });
 editor.focus();
@@ -206,16 +213,24 @@ $('save').addEventListener('click', () => {
   download(serializeScene(editor.getScene()), `${fileName()}.sketch`, 'application/json');
   notify(t('Downloaded. You can open it again with "Open…".'));
 });
-// What PNG and SVG export: the whole drawing, or only the selection when that box is ticked.
+// What PNG and SVG export: the whole drawing, or only the selection when that box is ticked. A selected frame
+// exports what is inside it, cut to the frame (without its border and title).
 function exportScene() {
   const scene = editor.getScene();
-  if (!$('only-selection').checked) return scene;
-  return { ...scene, elements: editor.getSelection() };
+  if (!$('only-selection').checked) return { scene };
+  const sel = editor.getSelectionWithFrames();
+  const frames = sel.filter((e) => e.type === 'frame');
+  const elements = sel.filter((e) => e.type !== 'frame');
+  if (frames.length === 1) {
+    const f = frames[0];
+    return { scene: { ...scene, elements }, box: { x: f.x, y: f.y, w: f.w, h: f.h }, padding: 0 };
+  }
+  return { scene: { ...scene, elements: frames.length ? elements : sel } };
 }
 $('png').addEventListener('click', async () => {
-  const scene = exportScene();
-  if (!scene.elements.length) return notify(t($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.'));
-  const png = await toPngBlob(document, scene, { background: !$('transparent').checked });
+  const { scene, box, padding } = exportScene();
+  if (!scene.elements.length && !box) return notify(t($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.'));
+  const png = await toPngBlob(document, scene, { background: !$('transparent').checked, box, padding });
   if (!png) return notify(t('This browser could not make the PNG. Try SVG instead.'));
   download(png, `${fileName()}.png`, 'image/png');
 });
@@ -238,9 +253,9 @@ async function copyPng() {
 $('copy-png').addEventListener('click', copyPng);
 
 $('svg').addEventListener('click', () => {
-  const scene = exportScene();
-  if (!scene.elements.length) return notify(t($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.'));
-  download(toSvgString(scene, { background: !$('transparent').checked }), `${fileName()}.svg`, 'image/svg+xml');
+  const { scene, box, padding } = exportScene();
+  if (!scene.elements.length && !box) return notify(t($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.'));
+  download(toSvgString(scene, { background: !$('transparent').checked, box, padding }), `${fileName()}.svg`, 'image/svg+xml');
 });
 
 // --- The side menu: file actions and options ---
@@ -368,7 +383,9 @@ window.addEventListener('drop', (ev) => {
   const [file] = ev.dataTransfer?.files || [];
   if (!file) return;
   ev.preventDefault();
-  openFile(file);
+  // A picture goes into the drawing; anything else is opened as a drawing.
+  if (file.type.startsWith('image/')) editor.insertImage(file);
+  else openFile(file);
 });
 
 // Offline: the site is kept in the browser (service worker). Trusted Types: only sw.js is allowed.

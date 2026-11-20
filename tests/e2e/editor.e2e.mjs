@@ -78,7 +78,7 @@ async function screen(page) {
 
 async function open(page) {
   await page.goto(base);
-  await page.waitFor('!!document.querySelector(".sk-canvas")');
+  await page.waitFor('!!document.querySelector(".sk-canvas") && !document.getElementById("canvas").inert');
   await page.waitFor('document.fonts.check(\'24px "Sketch Hand"\')');
 }
 
@@ -678,6 +678,81 @@ test('the portable version opens with a double click and works offline', { skip 
     }
     assert.match(csp, /script-src 'sha256-[A-Za-z0-9+/=]+'(;|$)/, 'only the script it carries, by hash');
     assert.equal(await page.eval('fetch("https://example.com/").then(() => "sent", () => "blocked")'), 'blocked', 'a request is refused');
+  } finally {
+    await page.close();
+  }
+});
+
+test('pictures, frames and the library', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    // A picture from the computer (the toolbar's button opens this input).
+    const { root } = await page.send('DOM.getDocument', {});
+    const { nodeId } = await page.send('DOM.querySelector', { nodeId: root.nodeId, selector: '.sk-editor input[type=file][accept^="image/"]' });
+    await page.send('DOM.setFileInputFiles', { nodeId, files: [join(ROOT, 'docs/images/banner.png')] });
+    await page.waitFor('document.querySelector(".sk-sr[aria-live]").textContent.includes("image")');
+    let s = await scene(page);
+    const img = s.elements.find((e) => e.type === 'image');
+    assert.ok(img && s.files[img.fileId].startsWith('data:image/png;base64,'), 'the picture is kept with the drawing');
+    assert.ok(Math.abs(img.w / img.h - 2560 / 800) < 0.01, 'with its proportions');
+    assert.ok(await page.eval('new Promise((r) => requestAnimationFrame(() => r(true)))'));
+
+    // A frame around a box: moving the frame moves the box.
+    await page.press('Escape');
+    await page.press('r');
+    await page.drag(at(260, 220), at(320, 270));
+    await page.press('f');
+    await page.drag(at(240, 200), at(380, 320));
+    s = await scene(page);
+    const frame = s.elements[0];
+    assert.equal(frame.type, 'frame', 'frames go behind');
+    assert.equal(frame.name, 'Frame 1');
+    const box = s.elements.find((e) => e.type === 'rectangle');
+    await page.press('v');
+    await page.mouseClick(at(-450, 300));
+    await page.drag(at(250, 200), at(250, 240)); // by its top border
+    s = await scene(page);
+    assert.equal(s.elements.find((e) => e.id === box.id).y, box.y + 40, 'what is inside moves with the frame');
+    // Rename it (double click on its border).
+    await page.eval('window.prompt = () => "Login"');
+    await page.mouseClick(at(240, 280), { count: 2 });
+    s = await scene(page);
+    assert.equal(s.elements[0].name, 'Login');
+
+    // Exporting only a selected frame: its area, without its border.
+    await page.eval('window.__blobs = []; URL.createObjectURL = (b) => { window.__blobs.push(b); return "blob:x"; }; HTMLAnchorElement.prototype.click = function () {}');
+    await page.mouseClick(at(240, 290));
+    await page.click('#menu-button');
+    await page.click('#only-selection');
+    await page.click('#svg');
+    const svg = await page.eval('window.__blobs[0].text()');
+    const f = s.elements[0];
+    assert.ok(svg.includes(`viewBox="${f.x} ${f.y} ${f.w} ${f.h}"`), svg.slice(0, 160));
+    assert.ok(!svg.includes('Login'), 'without the frame\'s title');
+    await page.press('Escape');
+
+    // The library: keep the box, insert it again.
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.mouseClick(at(-450, 300));
+    await page.mouseClick(at(260, 280));
+    await page.press('L', { shift: true });
+    await page.waitFor('!document.querySelector(".sk-library").hidden');
+    await page.click('.sk-library .sk-textbtn');
+    await page.waitFor('document.querySelectorAll(".sk-libitem").length === 1');
+    const before = (await scene(page)).elements.length;
+    await page.click('.sk-libitem');
+    s = await scene(page);
+    assert.equal(s.elements.length, before + 1, 'the kept piece goes in as a copy');
+    // It is kept in the browser: after a reload it is still there.
+    await page.reload();
+    await page.waitFor('!!document.querySelector(".sk-canvas") && !document.getElementById("canvas").inert');
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('L', { shift: true });
+    await page.waitFor('document.querySelectorAll(".sk-libitem").length === 1');
+    assert.deepEqual(page.errors, []);
   } finally {
     await page.close();
   }
