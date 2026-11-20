@@ -3,6 +3,8 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioned with [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [1.1.0] - 2026-11-20
 ### Added
 - **Pictures:** insert a PNG, JPEG, GIF or WebP from the toolbar (or the **I** key), paste it, or drop it on the
   canvas. It is kept with the drawing (saved in `.sketch` files, read from `.excalidraw` ones), keeps its proportions

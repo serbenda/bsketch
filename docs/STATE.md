@@ -13,9 +13,10 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- P08 on `development`, its PR to `main` open; the Lockfile and Scorecard workflows wait for the owner's commit.
+- Version 1.1.0 prepared (PR to `main`); the owner releases it with the provenance script.
 
 ## Recently done
+- OpenSSF Scorecard running on `main` (5.5/10 on its first run; badge in the README).
 - [P08](phases/P08-like-excalidraw.md): P07 reviewed, fuzz tests, drawings in IndexedDB, pictures, frames, a library.
 - **v1.0.0 released** (2026-11-19) with the three executables ([P02](phases/P02-owner-tests-and-release.md)).
 - [P07](phases/P07-everyday-use.md): several drawings, elbow and curved arrows, export only the selection, the
@@ -39,10 +40,10 @@ Last updated: 2026-11-20
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. Owner: commit and push the workflow changes (`.github/`: Lockfile, Scorecard, Desktop with `npm ci`, Dependabot
-   for `/desktop`); then the agent commits `desktop/package-lock.json` from the Lockfile run's artifact.
-2. Owner: P02's checklist on Safari, Firefox, a real phone and the desktop apps; anything failing becomes a 1.0.x.
-3. Then `v1.1.0` with P07 and P08.
+1. Owner: merge the 1.1.0 PR, then release it (`bsketch-release-1.1.0.sh`, outside the repo): tag, executables and
+   their signed provenance.
+2. Owner: P02's checklist on Safari, Firefox, a real phone and the desktop apps; anything failing becomes a 1.1.x.
+3. Optional (owner): the OpenSSF best-practices badge (bestpractices.dev) for Scorecard.
 
 ## Blocked / awaiting decision
 - Nothing.

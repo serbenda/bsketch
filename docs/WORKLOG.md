@@ -16,6 +16,20 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — Version 1.1.0, released with signed provenance
+- **Phase / issue:** P08
+- **What:** version 1.1.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's
+  changes become `[1.1.0] - 2026-11-20`. The owner's release script attaches each executable's Sigstore provenance
+  bundle (`<file>.intoto.jsonl`, from `gh attestation download`, verified first) to the release, and to v1.0.0's.
+- **Why:** P08 is on `main`; OpenSSF Scorecard's Signed-Releases check looks for provenance files on releases (0/10
+  so far, although the executables were already attested).
+- **Rejected:** signing with a key of our own (keys to keep safe; GitHub's attestations need none).
+- **Files:** package.json, desktop/src-tauri/tauri.conf.json, desktop/src-tauri/Cargo.toml,
+  desktop/src-tauri/Cargo.lock, CHANGELOG.md, docs/STATE.md
+- **Commits:** this one.
+- **Tested:** `npm test` passes; `gh attestation verify` and `download` tried on v1.0.0's Windows executable.
+- **Pending:** the owner merges the PR and runs the release script.
+
 ## 2026-11-20 — The Tauri CLI's lockfile, made by the Lockfile workflow
 - **Phase / issue:** P08
 - **What:** `desktop/package-lock.json` from the Lockfile workflow's run 44705853015 (artifact `desktop-lockfile`):
