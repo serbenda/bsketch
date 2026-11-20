@@ -3,8 +3,12 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioned with [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [1.4.0] - 2026-11-21
 ### Added
 - **Catalan, French and Portuguese**, chosen in the ☰ menu or taken from the browser; the templates too.
+- In [Snowlog](https://github.com/serbenda/snowlog), which embeds bsketch's editor: the 1.3 engine, the library
+  (encrypted in the vault) and the templates (serbenda/snowlog#9).
 
 ### Fixed
 - Icon buttons (undo, redo, closing the search or the presentation…) are now named in the interface's language for

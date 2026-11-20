@@ -13,7 +13,7 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- S6: P17, P18 and [P20](phases/P20-languages.md) done; P19 (the owner's device checklist) is what is left before 1.4.0.
+- Version 1.4.0 prepared (PR #27); the owner releases it with `bsketch-release.sh 1.4.0`. P19 (the owner's device checklist) goes on after it: what it finds becomes 1.4.x.
 
 ## Recently done
 - [P20](phases/P20-languages.md): Catalan, French and Portuguese.
@@ -58,8 +58,9 @@ Last updated: 2026-11-20
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. P19 (owner first): the device checklist on Safari, Firefox, a real phone and the desktop apps.
-2. Then 1.4.0, S7 and S8 ([ROADMAP](ROADMAP.md)).
+1. Owner: merge PR #27 (and serbenda/snowlog#9), then `bsketch-release.sh 1.4.0`.
+2. P19 (owner first): the device checklist on Safari, Firefox, a real phone and the desktop apps; fixes in 1.4.x.
+3. Then S7 (1.5: speaker notes, PDF, smart connectors) and S8 (2.0) ([ROADMAP](ROADMAP.md)).
 
 ## Blocked / awaiting decision
 - Nothing.

@@ -16,6 +16,18 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — Version 1.4.0
+- **Phase / issue:** S6 (P17, P18, P20; P19 continues after the release)
+- **What:** version 1.4.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's
+  changes become `[1.4.0] - 2026-11-21`, with a line on Snowlog; STATE.
+- **Why:** the owner chose to release what S6 has now and leave P19's findings for 1.4.x.
+- **Rejected:** waiting for P19 (it depends on the owner's devices and time).
+- **Files:** package.json, desktop/src-tauri/tauri.conf.json, desktop/src-tauri/Cargo.toml,
+  desktop/src-tauri/Cargo.lock, CHANGELOG.md, docs/STATE.md
+- **Commits:** this one.
+- **Tested:** `npm test` passes.
+- **Pending:** the owner merges PR #27 and releases.
+
 ## 2026-11-21 — P20: Catalan, French and Portuguese
 - **Phase / issue:** P20
 - **What:** `CA`, `FR` and `PT` dictionaries (194 strings each, every placeholder kept) in `js/i18n.js`; `LANGS` and
