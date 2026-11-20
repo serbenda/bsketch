@@ -54,10 +54,20 @@ after(async () => {
   server?.close();
 });
 
-// The drawing kept in the browser (written 400 ms after each change).
-async function scene(page) {
+// A drawing's scene as kept in this browser's IndexedDB (written 400 ms after each change); the open one by default.
+const stored = (page, id) => page.eval(`new Promise((resolve, reject) => {
+  const req = indexedDB.open('bsketch');
+  req.onerror = () => reject(req.error);
+  req.onsuccess = () => {
+    const id = ${id ? JSON.stringify(id) : 'JSON.parse(localStorage.getItem("sketch.drawings")).active'};
+    const get = req.result.transaction('scenes').objectStore('scenes').get(id);
+    get.onsuccess = () => resolve(get.result ?? null);
+    get.onerror = () => reject(get.error);
+  };
+})`);
+async function scene(page, id) {
   await new Promise((r) => setTimeout(r, 500));
-  return JSON.parse(await page.eval('localStorage.getItem("sketch.current")'));
+  return JSON.parse(await stored(page, id));
 }
 
 // From drawing coordinates to the screen: an empty canvas at 100%, with 0,0 in the center.
@@ -389,7 +399,7 @@ test('arrowheads, copy as PNG, Ctrl+S and opening a file as a new drawing', { sk
     assert.equal(s.elements.length, 0, 'the file is open');
     const idx = JSON.parse(await page.eval('localStorage.getItem("sketch.drawings")'));
     assert.deepEqual(idx.list.map((d) => d.name), ['other', 'Drawing 1']);
-    const kept = JSON.parse(await page.eval(`localStorage.getItem("sketch.drawing.${idx.list[1].id}")`));
+    const kept = await scene(page, idx.list[1].id);
     assert.equal(kept.elements.length, 1, 'the drawing that was open is still there');
     assert.deepEqual(page.errors, []);
   } finally {

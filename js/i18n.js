@@ -44,7 +44,7 @@ const ES = {
   'That file is not a sketch or Excalidraw drawing.': 'Ese archivo no es un dibujo de bsketch ni de Excalidraw.',
   'Opened "{name}": {n} elements.': 'Abierto «{name}»: {n} elementos.',
   'Could not keep another drawing in this browser (its storage is full): delete some first.': 'No caben más dibujos en este navegador (su almacenamiento está lleno): borra alguno antes.',
-  'Name of this drawing:': 'Nombre de este dibujo:',
+  'Name of this drawing:': 'Nombre de este dibujo:', Recovered: 'Recuperado',
   'Delete "{name}" from this browser? It can\'t be undone (Save it first if you want to keep a copy).': '¿Borrar «{name}» de este navegador? No se puede deshacer (guárdalo antes si quieres una copia).',
   'Downloaded. You can open it again with "Open…".': 'Descargado. Puedes volver a abrirlo con «Abrir…».',
   'Nothing is selected.': 'No hay nada seleccionado.', 'The drawing is empty.': 'El dibujo está vacío.',

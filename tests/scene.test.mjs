@@ -4,6 +4,7 @@ import * as E from '../js/scene.js';
 import { toSvgString, pngScale, PNG_MAX_SIDE, PNG_MAX_AREA } from '../js/render.js';
 import { loadPrefs, savePrefs, cleanPrefs, BACKGROUNDS, PREFS_KEY } from '../js/prefs.js';
 import * as D from '../js/drawings.js';
+import * as S from '../js/store.js';
 import { pickLang, translator, fill } from '../js/i18n.js';
 import { polylinePath, ellipsePath, toSvgD, hachurePath, MAX_HACHURE_LINES } from '../js/stroke.js';
 
@@ -431,34 +432,84 @@ test('arrow routes: elbows and curves go through the right points, are stored on
   assert.ok(E.drawOps(arrow('elbow')).length === 2 && toSvgString({ ...E.emptyScene(), elements: [arrow('curve')] }).includes('<path'));
 });
 
-test('drawings in the browser: create, switch, rename and delete keep every drawing in its place', () => {
+test('drawings in the browser: create, switch, rename and delete keep every drawing in its place', async () => {
   const mem = new Map();
   const st = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
+  const store = S.memoryStore();
   const scene = (n) => E.serializeScene({ ...E.emptyScene(), elements: Array.from({ length: n }, () => ({ ...E.createElement('rectangle', 0, 0), w: 10, h: 10 })) });
+  const count = async (id) => JSON.parse(await store.get(id)).elements.length;
   mem.set(D.CURRENT_KEY, scene(2));
   const idx = D.loadIndex(st);
   assert.equal(idx.list.length, 1, 'the drawing open before becomes the first');
   const first = idx.active;
-  const second = D.createDrawing(st, idx, 'Plan B');
+  await D.migrate(st, store, idx);
+  assert.equal(await count(first), 2, 'the old sketch.current moves into the store');
+  assert.equal(mem.get(D.CURRENT_KEY), undefined, 'and leaves localStorage');
+  const second = await D.createDrawing(st, store, idx, 'Plan B');
   assert.equal(idx.active, second);
-  assert.equal(JSON.parse(mem.get(D.CURRENT_KEY)).elements.length, 0, 'the new one opens empty');
-  assert.equal(JSON.parse(mem.get(D.itemKey(first))).elements.length, 2, 'the first is kept under its own key');
-  mem.set(D.CURRENT_KEY, scene(1));
+  assert.equal(await count(second), 0, 'the new one opens empty');
+  assert.equal(await count(first), 2, 'the first is kept');
+  await store.set(second, scene(1));
   assert.ok(D.openDrawing(st, idx, first));
-  assert.equal(JSON.parse(mem.get(D.CURRENT_KEY)).elements.length, 2);
-  assert.equal(JSON.parse(mem.get(D.itemKey(second))).elements.length, 1, 'switching keeps the other one’s changes');
-  assert.equal(mem.get(D.itemKey(first)), undefined, 'the open one lives only in sketch.current');
+  assert.equal(await count(D.activeOf(idx).id), 2);
   D.renameDrawing(st, idx, first, '  Roadmap  ');
   assert.equal(D.activeOf(idx).name, 'Roadmap');
-  D.deleteDrawing(st, idx, first);
+  await D.deleteDrawing(st, store, idx, first);
   assert.deepEqual(idx.list.map((d) => d.name), ['Plan B']);
-  assert.equal(JSON.parse(mem.get(D.CURRENT_KEY)).elements.length, 1, 'deleting the open one opens the next');
-  D.deleteDrawing(st, idx, idx.active);
+  assert.equal(await store.get(first), null, 'its scene is gone');
+  assert.equal(await count(idx.active), 1, 'deleting the open one opens the next');
+  await D.deleteDrawing(st, store, idx, idx.active);
   assert.equal(idx.list.length, 1, 'deleting the last leaves a new empty one');
+  assert.equal(await count(idx.active), 0);
   assert.deepEqual(D.loadIndex(st), idx, 'the index is saved');
   mem.set(D.INDEX_KEY, JSON.stringify({ active: '../x', list: [{ id: '../x', name: '<b>' }] }));
   assert.notEqual(D.loadIndex(st).active, '../x', 'a broken or hostile index starts again');
   assert.equal(D.cleanIndex({ active: 'abcd1', list: [{ id: 'abcd1', name: 'x'.repeat(500) }] }).list[0].name.length, 80);
+});
+
+test('drawings: a broken index keeps its list, orphaned scenes come back, and another tab\'s list is followed', async () => {
+  const mem = new Map();
+  const st = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
+  assert.equal(D.cleanIndex({ active: 'nope!', list: [{ id: 'aaaa1', name: 'A' }, { id: 'bbbb2', name: 'B' }] }).active, 'aaaa1', 'an unknown open drawing opens the first');
+  const store = S.memoryStore();
+  const idx = { active: 'aaaa1', list: [{ id: 'aaaa1', name: 'A', updated: 0 }] };
+  await store.set('aaaa1', '{}');
+  await store.set('cccc3', '{}');
+  await store.set('../bad', '{}');
+  assert.equal(await D.recover(st, store, idx), 1);
+  assert.deepEqual(idx.list.map((d) => d.id), ['aaaa1', 'cccc3']);
+  // Another tab deleted A (open here) and added D: this tab takes the new list and keeps A.
+  mem.set(D.INDEX_KEY, JSON.stringify({ active: 'dddd4', list: [{ id: 'dddd4', name: 'D' }, { id: 'cccc3', name: 'C' }] }));
+  assert.ok(D.refreshIndex(st, idx));
+  assert.equal(idx.active, 'aaaa1');
+  assert.deepEqual(idx.list.map((d) => d.id), ['aaaa1', 'dddd4', 'cccc3']);
+  const many = { active: 'aaaa1', list: Array.from({ length: 500 }, (_, i) => ({ id: `x${String(i).padStart(4, '0')}`, name: 'n' })) };
+  many.active = many.list[0].id;
+  await assert.rejects(D.createDrawing(st, store, many, 'one too many'), /too_many/);
+});
+
+test('drawings kept by older versions in localStorage move into IndexedDB; a failing store keeps them', async () => {
+  const mem = new Map();
+  const st = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
+  const one = E.serializeScene({ ...E.emptyScene(), elements: [{ ...E.createElement('ellipse', 0, 0), w: 5, h: 5 }] });
+  mem.set(D.INDEX_KEY, JSON.stringify({ active: 'aaaa1', list: [{ id: 'aaaa1', name: 'A' }, { id: 'bbbb2', name: 'B' }] }));
+  mem.set(D.CURRENT_KEY, one);
+  mem.set(S.itemKey('bbbb2'), one);
+  const idx = D.loadIndex(st);
+  const broken = { ...S.memoryStore(), kind: 'indexeddb', set: async () => { throw new Error('quota'); } };
+  await assert.rejects(D.migrate(st, broken, idx));
+  assert.equal(mem.get(D.CURRENT_KEY), one, 'nothing is removed when the store fails');
+  const store = { ...S.memoryStore(), kind: 'indexeddb' };
+  await D.migrate(st, store, idx);
+  assert.equal(await store.get('aaaa1'), one);
+  assert.equal(await store.get('bbbb2'), one);
+  assert.deepEqual([...mem.keys()], [D.INDEX_KEY], 'only the index is left in localStorage');
+  // Without IndexedDB, the scenes stay in localStorage under their own keys.
+  const web = S.webStore(st);
+  await web.set('cccc3', one);
+  assert.equal(mem.get(S.itemKey('cccc3')), one);
+  assert.equal((await S.openSceneStore(null, st)).kind, 'localstorage');
+  assert.equal((await S.openSceneStore(null, null)).kind, 'memory');
 });
 
 test('languages: the chosen one, else the browser\'s, else English; untranslated text stays English', () => {
