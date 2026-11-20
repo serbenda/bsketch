@@ -12,7 +12,7 @@
 | S3 | Release | Site on GitHub Pages; tested by the owner on Chrome, Firefox, Safari, a phone, macOS and Windows; no High risks open; the repo on the template's guardrails | ⏳ |
 | S4 | 1.2.0: what only bsketch does | Text to diagram offline, quick flowcharts, animated arrows, Excalidraw export, lock, search, styles; released | ✅ |
 | S5 | 1.3.0: frames you can present | Frame clipping, presentation mode with a laser, arrows curved by hand; released | ✅ |
-| S6 | 1.4.0: everywhere it's used | Snowlog on the 1.3 engine with library and templates; the owner's device checklist green (or fixed); three more languages | ⬜ |
+| S6 | 1.4.0: everywhere it's used | Snowlog on the 1.3 engine with library and templates; the owner's device checklist green (or fixed); three more languages | ⏳ |
 | S7 | 1.5.0: presenting and sharing | Speaker notes and timer; PDF with a frame per page; elbow connectors that go around shapes | ⬜ |
 | S8 | 2.0.0: final | Signed apps; full security, accessibility and performance audits with no open findings; help inside the app; the `.sketch` format frozen with a compatibility promise | ⬜ |
 
@@ -60,10 +60,10 @@ would break that.
 
 | Phase | What | Who | Status |
 |---|---|---|---|
-| P17 | Snowlog on the 1.3 engine (frame clipping, presentation, bent arrows); its e2e driver starts Chrome like bsketch's | Agent | ⬜ |
-| P18 | Library and templates in Snowlog, kept encrypted in the vault like any note | Agent | ⬜ |
+| P17 | [Snowlog on the 1.3 engine (frame clipping, presentation, bent arrows); its e2e driver starts Chrome like bsketch's](phases/P17-snowlog-engine-1-3.md) | Agent | ✅ |
+| P18 | [Library and templates in Snowlog, kept encrypted in the vault like any note](phases/P18-snowlog-library-templates.md) | Agent | ✅ |
 | P19 | The owner's checklist (P02) on Safari, Firefox, a real phone and the three desktop apps; every ❌ fixed in a 1.3.x | Owner, then agent | ⬜ |
-| P20 | Catalan, French and Portuguese (the translation system is ready: strings and a test that nothing is left in English) | Agent | ⬜ |
+| P20 | [Catalan, French and Portuguese (the translation system is ready: strings and a test that nothing is left in English)](phases/P20-languages.md) | Agent | ✅ |
 
 ## S7 — 1.5.0: presenting and sharing
 

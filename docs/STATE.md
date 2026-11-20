@@ -13,9 +13,13 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- 1.3.0 on `main`, waiting for the owner's release. The road to 2.0 (final) is in the [ROADMAP](ROADMAP.md): S6 (1.4), S7 (1.5), S8 (2.0).
+- Version 1.4.0 prepared (PR #27); the owner releases it with `bsketch-release.sh 1.4.0`. P19 (the owner's device checklist) goes on after it: what it finds becomes 1.4.x.
 
 ## Recently done
+- [P20](phases/P20-languages.md): Catalan, French and Portuguese.
+- [P18](phases/P18-snowlog-library-templates.md): library and templates in Snowlog.
+- **v1.3.0 released** (2026-11-20), tag on the built commit `fe1613f`, with signed provenance.
+- [P17](phases/P17-snowlog-engine-1-3.md): Snowlog on the 1.3 engine.
 - [P16](phases/P16-bend-arrows.md): curve an arrow by hand.
 - [P15](phases/P15-presentation.md): presentation mode with a laser pointer.
 - [P14](phases/P14-frame-clipping.md): frames clip what lies on them.
@@ -54,10 +58,9 @@ Last updated: 2026-11-20
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. Owner: `bsketch-release.sh 1.3.0`.
-2. S6 ([ROADMAP](ROADMAP.md)): P17 Snowlog on the 1.3 engine, P18 library and templates in Snowlog, P19 the owner's
-   device checklist, P20 three more languages.
-3. Then S7 (1.5: speaker notes, PDF, smart connectors) and S8 (2.0: signed apps, audits, help, format freeze).
+1. Owner: merge PR #27 (and serbenda/snowlog#9), then `bsketch-release.sh 1.4.0`.
+2. P19 (owner first): the device checklist on Safari, Firefox, a real phone and the desktop apps; fixes in 1.4.x.
+3. Then S7 (1.5: speaker notes, PDF, smart connectors) and S8 (2.0) ([ROADMAP](ROADMAP.md)).
 
 ## Blocked / awaiting decision
 - Nothing.

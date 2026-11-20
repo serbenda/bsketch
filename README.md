@@ -67,7 +67,7 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 - **Appearance:** light, dark or the system's, whatever the system theme is.
 - **Canvas background:** six light colours, saved with the drawing.
 - **Grid:** shown on screen only; new shapes, moves and resizes snap to it, and rotation goes in 15° steps.
-- **Language:** English or Spanish, chosen in the menu or taken from the browser.
+- **Language:** English, Spanish, Catalan, French or Portuguese, chosen in the menu or taken from the browser.
 - Embedded in [Snowlog](https://github.com/serbenda/snowlog), where drawings are stored end-to-end encrypted and
   shown inside notes.
 

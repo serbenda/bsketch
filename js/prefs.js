@@ -6,7 +6,7 @@
 
 export const PREFS_KEY = 'sketch.prefs';
 export const APPEARANCES = ['system', 'light', 'dark'];
-export const LANG_CHOICES = ['auto', 'en', 'es'];
+export const LANG_CHOICES = ['auto', 'en', 'es', 'ca', 'fr', 'pt'];
 export const DEFAULT_PREFS = Object.freeze({ appearance: 'system', grid: false, lang: 'auto' });
 
 // Canvas colours offered in the menu (light ones: in the dark appearance the canvas is shown inverted).

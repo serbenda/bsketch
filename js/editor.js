@@ -146,7 +146,12 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     if (color !== 'transparent') b.style.backgroundColor = color;
     return b;
   };
-  const btn = (name, label, onclick) => ui('button', { class: 'sk-btn', type: 'button', title: label, 'aria-label': label.replace(/ \(.*\)$/, ''), onclick }, icon(name));
+  // An icon button: its title shows the shortcut; its name for screen readers doesn't. Both translated (the name is
+  // the translated title without its "(shortcut)", so it needs no translation of its own).
+  const btn = (name, label, onclick) => {
+    const title = tr(label);
+    return el('button', { class: 'sk-btn', type: 'button', title, 'aria-label': title.replace(/ \(.*\)$/, ''), onclick }, icon(name));
+  };
   const strokeColor = ui('input', { type: 'color', class: 'sk-color', 'aria-label': 'Other stroke color', value: style.stroke });
   const fillColor = ui('input', { type: 'color', class: 'sk-color', 'aria-label': 'Other fill color', value: '#a5d8ff' });
   const seg = (name, options, onPick) => ui('div', { class: 'sk-seg', role: 'group', 'aria-label': name },

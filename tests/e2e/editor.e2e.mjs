@@ -1104,3 +1104,31 @@ test('bend an arrow by dragging its middle; back near the line it is straight ag
     await page.close();
   }
 });
+
+for (const [lang, newDrawing, style] of [['ca', 'Dibuix nou', 'Estil'], ['fr', 'Nouveau dessin', 'Style'], ['pt', 'Novo desenho', 'Estilo']]) {
+  test(`the interface in ${lang}, chosen in the menu`, { skip }, async () => {
+    const page = await browser.newPage();
+    try {
+      await open(page);
+      await page.click('#menu-button');
+      await page.click(`input[name="lang"][value="${lang}"]`);
+      await page.waitFor(`document.documentElement.lang === "${lang}" && !!document.querySelector(".sk-canvas")`);
+      assert.equal(await page.eval('document.getElementById("new").textContent.trim()'), newDrawing);
+      assert.equal(await page.eval('document.querySelector(".sk-panel").getAttribute("aria-label")'), style);
+      // No English left (words that are the same in these languages, like "Rectangle" or "Menu", aside).
+      // (Drawing names are the user's, not the interface's.)
+      const english = await page.eval(`[...document.querySelectorAll('button, label, legend, h2, h3, [aria-label], [title]')].filter((n) => !n.closest('#drawings'))
+        .flatMap((n) => [n.getAttribute('aria-label'), n.getAttribute('title'), n.children.length ? '' : n.textContent])
+        .map((x) => (x || '').trim()).filter((x) => /\\b(the|and|Select|Drawing|Undo|Save|Open|Export|Grid|Fill|Stroke)\\b/.test(x))`);
+      assert.deepEqual(english, [], `still in English: ${english.join(' | ')}`);
+      // A template comes in the same language.
+      await page.click('#menu-button');
+      await page.waitFor('document.getElementById("menu").open');
+      const names = await page.eval('[...document.querySelectorAll("#templates button")].map((b) => b.textContent).join("|")');
+      assert.ok(!/Flowchart|Org chart|Mind map/.test(names), `templates translated: ${names}`);
+      assert.deepEqual(page.errors, []);
+    } finally {
+      await page.close();
+    }
+  });
+}

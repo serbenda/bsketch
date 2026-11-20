@@ -16,6 +16,54 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — Version 1.4.0
+- **Phase / issue:** S6 (P17, P18, P20; P19 continues after the release)
+- **What:** version 1.4.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's
+  changes become `[1.4.0] - 2026-11-21`, with a line on Snowlog; STATE.
+- **Why:** the owner chose to release what S6 has now and leave P19's findings for 1.4.x.
+- **Rejected:** waiting for P19 (it depends on the owner's devices and time).
+- **Files:** package.json, desktop/src-tauri/tauri.conf.json, desktop/src-tauri/Cargo.toml,
+  desktop/src-tauri/Cargo.lock, CHANGELOG.md, docs/STATE.md
+- **Commits:** this one.
+- **Tested:** `npm test` passes.
+- **Pending:** the owner merges PR #27 and releases.
+
+## 2026-11-21 — P20: Catalan, French and Portuguese
+- **Phase / issue:** P20
+- **What:** `CA`, `FR` and `PT` dictionaries (194 strings each, every placeholder kept) in `js/i18n.js`; `LANGS` and
+  the prefs' `LANG_CHOICES`; the menu's Language radios (Català, Français, Português); the templates in each
+  language; icon buttons' accessible names translated (the translated title without its shortcut); service worker
+  v20; THREAT_MODEL's pref values.
+- **Why:** S6's last agent phase.
+- **Rejected:** Brazilian Portuguese as its own choice (one Portuguese for now; Portugal's, closest to the owner).
+- **Files:** js/i18n.js, js/prefs.js, js/templates.js, js/editor.js, index.html, sw.js, tests/, README.md,
+  CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 65 pass; `npm run test:e2e` 28 pass (one walkthrough per language); the portable build.
+- **Pending:** —
+
+## 2026-11-20 — P18: library and templates in Snowlog
+- **Phase / issue:** P18
+- **What:** the phase file, ROADMAP and STATE; the work is serbenda/snowlog#9 (the library encrypted in the vault,
+  templates in the command palette).
+- **Why:** S6's second phase.
+- **Rejected:** see Snowlog's worklog.
+- **Files:** docs/phases/P18-snowlog-library-templates.md, docs/phases/README.md, docs/ROADMAP.md, docs/STATE.md
+- **Commits:** this one.
+- **Tested:** see Snowlog's PR.
+- **Pending:** —
+
+## 2026-11-20 — P17: Snowlog on the 1.3 engine
+- **Phase / issue:** P17
+- **What:** the phase file, ROADMAP (S6 in progress) and STATE; the work itself is serbenda/snowlog#9 (engine from
+  `v1.3.0`, Chrome start, and a fix to Snowlog's sync: versions are date + a random `rev`).
+- **Why:** S6's first phase.
+- **Rejected:** copying from `development`'s tip (the copy should name the released commit).
+- **Files:** docs/phases/P17-snowlog-engine-1-3.md, docs/phases/README.md, docs/ROADMAP.md, docs/STATE.md
+- **Commits:** this one.
+- **Tested:** see Snowlog's PR.
+- **Pending:** —
+
 ## 2026-11-20 — The road to 2.0 (final)
 - **Phase / issue:** —
 - **What:** ROADMAP: S4 and S5 in the stage table; new stages S6 (1.4: Snowlog, the owner's devices, languages), S7
