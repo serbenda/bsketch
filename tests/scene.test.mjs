@@ -607,3 +607,20 @@ test('library: our own and Excalidraw\'s libraries are read and checked; saving 
   assert.deepEqual(again.map((i) => [i.name, i.elements.length, Object.keys(i.files || {})]), [['Box', 1, []], ['Pic', 1, ['f']]]);
   assert.equal(E.parseLibrary(JSON.stringify({ type: 'bsketchlib', items: Array.from({ length: 300 }, () => ({ elements: [rect] })) })).length, E.MAX_LIBRARY_ITEMS);
 });
+
+test('animated arrows: only arrows and lines keep it, the line flows and the SVG animates it', () => {
+  const raw = { id: 'a', type: 'arrow', x: 0, y: 0, points: [{ x: 0, y: 0 }, { x: 100, y: 0 }] };
+  assert.equal(E.cleanElement({ ...raw, animated: true }).animated, true);
+  assert.equal(E.cleanElement({ ...raw, animated: 'yes' }).animated, undefined, 'only true');
+  assert.equal(E.cleanElement({ ...raw, type: 'line', animated: true }).animated, true);
+  assert.equal(E.cleanElement({ id: 'r', type: 'rectangle', x: 0, y: 0, w: 5, h: 5, animated: true }).animated, undefined);
+  assert.equal(E.createElement('rectangle', 0, 0, { animated: true }).animated, undefined);
+  const el = E.cleanElement({ ...raw, animated: true });
+  const ops = E.drawOps(el);
+  assert.ok(ops[0].flow && ops[0].dashed, 'the line flows');
+  assert.ok(ops.slice(1).every((o) => !o.flow), 'its head does not');
+  const svg = toSvgString({ ...E.emptyScene(), elements: [el] });
+  assert.equal((svg.match(/<animate /g) || []).length, 1);
+  assert.match(svg, /<animate attributeName="stroke-dashoffset" from="14" to="0" dur="0.7s" repeatCount="indefinite"\/><\/path>/);
+  assert.ok(!toSvgString({ ...E.emptyScene(), elements: [E.cleanElement(raw)] }).includes('<animate'));
+});

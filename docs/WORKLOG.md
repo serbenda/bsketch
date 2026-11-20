@@ -16,6 +16,21 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — P11: animated flow arrows
+- **Phase / issue:** P11
+- **What:** `animated: true` on arrows and lines (validated, stored only when on); their line's draw op is marked
+  `flow` and painted dashed with a moving offset; both SVG exports add an `<animate>` on `stroke-dashoffset`; a Flow
+  choice in the style panel; a repaint timer (~30 fps) only while something animated is visible, none with
+  `prefers-reduced-motion`; Spanish strings; service worker v14.
+- **Why:** S4's third phase (an idea from Excaliflow): data-flow and architecture diagrams that read at a glance.
+- **Rejected:** moving dots or particles (more drawing per frame, and no simple SVG equivalent); CSS animations in
+  the SVG (a `<style>` element; SMIL `<animate>` needs none).
+- **Files:** js/scene.js, js/render.js, js/editor.js, js/i18n.js, sw.js, tests/scene.test.mjs,
+  tests/e2e/editor.e2e.mjs, README.md, CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 60 pass; `npm run test:e2e` 20 pass; screenshots.
+- **Pending:** —
+
 ## 2026-11-20 — CI on PR #22: the HTML check and two CodeQL findings
 - **Phase / issue:** P09
 - **What:** the text-to-diagram dialog writes `A -&gt; B` (htmlhint refused a raw `>`); picture files read from a

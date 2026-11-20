@@ -13,9 +13,11 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- [P09](phases/P09-text-to-diagram.md) and [P10](phases/P10-quick-diagrams.md) done on `development`, in PR #22. Next: P11 (animated arrows).
+- [P11](phases/P11-animated-arrows.md) done on `development`, its PR to `main` open. Next: P12 (export to `.excalidraw`, Snowlog updated).
 
 ## Recently done
+- [P11](phases/P11-animated-arrows.md): animated flow arrows, on screen and in the exported SVG.
+- [P09](phases/P09-text-to-diagram.md) and [P10](phases/P10-quick-diagrams.md) merged (PR #22).
 - [P10](phases/P10-quick-diagrams.md): Ctrl+arrow keys chain the next shape; five templates.
 - [P09](phases/P09-text-to-diagram.md): text to diagram (list, Mermaid, arrows), offline; copy and paste between tabs.
 - **v1.1.0 released** (2026-11-20) with the three executables and their signed provenance; proprietary license
@@ -45,7 +47,7 @@ Last updated: 2026-11-20
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. P11: animated flow arrows ([ROADMAP](ROADMAP.md), S4).
+1. P12: export to `.excalidraw`; Snowlog updated with the new engine ([ROADMAP](ROADMAP.md), S4).
 2. Owner: P02's checklist on Safari, Firefox, a real phone and the desktop apps; anything failing becomes a 1.1.x.
 3. Optional (owner): the OpenSSF best-practices badge (bestpractices.dev); a lawyer's look at the license.
 

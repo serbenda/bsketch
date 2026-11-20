@@ -29,7 +29,7 @@ const ES = {
   'Other fill color': 'Otro color de relleno', 'Fill style': 'Tipo de relleno', Hachure: 'Rayado', Solid: 'Sólido',
   Width: 'Grosor', 'Stroke width': 'Grosor del trazo', Thin: 'Fino', Medium: 'Medio', Bold: 'Grueso',
   'Line style': 'Tipo de línea', Dashed: 'Discontinua', Arrowheads: 'Puntas de flecha', End: 'Final', Start: 'Inicio',
-  Both: 'Ambas', None: 'Ninguna', Route: 'Recorrido', Straight: 'Recto', Elbow: 'Con codo', Curve: 'Curva',
+  Both: 'Ambas', None: 'Ninguna', Route: 'Recorrido', Flow: 'Flujo', Still: 'Quieto', Animated: 'Animado', Straight: 'Recto', Elbow: 'Con codo', Curve: 'Curva',
   Sloppiness: 'Trazo a mano', 'Hand-drawn': 'A mano', Sketchy: 'Boceto', Font: 'Letra', Hand: 'A mano',
   Normal: 'Normal', Code: 'Código', 'Text size': 'Tamaño del texto', Align: 'Alinear', 'Align left': 'Alinear a la izquierda',
   'Center horizontally': 'Centrar en horizontal', 'Align right': 'Alinear a la derecha', 'Align top': 'Alinear arriba',

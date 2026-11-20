@@ -10,6 +10,7 @@
 //   startId/endId (arrow) the shapes each end is attached to
 //   fileId        (image) its picture, kept once per scene in `scene.files` as a data: URL
 //   name          (frame) the frame's title, shown above it
+//   animated      (arrow, line) true: its dashes move along it, showing a flow
 //
 // A scene is { type, version, background, elements, files? }; `files` maps a file id to an image's data: URL.
 
@@ -137,6 +138,7 @@ export function createElement(type, x, y, style = {}) {
   const el = { id: newId(), type, x, y, w: 0, h: 0, seed: newSeed(), ...DEFAULT_STYLE, ...style };
   if (type !== 'arrow' || el.heads === 'end' || !HEADS.includes(el.heads)) delete el.heads;
   if ((type !== 'arrow' && type !== 'line') || el.route === 'straight' || !ROUTES.includes(el.route)) delete el.route;
+  if ((type !== 'arrow' && type !== 'line') || el.animated !== true) delete el.animated;
   if (type !== 'text' || el.font === 'hand' || !Object.hasOwn(FONTS, String(el.font))) delete el.font;
   if (type === 'draw' || type === 'line' || type === 'arrow') el.points = [{ x: 0, y: 0 }];
   if (type === 'text') el.text = '';
@@ -737,6 +739,7 @@ export function cleanElement(raw) {
   }
   if (el.type === 'arrow' && HEADS.includes(raw.heads) && raw.heads !== 'end') el.heads = raw.heads;
   if ((el.type === 'arrow' || el.type === 'line') && ROUTES.includes(raw.route) && raw.route !== 'straight' && el.points.length === 2) el.route = raw.route;
+  if ((el.type === 'arrow' || el.type === 'line') && raw.animated === true) el.animated = true;
   if (ref(raw.group)) el.group = ref(raw.group);
   return el;
 }
@@ -863,7 +866,8 @@ export function drawOps(el) {
   } else if (el.type === 'line' || el.type === 'arrow') {
     const pts = routePoints(el);
     // A curve is drawn smooth (the hand-drawn wobble is for straight strokes); straight and elbow lines wobble.
-    ops.push({ ...base, path: el.route === 'curve' ? freehandPath(pts) : polylinePath(pts, opts) });
+    // An animated line is dashed and its dashes move (`flow`); its arrowheads stay solid.
+    ops.push({ ...base, ...(el.animated ? { flow: true, dashed: true } : {}), path: el.route === 'curve' ? freehandPath(pts) : polylinePath(pts, opts) });
     if (el.type === 'arrow' && pts.length > 1) {
       const heads = el.heads || 'end';
       const size = 10 + el.width * 3;

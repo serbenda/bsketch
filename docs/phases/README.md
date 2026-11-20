@@ -19,3 +19,4 @@ Each block of work has a phase file `PNN-short-title.md` created with `/new-phas
 | [P08](P08-like-excalidraw.md) | S3 | Quality, pictures, frames and a library | ✅ |
 | [P09](P09-text-to-diagram.md) | S4 | Text to diagram, offline and without AI | ✅ |
 | [P10](P10-quick-diagrams.md) | S4 | Quick diagrams: chain the next shape, templates | ✅ |
+| [P11](P11-animated-arrows.md) | S4 | Animated flow arrows | ✅ |

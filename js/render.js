@@ -150,6 +150,8 @@ export function paintElement(ctx, el, files, imageFilter = '') {
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.setLineDash(op.dashed ? [op.width * 4, op.width * 3] : []);
+      // A flow moves its dashes from start to end: one pattern length per FLOW_PERIOD.
+      if (op.flow) ctx.lineDashOffset = -((flowTime % FLOW_PERIOD) / FLOW_PERIOD) * op.width * 7;
       if (op.p2d) ctx.stroke(op.p2d);
       else ctx.stroke();
     }
@@ -158,8 +160,14 @@ export function paintElement(ctx, el, files, imageFilter = '') {
   ctx.restore();
 }
 
+// Animated lines: the time their dashes are painted at (ms), set by paintScene; 0 paints them still.
+export const FLOW_PERIOD = 700;
+let flowTime = 0;
+export const hasFlow = (elements) => elements.some((e) => e.animated === true && (e.type === 'arrow' || e.type === 'line'));
+
 // view: { x, y, zoom } (offset in screen pixels, and scale).
-export function paintScene(ctx, scene, { view = { x: 0, y: 0, zoom: 1 }, width, height, background = true, imageFilter = '' } = {}) {
+export function paintScene(ctx, scene, { view = { x: 0, y: 0, zoom: 1 }, width, height, background = true, imageFilter = '', time = 0 } = {}) {
+  flowTime = Number.isFinite(time) ? time : 0;
   ctx.save();
   if (background) {
     ctx.fillStyle = scene.background || '#ffffff';
@@ -225,7 +233,9 @@ export function toSvgString(scene, { padding = 20, background = true, box = null
       const style = op.fill
         ? `fill="${esc(op.fill)}" stroke="none"`
         : `fill="none" stroke="${esc(op.stroke)}" stroke-width="${n(op.width, 2)}" stroke-linecap="round" stroke-linejoin="round"${op.dashed ? ` stroke-dasharray="${n(op.width, 2) * 4} ${n(op.width, 2) * 3}"` : ''}`;
-      parts.push(`<path d="${toSvgD(op.path)}" ${style} opacity="${n(op.opacity, 1)}"${clip}/>`);
+      // A flow: the dashes move with SVG's own animation (no script).
+      const flow = op.flow ? `<animate attributeName="stroke-dashoffset" from="${n(op.width, 2) * 7}" to="0" dur="${FLOW_PERIOD / 1000}s" repeatCount="indefinite"/>` : '';
+      parts.push(flow ? `<path d="${toSvgD(op.path)}" ${style} opacity="${n(op.opacity, 1)}"${clip}>${flow}</path>` : `<path d="${toSvgD(op.path)}" ${style} opacity="${n(op.opacity, 1)}"${clip}/>`);
     }
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${n(W)}" height="${n(H)}" viewBox="${n(b.x - padding)} ${n(b.y - padding)} ${n(W)} ${n(H)}">`
@@ -289,7 +299,9 @@ export function toSvgElement(doc, scene, { padding = 20, maxWidth = null, backgr
         svg.append(cp);
         attrs['clip-path'] = `url(#${prefix}c${clipN})`;
       }
-      svg.append(mk('path', attrs));
+      const path = mk('path', attrs);
+      if (op.flow) path.append(mk('animate', { attributeName: 'stroke-dashoffset', from: op.width * 7, to: 0, dur: `${FLOW_PERIOD / 1000}s`, repeatCount: 'indefinite' }));
+      svg.append(path);
     }
   }
   return svg;

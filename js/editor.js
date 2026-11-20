@@ -10,7 +10,7 @@
 // save(text): Promise }. Without it the editor has no library. `onNotice(text)` shows a short message.
 
 import * as E from './scene.js';
-import { paintScene, measureWithCanvas, fontReady, onImageReady, toSvgElement } from './render.js';
+import { paintScene, measureWithCanvas, fontReady, onImageReady, toSvgElement, hasFlow } from './render.js';
 import { textToElements } from './textdiagram.js';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -161,6 +161,8 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   const headsBlock = ui('div', {}, ui('div', { class: 'sk-label' }, 'Arrowheads'), headsSeg);
   const routeSeg = seg('Route', [['straight', 'Straight'], ['elbow', 'Elbow'], ['curve', 'Curve']], (v) => setStyle({ route: v }));
   const routeBlock = ui('div', {}, ui('div', { class: 'sk-label' }, 'Route'), routeSeg);
+  const flowSeg = seg('Flow', [[false, 'Still'], [true, 'Animated']], (v) => setStyle({ animated: v }));
+  const flowBlock = ui('div', {}, ui('div', { class: 'sk-label' }, 'Flow'), flowSeg);
   const panel = ui('div', { class: 'sk-panel', 'aria-label': 'Style' },
     ui('div', { class: 'sk-label' }, 'Stroke'),
     ui('div', { class: 'sk-row', 'data-prop': 'stroke' }, ...STROKES.map((c) => swatch(c, (v) => setStyle({ stroke: v }), `${tr('Stroke')} ${c}`)), strokeColor),
@@ -173,6 +175,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     seg('Line style', [[false, 'Solid'], [true, 'Dashed']], (v) => setStyle({ dashed: v })),
     headsBlock,
     routeBlock,
+    flowBlock,
     ui('div', { class: 'sk-label' }, 'Sloppiness'),
     seg('Sloppiness', [[0, 'Straight'], [1, 'Hand-drawn'], [2, 'Sketchy']], (v) => setStyle({ roughness: v })),
     ui('div', { class: 'sk-label' }, 'Text'),
@@ -345,7 +348,10 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     ctx.fillRect(0, 0, r.width, r.height);
     if (grid) paintGrid(r.width, r.height);
     const inverted = getComputedStyle(canvas).filter.includes('invert');
-    paintScene(ctx, hidden, { view, width: r.width, height: r.height, background: false, imageFilter: inverted ? 'hue-rotate(180deg) invert(100%)' : '' });
+    // Animated lines: paint again ~30 times a second while one is on screen (not for people who ask for less motion).
+    const flowing = !stillMotion.matches && hasFlow(hidden.elements);
+    paintScene(ctx, hidden, { view, width: r.width, height: r.height, background: false, imageFilter: inverted ? 'hue-rotate(180deg) invert(100%)' : '', time: flowing ? performance.now() : 0 });
+    if (flowing && !flowTimer) flowTimer = setTimeout(() => { flowTimer = 0; if (alive) redraw(); }, 33);
     ctx.save();
     ctx.translate(view.x, view.y);
     ctx.scale(view.zoom, view.zoom);
@@ -397,6 +403,8 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     zoomLabel.textContent = `${Math.round(view.zoom * 100)} %`;
   }
   const redraw = () => { if (!raf) raf = requestAnimationFrame(render); };
+  const stillMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  let flowTimer = 0;
 
   // --- History ---
   // commit() keeps the drawing as it is before a change; changed() closes that change. A change that
@@ -475,6 +483,11 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
           const { route, ...rest } = { ...e, ...patch };
           return route === 'straight' ? rest : { ...rest, route };
         }
+        if ('animated' in patch) {
+          if (e.type !== 'arrow' && e.type !== 'line') return e;
+          const { animated, ...rest } = { ...e, ...patch };
+          return animated === true ? { ...rest, animated: true } : rest;
+        }
         if ('font' in patch) {
           if (e.type !== 'text') return e;
           const { font, ...rest } = { ...e, ...patch };
@@ -509,16 +522,18 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       b.setAttribute('aria-pressed', String(cur[prop] === b.dataset.color));
     }
     const segs = panel.querySelectorAll('.sk-seg');
-    const props = ['fillStyle', 'width', 'dashed', 'heads', 'route', 'roughness', 'font', 'fontSize'];
+    const props = ['fillStyle', 'width', 'dashed', 'heads', 'route', 'animated', 'roughness', 'font', 'fontSize'];
     const arrow = s.length ? s.filter((e) => e.type === 'arrow').pop() : null;
     headsBlock.hidden = !(arrow || (!s.length && tool === 'arrow'));
     const heads = (arrow || style).heads || 'end';
     const lineEl = s.length ? s.filter((e) => e.type === 'arrow' || e.type === 'line').pop() : null;
     routeBlock.hidden = !(lineEl || (!s.length && (tool === 'arrow' || tool === 'line')));
     const route = (lineEl || style).route || 'straight';
+    flowBlock.hidden = routeBlock.hidden;
+    const animated = (lineEl || style).animated === true;
     segs.forEach((g, i) => {
       const textEl = s.filter((e) => e.type === 'text').pop();
-      const value = props[i] === 'heads' ? heads : props[i] === 'route' ? route : props[i] === 'font' ? (textEl || style).font || 'hand' : cur[props[i]];
+      const value = props[i] === 'heads' ? heads : props[i] === 'route' ? route : props[i] === 'animated' ? animated : props[i] === 'font' ? (textEl || style).font || 'hand' : cur[props[i]];
       for (const b of g.children) b.setAttribute('aria-pressed', String(String(value) === b.dataset.value));
     });
     const n = s.length ? units().length : 0;
@@ -1642,6 +1657,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       alive = false;
       ro.disconnect();
       offImages();
+      clearTimeout(flowTimer);
       cancelAnimationFrame(raf);
       root.remove();
     },

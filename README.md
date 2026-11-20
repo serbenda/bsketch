@@ -49,6 +49,7 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 - A **library** of pieces to reuse, which also reads Excalidraw libraries.
 - **Text to diagram, without AI:** paste an indented list, a Mermaid flowchart or `A -> B` lines and it is drawn
   for you, in your browser.
+- **Animated arrows** that show what flows, also in the exported SVG.
 - **Quick flowcharts:** Ctrl+arrow keys add the next box, joined by an arrow; templates to start from.
 
 **Editing**

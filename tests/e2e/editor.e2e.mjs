@@ -880,3 +880,38 @@ test('quick diagrams: Ctrl+arrow keys chain the next shape; a template opens as 
     await page.close();
   }
 });
+
+test('animated arrows: chosen in the panel, moving on screen, still with reduced motion', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('a');
+    await page.click('[aria-label="Flow"] button', 'Animated');
+    await page.drag(at(-150, 0), at(150, 0));
+    let s = await scene(page);
+    assert.equal(s.elements[0].animated, true, 'drawn animated');
+    // The canvas changes on its own while it flows.
+    const pixels = () => page.eval('(() => { const c = document.querySelector(".sk-canvas"); return c.toDataURL().length + ":" + c.toDataURL().slice(-200); })()');
+    const a = await pixels();
+    await new Promise((r) => setTimeout(r, 250));
+    assert.notEqual(await pixels(), a, 'the dashes move');
+    // With reduced motion, it stays still.
+    await page.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+    await page.eval('window.dispatchEvent(new Event("resize")); true');
+    await new Promise((r) => setTimeout(r, 200));
+    const b = await pixels();
+    await new Promise((r) => setTimeout(r, 250));
+    assert.equal(await pixels(), b, 'still for reduced motion');
+    // Still: the property goes.
+    await page.press('v');
+    await page.mouseClick(at(0, 0));
+    await page.click('[aria-label="Flow"] button', 'Still');
+    s = await scene(page);
+    assert.equal(s.elements[0].animated, undefined);
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
