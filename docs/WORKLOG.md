@@ -16,6 +16,19 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — Version 1.2.0
+- **Phase / issue:** S4 (P09–P13)
+- **What:** version 1.2.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's
+  changes become `[1.2.0] - 2026-11-20`, with Fixed and Security sections; STATE. The owner's release script is now
+  one for any version (`bsketch-release.sh <version>`, outside the repo).
+- **Why:** S4 is complete.
+- **Rejected:** —
+- **Files:** package.json, desktop/src-tauri/tauri.conf.json, desktop/src-tauri/Cargo.toml,
+  desktop/src-tauri/Cargo.lock, CHANGELOG.md, docs/STATE.md
+- **Commits:** this one.
+- **Tested:** `npm test` passes; the release script parses (`bash -n`) and refuses a version already released.
+- **Pending:** the owner merges and releases.
+
 ## 2026-11-20 — The lock-and-search walkthrough waits for the diagram
 - **Phase / issue:** P13
 - **What:** the e2e walkthrough waits until the text-to-diagram dialog's text box empties (the diagram goes in on

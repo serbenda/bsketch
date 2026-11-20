@@ -13,7 +13,7 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- P11, P12 and P13 done on `development`, in PR #23; Snowlog's engine update in serbenda/snowlog#8. 1.2.0 is complete: next, the `v1.2.0` release.
+- Version 1.2.0 prepared (PR to `main`); the owner releases it with `bsketch-release.sh 1.2.0` (outside the repo).
 
 ## Recently done
 - [P13](phases/P13-lock-search-styles.md): lock, search (Ctrl+F), dotted lines, cross-hatch, round corners.
@@ -49,9 +49,9 @@ Last updated: 2026-11-20
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. The `v1.2.0` release (version bump PR, then the release script with provenance).
-2. Owner: P02's checklist on Safari, Firefox, a real phone and the desktop apps; anything failing becomes a 1.1.x.
-3. Optional (owner): the OpenSSF best-practices badge (bestpractices.dev); a lawyer's look at the license.
+1. Owner: merge the 1.2.0 PR, then `bsketch-release.sh 1.2.0`: tag, executables and their signed provenance.
+2. Owner: merge Snowlog's engine update (serbenda/snowlog#8).
+3. Owner: P02's checklist on Safari, Firefox, a real phone and the desktop apps.
 
 ## Blocked / awaiting decision
 - Nothing.
