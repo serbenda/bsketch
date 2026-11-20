@@ -16,6 +16,19 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — The road to 2.0 (final)
+- **Phase / issue:** —
+- **What:** ROADMAP: S4 and S5 in the stage table; new stages S6 (1.4: Snowlog, the owner's devices, languages), S7
+  (1.5: speaker notes, PDF, smart connectors) and S8 (2.0: signed apps, audits, help in the app, format freeze), with
+  phases P17–P27, who does each, and a checkable exit criterion for 2.0. STATE points to it.
+- **Why:** the owner asked for a roadmap "hasta que quede final".
+- **Rejected:** real-time collaboration and cloud AI (they would break bsketch's promise that nothing leaves the
+  computer); more stages after 2.0 (after it, only fixes and small improvements).
+- **Files:** docs/ROADMAP.md, docs/STATE.md
+- **Commits:** this one.
+- **Tested:** —
+- **Pending:** the owner reviews the plan.
+
 ## 2026-11-20 — Version 1.3.0
 - **Phase / issue:** S5 (P14–P16)
 - **What:** version 1.3.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's

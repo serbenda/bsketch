@@ -10,6 +10,11 @@
 | S1 | Minimal core | Draw, select, move, resize, undo, open `.excalidraw`, save and export PNG/SVG, in the browser with no network | ✅ |
 | S2 | Everyday diagrams | Text inside shapes, attached arrows, rotation, groups, alignment, keyboard use, offline, portable file and desktop builds, with e2e walkthroughs in CI | ✅ |
 | S3 | Release | Site on GitHub Pages; tested by the owner on Chrome, Firefox, Safari, a phone, macOS and Windows; no High risks open; the repo on the template's guardrails | ⏳ |
+| S4 | 1.2.0: what only bsketch does | Text to diagram offline, quick flowcharts, animated arrows, Excalidraw export, lock, search, styles; released | ✅ |
+| S5 | 1.3.0: frames you can present | Frame clipping, presentation mode with a laser, arrows curved by hand; released | ✅ |
+| S6 | 1.4.0: everywhere it's used | Snowlog on the 1.3 engine with library and templates; the owner's device checklist green (or fixed); three more languages | ⬜ |
+| S7 | 1.5.0: presenting and sharing | Speaker notes and timer; PDF with a frame per page; elbow connectors that go around shapes | ⬜ |
+| S8 | 2.0.0: final | Signed apps; full security, accessibility and performance audits with no open findings; help inside the app; the `.sketch` format frozen with a compatibility promise | ⬜ |
 
 Legend: ⬜ not started · ⏳ in progress · ✅ done
 
@@ -50,3 +55,40 @@ would break that.
 | P14 | [Frames clip what they hold (on screen and in exports)](phases/P14-frame-clipping.md) | ✅ |
 | P15 | [Presentation mode: frames one by one, full screen, with a laser pointer](phases/P15-presentation.md) | ✅ |
 | P16 | [Curve an arrow by hand: drag its middle](phases/P16-bend-arrows.md) | ✅ |
+
+## S6 — 1.4.0: everywhere it's used
+
+| Phase | What | Who | Status |
+|---|---|---|---|
+| P17 | Snowlog on the 1.3 engine (frame clipping, presentation, bent arrows); its e2e driver starts Chrome like bsketch's | Agent | ⬜ |
+| P18 | Library and templates in Snowlog, kept encrypted in the vault like any note | Agent | ⬜ |
+| P19 | The owner's checklist (P02) on Safari, Firefox, a real phone and the three desktop apps; every ❌ fixed in a 1.3.x | Owner, then agent | ⬜ |
+| P20 | Catalan, French and Portuguese (the translation system is ready: strings and a test that nothing is left in English) | Agent | ⬜ |
+
+## S7 — 1.5.0: presenting and sharing
+
+| Phase | What | Who | Status |
+|---|---|---|---|
+| P21 | Speaker notes per frame (seen only by the presenter) and a timer in presentation mode | Agent | ⬜ |
+| P22 | PDF export with one frame per page, made in the browser with no library (vector where possible) | Agent | ⬜ |
+| P23 | Smart connectors: elbow arrows that route around the shapes in their way | Agent | ⬜ |
+
+## S8 — 2.0.0: final
+
+"Final" means: nothing important missing for its purpose, nothing known broken, and a promise that what is saved
+today opens tomorrow. After 2.0 only fixes and small improvements (2.0.x, 2.x).
+
+| Phase | What | Who | Status |
+|---|---|---|---|
+| P24 | Signed apps: macOS signed and notarized (Apple Developer Program), Windows signed (a code-signing certificate or Azure Trusted Signing) | Owner (accounts, cost), then agent (workflow) | ⬜ |
+| P25 | Audits before 2.0: a full security audit and a long fuzz campaign; accessibility (WCAG 2.2 AA, keyboard and screen reader); performance with 10,000 elements and big pictures; every finding fixed | Agent, owner reviews | ⬜ |
+| P26 | Help inside the app: a short guide and every shortcut, in each language, offline | Agent | ⬜ |
+| P27 | Freeze: `.sketch` format version 1 documented and promised to open in every later version (tests with saved files from each release); support policy; the `v2.0.0` release | Agent, owner releases | ⬜ |
+
+### Exit criterion for 2.0.0
+- [ ] S6 and S7 done and released.
+- [ ] The owner's checklist green on every browser and device listed in P02.
+- [ ] Apps signed on macOS and Windows (or the owner decides, in a decision record, to ship them unsigned).
+- [ ] No open security, accessibility or performance findings; Dependabot and code scanning with no open alerts.
+- [ ] Files saved by every release since 1.0 open in 2.0 (tested).
+- [ ] Help inside the app in every language.
