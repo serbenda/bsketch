@@ -3,6 +3,8 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioned with [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [1.2.0] - 2026-11-20
 ### Added
 - **Text to diagram, offline and without AI:** an indented list, a Mermaid flowchart (shapes, labels, dashed and bold
   edges, chains, `&` lists, subgraphs as frames) or `A -> B` lines become a laid-out, hand-drawn diagram. From the ☰
@@ -23,6 +25,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
   the interface's language.
 - **Copy and paste between tabs:** a copied selection also goes to the system clipboard, so another tab (or another
   bsketch window) can paste it; what is pasted is checked like a file.
+
+### Fixed
+- Switching, creating, opening or deleting a drawing locks the canvas until the next one is in place, so nothing done
+  in that moment goes to the wrong drawing.
+
+### Security
+- Picture names read from a file can never reach an object's prototype (`__proto__`, `constructor`, `prototype` are
+  refused).
 
 ## [1.1.0] - 2026-11-20
 ### License

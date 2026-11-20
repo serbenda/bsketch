@@ -16,6 +16,32 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — The e2e tests start Chrome reliably on CI
+- **Phase / issue:** — (CI on PR #24, and #21 before)
+- **What:** `tests/e2e/cdp.mjs` starts Chrome with `--disable-dev-shm-usage`, waits up to 45 s, tries three times,
+  and kills Chrome and removes its profile when a try fails.
+- **Why:** on GitHub's runners Chrome sometimes didn't print its DevTools address within 20 s; every walkthrough
+  then failed, and the Chrome left running kept the job alive until it was cancelled at 20 minutes.
+- **Rejected:** only re-running the failed jobs (it came back twice in a row).
+- **Files:** tests/e2e/cdp.mjs
+- **Commits:** this one.
+- **Tested:** `npm run test:e2e` 22 pass; with a "Chrome" that exits at once, `launch` tries three times and rejects
+  without hanging.
+- **Pending:** Snowlog's copy of the same driver could get the same change.
+
+## 2026-11-20 — Version 1.2.0
+- **Phase / issue:** S4 (P09–P13)
+- **What:** version 1.2.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's
+  changes become `[1.2.0] - 2026-11-20`, with Fixed and Security sections; STATE. The owner's release script is now
+  one for any version (`bsketch-release.sh <version>`, outside the repo).
+- **Why:** S4 is complete.
+- **Rejected:** —
+- **Files:** package.json, desktop/src-tauri/tauri.conf.json, desktop/src-tauri/Cargo.toml,
+  desktop/src-tauri/Cargo.lock, CHANGELOG.md, docs/STATE.md
+- **Commits:** this one.
+- **Tested:** `npm test` passes; the release script parses (`bash -n`) and refuses a version already released.
+- **Pending:** the owner merges and releases.
+
 ## 2026-11-20 — The lock-and-search walkthrough waits for the diagram
 - **Phase / issue:** P13
 - **What:** the e2e walkthrough waits until the text-to-diagram dialog's text box empties (the diagram goes in on
