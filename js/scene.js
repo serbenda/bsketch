@@ -828,6 +828,79 @@ export function fromExcalidraw(data) {
   return withFiles({ type: FORMAT, version: VERSION, background: color(data.appState?.viewBackgroundColor, '#ffffff'), elements }, cleanFiles(data.files));
 }
 
+// A scene in the .excalidraw format, to open it in Excalidraw. Hand, Normal and Code become Excalidraw's handwriting,
+// normal and code fonts; elbow and curved routes go as the points they are drawn through; animation has no
+// equivalent and is left out.
+const TO_EXCALIDRAW_FONT = { hand: 1, normal: 2, code: 3 };
+export function toExcalidraw(scene) {
+  const els = scene.elements;
+  const bound = new Map(); // shape id → [{ id, type }] of the texts and arrows attached to it
+  const attach = (shapeId, id, type) => {
+    if (!shapeId) return;
+    if (!bound.has(shapeId)) bound.set(shapeId, []);
+    bound.get(shapeId).push({ id, type });
+  };
+  for (const e of els) {
+    if (e.type === 'text' && e.containerId) attach(e.containerId, e.id, 'text');
+    if (e.type === 'arrow') {
+      attach(e.startId, e.id, 'arrow');
+      if (e.endId !== e.startId) attach(e.endId, e.id, 'arrow');
+    }
+  }
+  const frameOf = new Map();
+  for (const f of els) if (f.type === 'frame') for (const e of inFrame(els, f)) if (!frameOf.has(e.id)) frameOf.set(e.id, f.id);
+  let nonce = 1;
+  const out = els.map((e) => {
+    const b = bounds(e);
+    const base = {
+      id: e.id, type: e.type === 'draw' ? 'freedraw' : e.type, x: e.x, y: e.y, width: b.w, height: b.h,
+      angle: isLinear(e) ? 0 : e.angle || 0, strokeColor: e.stroke, backgroundColor: e.fill,
+      fillStyle: e.fillStyle === 'solid' ? 'solid' : 'hachure', strokeWidth: e.width, strokeStyle: e.dashed ? 'dashed' : 'solid',
+      roughness: e.roughness, opacity: Math.round(e.opacity * 100), seed: e.seed, version: 1, versionNonce: nonce++,
+      isDeleted: false, groupIds: e.group ? [e.group] : [], frameId: frameOf.get(e.id) || null,
+      boundElements: bound.get(e.id) || null, updated: 0, link: null, locked: false, roundness: null,
+    };
+    if (isLinear(e)) {
+      const pts = e.type === 'draw' ? e.points.map((p) => ({ x: e.x + p.x, y: e.y + p.y })) : routePoints(e);
+      const x0 = pts[0].x;
+      const y0 = pts[0].y;
+      Object.assign(base, { x: x0, y: y0, width: b.w, height: b.h, points: pts.map((p) => [p.x - x0, p.y - y0]) });
+      if (e.type === 'draw') Object.assign(base, { pressures: [], simulatePressure: true });
+      else {
+        const heads = e.type === 'arrow' ? e.heads || 'end' : 'none';
+        Object.assign(base, {
+          lastCommittedPoint: null,
+          startBinding: e.startId ? { elementId: e.startId, focus: 0, gap: ARROW_GAP } : null,
+          endBinding: e.endId ? { elementId: e.endId, focus: 0, gap: ARROW_GAP } : null,
+          startArrowhead: heads === 'start' || heads === 'both' ? 'arrow' : null,
+          endArrowhead: heads === 'end' || heads === 'both' ? 'arrow' : null,
+          elbowed: false,
+          ...(e.route === 'curve' ? { roundness: { type: 2 } } : {}),
+        });
+      }
+    } else if (e.type === 'text') {
+      Object.assign(base, {
+        x: b.x, y: b.y, text: e.text, originalText: e.text, fontSize: e.fontSize, fontFamily: TO_EXCALIDRAW_FONT[e.font || 'hand'],
+        textAlign: e.containerId ? 'center' : 'left', verticalAlign: e.containerId ? 'middle' : 'top',
+        containerId: e.containerId || null, lineHeight: LINE_HEIGHT, autoResize: true,
+      });
+    } else if (e.type === 'image') {
+      Object.assign(base, { fileId: e.fileId, status: 'saved', scale: [1, 1], backgroundColor: 'transparent' });
+    } else if (e.type === 'frame') {
+      Object.assign(base, { name: e.name || null, strokeColor: '#bbb', backgroundColor: 'transparent' });
+    }
+    return base;
+  });
+  const files = {};
+  for (const [id, dataURL] of Object.entries(filesFor(els, scene.files))) {
+    files[id] = { id, mimeType: dataURL.slice(5, dataURL.indexOf(';')), dataURL, created: 0 };
+  }
+  return {
+    type: 'excalidraw', version: 2, source: 'https://bendi.dev/bsketch/', elements: out,
+    appState: { viewBackgroundColor: scene.background || '#ffffff', gridSize: null }, files,
+  };
+}
+
 // --- Element → strokes to paint: [{ path, stroke?, fill?, width, dashed, opacity, clip? }] ---
 const turnPath = (path, c, a) => path.map((cmd) => {
   if (cmd.op === 'Z') return cmd;

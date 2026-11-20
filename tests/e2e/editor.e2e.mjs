@@ -915,3 +915,26 @@ test('animated arrows: chosen in the panel, moving on screen, still with reduced
     await page.close();
   }
 });
+
+test('export to .excalidraw from the menu, and open it again', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    await page.click('#menu-button');
+    await page.click('#templates button', 'Flowchart');
+    await page.waitFor('JSON.parse(localStorage.getItem("sketch.drawings")).list.length === 2');
+    await page.eval('window.__blobs = []; URL.createObjectURL = (b) => { window.__blobs.push(b); return "blob:x"; }; HTMLAnchorElement.prototype.click = function () { window.__name = this.download; }');
+    await page.click('#menu-button');
+    await page.click('#excalidraw');
+    const text = await page.eval('window.__blobs[0].text()');
+    const data = JSON.parse(text);
+    assert.equal(data.type, 'excalidraw');
+    assert.equal(await page.eval('window.__name'), 'Flowchart.excalidraw');
+    const arrows = data.elements.filter((e) => e.type === 'arrow');
+    assert.ok(arrows.length >= 6 && arrows.every((a) => a.startBinding && a.endBinding), 'attached arrows');
+    assert.ok(data.elements.some((e) => e.type === 'diamond'));
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});

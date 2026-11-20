@@ -67,6 +67,8 @@ const ES = {
   'Could not keep another drawing in this browser (its storage is full): delete some first.': 'No caben más dibujos en este navegador (su almacenamiento está lleno): borra alguno antes.',
   'Name of this drawing:': 'Nombre de este dibujo:', Recovered: 'Recuperado',
   'Delete "{name}" from this browser? It can\'t be undone (Save it first if you want to keep a copy).': '¿Borrar «{name}» de este navegador? No se puede deshacer (guárdalo antes si quieres una copia).',
+  'To open it in Excalidraw': 'Para abrirlo en Excalidraw',
+  'Downloaded. You can open it in Excalidraw, or again here with "Open…".': 'Descargado. Puedes abrirlo en Excalidraw, o de nuevo aquí con «Abrir…».',
   'Downloaded. You can open it again with "Open…".': 'Descargado. Puedes volver a abrirlo con «Abrir…».',
   'Nothing is selected.': 'No hay nada seleccionado.', 'The drawing is empty.': 'El dibujo está vacío.',
   'This browser could not make the PNG. Try SVG instead.': 'Este navegador no ha podido hacer el PNG. Prueba con SVG.',

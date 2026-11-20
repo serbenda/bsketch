@@ -624,3 +624,35 @@ test('animated arrows: only arrows and lines keep it, the line flows and the SVG
   assert.match(svg, /<animate attributeName="stroke-dashoffset" from="14" to="0" dur="0.7s" repeatCount="indefinite"\/><\/path>/);
   assert.ok(!toSvgString({ ...E.emptyScene(), elements: [E.cleanElement(raw)] }).includes('<animate'));
 });
+
+test('export to .excalidraw: what bsketch has comes back the same when opened again', () => {
+  const png = 'data:image/png;base64,iVBORw0KGgo=';
+  const box = { ...E.createElement('rectangle', 0, 0, { fill: '#a5d8ff', fillStyle: 'solid' }), id: 'box', w: 160, h: 80, group: 'g1' };
+  const label = { ...E.createElement('text', 0, 0), id: 'lbl', text: 'Hello', containerId: 'box', font: 'code' };
+  const ell = { ...E.createElement('ellipse', 300, 0, { dashed: true }), id: 'ell', w: 120, h: 80, angle: 0.5 };
+  const arrow = { ...E.createElement('arrow', 160, 40, { heads: 'both' }), id: 'arr', points: [{ x: 0, y: 0 }, { x: 140, y: 0 }], startId: 'box', endId: 'ell' };
+  const pic = { ...E.createElement('image', 0, 200), id: 'pic', w: 50, h: 50, fileId: 'f1' };
+  const frame = { ...E.createElement('frame', -20, -40, {}), id: 'frm', w: 500, h: 400, name: 'Login' };
+  const scene = E.parseScene(E.serializeScene({ ...E.emptyScene(), background: '#fff9db', elements: [frame, box, label, ell, arrow, pic], files: { f1: png } }));
+  const ex = E.toExcalidraw(scene);
+  assert.equal(ex.type, 'excalidraw');
+  assert.equal(ex.files.f1.mimeType, 'image/png');
+  const exBox = ex.elements.find((e) => e.id === 'box');
+  assert.deepEqual(exBox.boundElements.map((b) => b.type).sort(), ['arrow', 'text']);
+  assert.equal(exBox.frameId, 'frm');
+  assert.equal(ex.elements.find((e) => e.id === 'arr').endBinding.elementId, 'ell');
+  const back = E.parseScene(JSON.stringify(ex));
+  const by = Object.fromEntries(back.elements.map((e) => [e.id, e]));
+  assert.equal(back.background, '#fff9db');
+  assert.deepEqual([by.box.fill, by.box.fillStyle, by.box.group], ['#a5d8ff', 'solid', 'g1']);
+  assert.deepEqual([by.lbl.text, by.lbl.font, by.lbl.containerId], ['Hello', 'code', 'box']);
+  assert.equal(by.ell.dashed, true);
+  assert.ok(Math.abs(by.ell.angle - 0.5) < 1e-9);
+  assert.deepEqual([by.arr.heads, by.arr.startId, by.arr.endId], ['both', 'box', 'ell']);
+  assert.equal(by.pic.fileId, 'f1');
+  assert.equal(back.files.f1, png);
+  assert.equal(by.frm.name, 'Login');
+  // Routes go as the points they are drawn through.
+  const curved = E.toExcalidraw({ ...E.emptyScene(), elements: [{ ...E.cleanElement({ id: 'c', type: 'arrow', x: 0, y: 0, points: [{ x: 0, y: 0 }, { x: 100, y: 0 }], route: 'curve' }) }] });
+  assert.ok(curved.elements[0].points.length > 2 && curved.elements[0].roundness.type === 2);
+});

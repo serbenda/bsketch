@@ -4,7 +4,7 @@
 // The drawings are kept in this browser (IndexedDB, see store.js) so they are not lost when the tab closes.
 
 import { createEditor } from './editor.js';
-import { emptyScene, parseScene, serializeScene } from './scene.js';
+import { emptyScene, parseScene, serializeScene, toExcalidraw } from './scene.js';
 import { toSvgString, toPngBlob } from './render.js';
 import { loadPrefs, savePrefs, BACKGROUNDS } from './prefs.js';
 import { pickLang, translator, fill } from './i18n.js';
@@ -260,6 +260,13 @@ async function copyPng() {
 }
 $('copy-png').addEventListener('click', copyPng);
 
+$('excalidraw').addEventListener('click', () => {
+  const { scene } = exportScene();
+  if (!scene.elements.length) return notify(t($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.'));
+  download(`${JSON.stringify(toExcalidraw(scene))}\n`, `${fileName()}.excalidraw`, 'application/json');
+  notify(t('Downloaded. You can open it in Excalidraw, or again here with "Open…".'));
+});
+
 $('svg').addEventListener('click', () => {
   const { scene, box, padding } = exportScene();
   if (!scene.elements.length && !box) return notify(t($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.'));
@@ -350,7 +357,7 @@ menu.addEventListener('click', (ev) => {
   if (ev.clientX < r.left || ev.clientX > r.right || ev.clientY < r.top || ev.clientY > r.bottom) closeMenu();
 });
 // The file actions close the menu once done.
-for (const id of ['new', 'save', 'png', 'svg', 'copy-png']) $(id).addEventListener('click', () => setTimeout(closeMenu, 0));
+for (const id of ['new', 'save', 'png', 'svg', 'excalidraw', 'copy-png']) $(id).addEventListener('click', () => setTimeout(closeMenu, 0));
 $('file').addEventListener('change', closeMenu);
 
 // Appearance: system, light or dark, remembered in this browser.
