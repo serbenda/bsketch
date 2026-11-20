@@ -1066,3 +1066,41 @@ test('presentation mode: frames one by one, the laser changes nothing, Escape pu
     await page.close();
   }
 });
+
+test('bend an arrow by dragging its middle; back near the line it is straight again', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('a');
+    await page.drag(at(-150, 0), at(150, 0));
+    // The arrow is selected: drag the handle in its middle down.
+    await page.drag(at(0, 0), at(0, 80));
+    let s = await scene(page);
+    let arrow = s.elements[0];
+    assert.equal(arrow.route, 'curve');
+    const ends = [arrow.x + arrow.points[0].x, arrow.x + arrow.points[1].x];
+    const mid = { x: (ends[0] + ends[1]) / 2, y: arrow.y };
+    // The curve's middle sits where it was dropped (80 px below, at 100%).
+    const zoom = parseFloat(await page.eval('document.querySelector(".sk-zoomlabel").textContent')) / 100;
+    const k = arrow.bend ?? 0.25;
+    const len = Math.abs(ends[1] - ends[0]);
+    assert.ok(Math.abs(k * len / 2 - 80 / zoom) < 3, `bent through the pointer: ${k * len / 2} vs ${80 / zoom}`);
+    // Undo puts it straight; redo bends it again.
+    await page.press('z', { ctrl: true });
+    s = await scene(page);
+    assert.equal(s.elements[0].route, undefined);
+    await page.press('y', { ctrl: true });
+    // Dragging the middle back onto the line makes it straight.
+    await page.press('a', { ctrl: true });
+    await page.drag(at(0, 80), at(0, 1));
+    s = await scene(page);
+    arrow = s.elements[0];
+    assert.equal(arrow.route, undefined, `straight again: ${JSON.stringify({ route: arrow.route, bend: arrow.bend })}`);
+    assert.equal(mid.y, arrow.y);
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});

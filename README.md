@@ -43,7 +43,7 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 - Hachure or solid fill, colors, stroke width, dashed lines and three levels of sloppiness.
 - Arrowheads at the end, the start, both ends or none.
 - Three fonts for text: handwriting, normal and code.
-- Arrows and lines straight, **with an elbow** or **curved**.
+- Arrows and lines straight, **with an elbow** or **curved** (drag the middle to bend them as you like).
 - **Pictures:** insert, paste or drop them; arrows attach to them.
 - **Present** a drawing frame by frame, full screen, with a laser pointer.
 - **Frames** to title and group part of a drawing: what lies on them is cut at their border, and a frame exports

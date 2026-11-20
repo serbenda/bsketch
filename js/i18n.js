@@ -59,7 +59,7 @@ const ES = {
   '. It is drawn here, in your browser: the text is not sent anywhere.': '. Se dibuja aquí, en tu navegador: el texto no se envía a ningún sitio.',
   'Examples:': 'Ejemplos:', Examples: 'Ejemplos', List: 'Lista', Arrows: 'Flechas', Direction: 'Dirección',
   'As written': 'Como esté escrito', Down: 'Hacia abajo', 'To the right': 'Hacia la derecha', Cancel: 'Cancelar',
-  '{n} boxes, {e} arrows': '{n} cajas, {e} flechas', 'Drawn: {n} boxes, {e} arrows.': 'Dibujado: {n} cajas, {e} flechas.',
+  '{n} boxes, {e} arrows': 'cajas: {n}, flechas: {e}', 'Drawn: {n} boxes, {e} arrows.': 'Dibujado (cajas: {n}, flechas: {e}).',
   'Not a diagram yet: write two lines or more.': 'Aún no es un diagrama: escribe dos líneas o más.', License: 'Licencia', Appearance: 'Apariencia', System: 'Sistema', Light: 'Claro', Dark: 'Oscuro', Language: 'Idioma', Automatic: 'Automático',
   'Canvas background': 'Fondo del lienzo', 'Show grid': 'Mostrar rejilla', White: 'Blanco', Paper: 'Papel',
   'Light grey': 'Gris claro', 'Light blue': 'Azul claro', 'Light yellow': 'Amarillo claro', 'Light green': 'Verde claro',

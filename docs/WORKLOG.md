@@ -16,6 +16,20 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — P16: curve an arrow by hand
+- **Phase / issue:** P16
+- **What:** `bend` on curved arrows and lines (validated, ±2, the default 0.25 not stored), `bendThrough` and
+  `midPoint` in `js/scene.js`; a middle handle on selected two-point lines (not elbows) that bends them through the
+  pointer, straight again near the line; another route drops the bend; fuzz checks for `bend`; the Spanish counts no
+  longer say "1 flechas"; service worker v19.
+- **Why:** S5's last phase.
+- **Rejected:** adding a third point to the line (it would turn every bent line into a polyline and lose the smooth
+  curve and its route).
+- **Files:** js/scene.js, js/editor.js, js/i18n.js, sw.js, tests/, README.md, CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 64 pass; `npm run test:e2e` 25 pass; a screenshot.
+- **Pending:** —
+
 ## 2026-11-20 — P15: presentation mode with a laser pointer
 - **Phase / issue:** P15
 - **What:** `startPresenting`/`stopPresenting` in the editor: slides are the top-level frames in reading order (or

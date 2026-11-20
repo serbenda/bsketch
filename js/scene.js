@@ -13,6 +13,7 @@
 //   animated      (arrow, line) true: its dashes move along it, showing a flow
 //   dotted        true (with dashed): a dotted line instead of a dashed one
 //   rounded       (rectangle) true: round corners
+//   bend          (curved arrow, line) how far it bends, as a share of its length (DEFAULT_BEND when missing)
 //   locked        true: can't be selected, moved, erased or written into until unlocked
 //
 // A scene is { type, version, background, elements, files? }; `files` maps a file id to an image's data: URL.
@@ -108,6 +109,31 @@ export const FILL_STYLES = ['hachure', 'cross-hatch', 'solid'];
 // elbows, or along a gentle curve. Only for lines and arrows with two points (their ends).
 export const ROUTES = ['straight', 'elbow', 'curve'];
 
+// How much a curve bends: the default, or the one dragged by hand.
+export const DEFAULT_BEND = 0.25;
+export const bendOf = (el) => (Number.isFinite(el.bend) ? el.bend : DEFAULT_BEND);
+
+// The bend that makes a curve from a to z pass through p (its middle point goes there), as a share of the length.
+export function bendThrough(a, z, p) {
+  const dx = z.x - a.x;
+  const dy = z.y - a.y;
+  const len2 = dx * dx + dy * dy;
+  if (len2 < 1) return 0;
+  // The curve's middle is halfway between the chord's middle and the control point: twice the offset, along (-dy, dx).
+  const off = (p.x - (a.x + dx / 2)) * -dy + (p.y - (a.y + dy / 2)) * dx;
+  return Math.max(-2, Math.min(2, (2 * off) / len2));
+}
+
+// The point in the middle of a two-point line as drawn (on the curve when it is one).
+export function midPoint(el) {
+  const a = { x: el.x + el.points[0].x, y: el.y + el.points[0].y };
+  const z = { x: el.x + el.points[1].x, y: el.y + el.points[1].y };
+  const m = { x: (a.x + z.x) / 2, y: (a.y + z.y) / 2 };
+  if (el.route !== 'curve') return m;
+  const k = bendOf(el) / 2;
+  return { x: m.x - (z.y - a.y) * k, y: m.y + (z.x - a.x) * k };
+}
+
 // The points a line or arrow is drawn through, from its two ends and its route (absolute coordinates).
 export function routePoints(el) {
   const pts = el.points.map((p) => ({ x: el.x + p.x, y: el.y + p.y }));
@@ -125,10 +151,12 @@ export function routePoints(el) {
     const my = a.y + dy / 2;
     return [a, { x: a.x, y: my }, { x: z.x, y: my }, z];
   }
-  // curve: a quadratic arc whose control point sits off the middle, to the left of the way from a to z
+  // curve: a quadratic arc whose control point sits off the middle, `bend` × the length to the left of the way from a
+  // to z (right when negative)
   const len = Math.hypot(dx, dy);
   if (len < 1) return pts;
-  const c = { x: a.x + dx / 2 - (dy / len) * len * 0.25, y: a.y + dy / 2 + (dx / len) * len * 0.25 };
+  const k = bendOf(el);
+  const c = { x: a.x + dx / 2 - dy * k, y: a.y + dy / 2 + dx * k };
   const out = [];
   const n = 16;
   for (let i = 0; i <= n; i++) {
@@ -144,6 +172,7 @@ export function createElement(type, x, y, style = {}) {
   if (type !== 'arrow' || el.heads === 'end' || !HEADS.includes(el.heads)) delete el.heads;
   if ((type !== 'arrow' && type !== 'line') || el.route === 'straight' || !ROUTES.includes(el.route)) delete el.route;
   if ((type !== 'arrow' && type !== 'line') || el.animated !== true) delete el.animated;
+  if (el.route !== 'curve' || !Number.isFinite(el.bend)) delete el.bend;
   if (type !== 'rectangle' || el.rounded !== true) delete el.rounded;
   if (el.dotted !== true || type === 'text' || type === 'image' || type === 'frame') delete el.dotted;
   delete el.locked;
@@ -776,6 +805,7 @@ export function cleanElement(raw) {
   if (el.type === 'arrow' && HEADS.includes(raw.heads) && raw.heads !== 'end') el.heads = raw.heads;
   if ((el.type === 'arrow' || el.type === 'line') && ROUTES.includes(raw.route) && raw.route !== 'straight' && el.points.length === 2) el.route = raw.route;
   if ((el.type === 'arrow' || el.type === 'line') && raw.animated === true) el.animated = true;
+  if (el.route === 'curve' && typeof raw.bend === 'number' && Number.isFinite(raw.bend) && raw.bend !== DEFAULT_BEND) el.bend = clamp(raw.bend, -2, 2);
   if (el.type === 'rectangle' && raw.rounded === true) el.rounded = true;
   if (raw.dotted === true && raw.dashed === true && el.type !== 'text' && el.type !== 'image' && el.type !== 'frame') el.dotted = true;
   if (raw.locked === true) el.locked = true;

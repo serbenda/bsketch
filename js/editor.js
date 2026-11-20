@@ -294,7 +294,13 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   function handles(f) {
     if (f.kind === 'ends') {
       const e = f.el;
-      return { p0: [e.x + e.points[0].x, e.y + e.points[0].y], p1: [e.x + e.points[1].x, e.y + e.points[1].y] };
+      const ends = { p0: [e.x + e.points[0].x, e.y + e.points[0].y], p1: [e.x + e.points[1].x, e.y + e.points[1].y] };
+      // The middle, to bend it by hand (straight or curved lines; an elbow keeps its corners).
+      if (e.route !== 'elbow' && !readOnly) {
+        const m = E.midPoint(e);
+        ends.mid = [m.x, m.y];
+      }
+      return ends;
     }
     const pad = 6 / view.zoom;
     const x1 = f.x - pad;
@@ -416,7 +422,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
         for (const [k, [hx, hy]] of Object.entries(hs)) {
           const sz = 8 / view.zoom;
           ctx.beginPath();
-          if (k === 'rot' || k === 'p0' || k === 'p1') ctx.arc(hx, hy, sz / 1.6, 0, Math.PI * 2);
+          if (k === 'rot' || k === 'p0' || k === 'p1' || k === 'mid') ctx.arc(hx, hy, sz / 1.6, 0, Math.PI * 2);
           else ctx.rect(hx - sz / 2, hy - sz / 2, sz, sz);
           ctx.fill();
           ctx.stroke();
@@ -519,8 +525,10 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
         }
         if ('route' in patch) {
           if ((e.type !== 'arrow' && e.type !== 'line') || e.points.length !== 2) return e;
-          const { route, ...rest } = { ...e, ...patch };
-          return route === 'straight' ? rest : { ...rest, route };
+          const { route, bend, ...rest } = { ...e, ...patch };
+          // A hand-made bend belongs to the curve: another route drops it.
+          if (route === 'straight') return rest;
+          return route === 'curve' && Number.isFinite(bend) ? { ...rest, route, bend } : { ...rest, route };
         }
         if ('rounded' in patch) {
           if (e.type !== 'rectangle') return e;
@@ -1402,7 +1410,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   }
   // The shape an arrow end at p would attach to.
   const bindTarget = (p, except) => E.shapeAt(scene.elements.filter((e) => !E.isBoundText(e)), p.x, p.y, { tol: 4 / view.zoom, except })?.id || null;
-  const CURSORS = { n: 'ns-resize', s: 'ns-resize', e: 'ew-resize', w: 'ew-resize', nw: 'nwse-resize', se: 'nwse-resize', ne: 'nesw-resize', sw: 'nesw-resize', rot: 'grab', p0: 'move', p1: 'move' };
+  const CURSORS = { n: 'ns-resize', s: 'ns-resize', e: 'ew-resize', w: 'ew-resize', nw: 'nwse-resize', se: 'nwse-resize', ne: 'nesw-resize', sw: 'nesw-resize', rot: 'grab', p0: 'move', p1: 'move', mid: 'grab' };
 
   canvas.addEventListener('pointerdown', (ev) => {
     if (presenting) { laserAt(ev); return; } // presenting: the pointer is a laser, nothing changes
@@ -1445,6 +1453,11 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
         commit();
         const c = { x: f.x + f.w / 2, y: f.y + f.h / 2 };
         action = { kind: 'rotate', c, a0: Math.atan2(p.y - c.y, p.x - c.x), single: f.kind === 'one' ? f.el : null, orig: primary().map((e) => structuredClone(e)) };
+        return;
+      }
+      if (h === 'mid') {
+        commit();
+        action = { kind: 'bend', orig: structuredClone(f.el) };
         return;
       }
       if (h === 'p0' || h === 'p1') {
@@ -1594,6 +1607,16 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       }
       const orig = new Map(action.orig.map((o) => [o.id, o]));
       update(scene.elements.map((e) => (orig.has(e.id) ? E.rotateElement(orig.get(e.id), action.c, delta) : e)));
+    } else if (action.kind === 'bend') {
+      // The curve passes through the pointer; close to the straight line it is straight again.
+      const o = action.orig;
+      const a = { x: o.x + o.points[0].x, y: o.y + o.points[0].y };
+      const z = { x: o.x + o.points[1].x, y: o.y + o.points[1].y };
+      const k = E.bendThrough(a, z, p);
+      const { route, bend, ...rest } = o;
+      const near = Math.abs(k) * Math.hypot(z.x - a.x, z.y - a.y) < 6 / view.zoom;
+      const next = near ? rest : k === E.DEFAULT_BEND ? { ...rest, route: 'curve' } : { ...rest, route: 'curve', bend: k };
+      update(scene.elements.map((e) => (e.id === o.id ? next : e)));
     } else if (action.kind === 'endpoint') {
       const o = action.orig;
       const pts = o.points.map((q) => ({ x: o.x + q.x, y: o.y + q.y }));
@@ -1672,7 +1695,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     }
     const kind = action.kind;
     action = null;
-    if (['move', 'resize', 'resize1', 'rotate', 'endpoint', 'erase'].includes(kind)) changed();
+    if (['move', 'resize', 'resize1', 'rotate', 'endpoint', 'bend', 'erase'].includes(kind)) changed();
     else {
       syncPanel();
       redraw();

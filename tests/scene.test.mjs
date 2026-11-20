@@ -698,3 +698,25 @@ test('frames clip what lies on them: by its centre, the smallest frame, also in 
   assert.match(svg, /<g clip-path="url\(#f\d+\)">/);
   assert.equal(E.toExcalidraw({ ...E.emptyScene(), elements: els }).elements.find((e) => e.id === 'inner').frameId, 'small');
 });
+
+test('bending a curve by hand: through a point, either side, checked and dropped with another route', () => {
+  const a = { x: 0, y: 0 };
+  const z = { x: 200, y: 0 };
+  const k = E.bendThrough(a, z, { x: 100, y: 60 });
+  const el = E.cleanElement({ id: 'c', type: 'arrow', x: 0, y: 0, points: [{ x: 0, y: 0 }, { x: 200, y: 0 }], route: 'curve', bend: k });
+  const m = E.midPoint(el);
+  assert.ok(Math.abs(m.x - 100) < 1e-9 && Math.abs(m.y - 60) < 1e-9, 'the curve passes through the point');
+  const pts = E.routePoints(el);
+  assert.ok(Math.abs(pts[8].y - 60) < 1e-9, 'its middle sample too');
+  assert.ok(E.bendThrough(a, z, { x: 100, y: -60 }) === -k, 'the other side');
+  assert.equal(E.bendThrough(a, a, { x: 5, y: 5 }), 0);
+  assert.equal(E.bendThrough(a, z, { x: 100, y: 1e9 }), 2, 'clamped');
+  assert.equal(E.cleanElement({ ...el, bend: 9 }).bend, 2);
+  assert.equal(E.cleanElement({ ...el, bend: '0.5' }).bend, undefined);
+  assert.equal(E.cleanElement({ ...el, route: 'elbow' }).bend, undefined, 'only on curves');
+  assert.equal(E.cleanElement({ ...el, bend: E.DEFAULT_BEND }).bend, undefined, 'the default is not stored');
+  const back = E.parseScene(E.serializeScene({ ...E.emptyScene(), elements: [el] })).elements[0];
+  assert.equal(back.bend, el.bend);
+  const straight = E.cleanElement({ ...el, route: undefined });
+  assert.deepEqual(E.midPoint(straight), { x: 100, y: 0 });
+});
