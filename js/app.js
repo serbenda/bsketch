@@ -108,8 +108,14 @@ async function flush() {
   try { touch(storage, drawings); } catch { /* see store() */ }
 }
 // Shows the drawing that is open now (after creating, opening or deleting one).
+// While the next drawing loads (a few milliseconds) the canvas ignores input, so nothing drawn then is lost.
 async function showActive() {
-  editor.setScene((await saved()) || emptyScene());
+  $('canvas').inert = true;
+  try {
+    editor.setScene((await saved()) || emptyScene());
+  } finally {
+    $('canvas').inert = false;
+  }
   renderDrawings();
   editor.focus();
 }
@@ -120,8 +126,6 @@ async function showActive() {
   try { await migrate(storage, scenes, drawings); } catch { /* left for next time; the old copy stays */ }
   try { await recover(storage, scenes, drawings, t('Recovered')); } catch { /* nothing to add */ }
   await showActive();
-  $('canvas').inert = false;
-  editor.focus();
 })();
 // Another tab added, renamed or deleted drawings: this tab's list follows, so its next save doesn't undo them.
 addEventListener('storage', (ev) => {

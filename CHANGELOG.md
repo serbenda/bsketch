@@ -19,6 +19,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
   move there on their own the first time.
 
 ### Fixed
+- Drawing right after switching, creating or deleting a drawing no longer gets lost while the next one loads.
 - Two tabs open at once no longer undo each other's list of drawings, and a broken list in storage keeps its
   drawings (any drawing left out of it comes back as "Recovered").
 - Opening a file with odd values (for example objects where numbers or texts should be) is refused instead of
