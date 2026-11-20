@@ -16,6 +16,74 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — Version 1.3.0
+- **Phase / issue:** S5 (P14–P16)
+- **What:** version 1.3.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's
+  changes become `[1.3.0] - 2026-11-20`; STATE.
+- **Why:** S5 is complete.
+- **Rejected:** —
+- **Files:** package.json, desktop/src-tauri/tauri.conf.json, desktop/src-tauri/Cargo.toml,
+  desktop/src-tauri/Cargo.lock, CHANGELOG.md, docs/STATE.md
+- **Commits:** this one.
+- **Tested:** `npm test` passes.
+- **Pending:** the owner merges PR #25 and releases.
+
+## 2026-11-20 — P16: curve an arrow by hand
+- **Phase / issue:** P16
+- **What:** `bend` on curved arrows and lines (validated, ±2, the default 0.25 not stored), `bendThrough` and
+  `midPoint` in `js/scene.js`; a middle handle on selected two-point lines (not elbows) that bends them through the
+  pointer, straight again near the line; another route drops the bend; fuzz checks for `bend`; the Spanish counts no
+  longer say "1 flechas"; service worker v19.
+- **Why:** S5's last phase.
+- **Rejected:** adding a third point to the line (it would turn every bent line into a polyline and lose the smooth
+  curve and its route).
+- **Files:** js/scene.js, js/editor.js, js/i18n.js, sw.js, tests/, README.md, CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 64 pass; `npm run test:e2e` 25 pass; a screenshot.
+- **Pending:** —
+
+## 2026-11-20 — P15: presentation mode with a laser pointer
+- **Phase / issue:** P15
+- **What:** `startPresenting`/`stopPresenting` in the editor: slides are the top-level frames in reading order (or
+  the whole drawing), each fitted to the screen and painted with `hideFrames` (contents clipped, no border or title);
+  keys and a small bar move through them; full screen when allowed, leaving it ends the talk; the laser keeps a
+  fading trail of pointer positions and repaints only while it lasts; editing, wheel and double click are off while
+  presenting; Spanish strings; service worker v18.
+- **Why:** S5's second phase: frames that work as slides (after P14's clipping).
+- **Rejected:** a separate presentation page or window (the editor already paints and clips frames); a laser tool in
+  the toolbar (it would not fit on a phone, and it is only useful while presenting).
+- **Files:** js/editor.js, js/render.js, js/i18n.js, css/sketch.css, sw.js, tests/e2e/editor.e2e.mjs, README.md,
+  CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 63 pass; `npm run test:e2e` 24 pass, twice; the portable build; a screenshot of a slide.
+- **Pending:** —
+
+## 2026-11-20 — P14: frames clip what lies on them
+- **Phase / issue:** P14
+- **What:** `frameOwners` (each element belongs to the smallest frame its centre is on; cached per list) and
+  `inFrame` by centre; the canvas clips each member to its frame; both SVG exports wrap members in a group with a
+  `clipPath` per frame; `.excalidraw` `frameId` from the same rule; S5 in the ROADMAP; service worker v17. STATE no
+  longer lists the OpenSSF badge (it needs an open-source license).
+- **Why:** S5's first phase: frames that read like slides, before presenting them (P15).
+- **Rejected:** storing a `frameId` on each element (it would have to be kept right on every change; the centre rule
+  needs nothing stored); a switch to turn clipping off (out of scope for now).
+- **Files:** js/scene.js, js/render.js, sw.js, tests/, README.md, CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 63 pass; `npm run test:e2e` 23 pass, one reading the canvas' pixels; the portable build.
+- **Pending:** —
+
+## 2026-11-20 — 1.2.0 released
+- **Phase / issue:** S4
+- **What:** the owner released v1.2.0 with `bsketch-release.sh 1.2.0`: tag on `main` (ce451b0), the three
+  executables and their Sigstore provenance attached. STATE updated.
+- **Why:** S4 (P09–P13) on `main`.
+- **Rejected:** —
+- **Files:** docs/STATE.md
+- **Commits:** this one.
+- **Tested:** `gh attestation verify bsketch-windows.exe --bundle bsketch-windows.exe.intoto.jsonl` passes on the
+  release's own files.
+- **Pending:** —
+
 ## 2026-11-20 — The e2e tests start Chrome reliably on CI
 - **Phase / issue:** — (CI on PR #24, and #21 before)
 - **What:** `tests/e2e/cdp.mjs` starts Chrome with `--disable-dev-shm-usage`, waits up to 45 s, tries three times,

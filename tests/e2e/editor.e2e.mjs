@@ -984,3 +984,123 @@ test('lock, search and more styles', { skip }, async () => {
     await page.close();
   }
 });
+
+test('frames clip what lies on them, on screen', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('f');
+    await page.drag(at(-200, -120), at(100, 120));
+    // A solid box whose right part sticks out of the frame.
+    await page.press('r');
+    await page.click('.sk-row[data-prop="fill"] .sk-swatch[data-color="#a5d8ff"]');
+    await page.click('[aria-label="Fill style"] button', 'Solid');
+    await page.drag(at(0, -30), at(180, 30));
+    await page.press('Escape');
+    await page.press('v');
+    await page.mouseClick(at(-400, 300));
+    await new Promise((r) => setTimeout(r, 300));
+    // A pixel of the box inside the frame is blue; one outside the frame's border is the background.
+    const px = (x, y) => page.eval(`(() => { const c = document.querySelector('.sk-canvas'); const r = c.getBoundingClientRect(); const k = c.width / r.width; const p = c.getContext('2d').getImageData(Math.round((r.width / 2 + ${x}) * k), Math.round((r.height / 2 + ${y}) * k), 1, 1).data; return [p[0], p[1], p[2]]; })()`);
+    const inside = await px(60, 0);
+    const outside = await px(150, 0);
+    assert.ok(inside[2] > 200 && inside[0] < 200, `inside the frame the box shows: ${inside}`);
+    assert.deepEqual(outside, [255, 255, 255], `outside the frame it is cut: ${outside}`);
+    // Moving the frame carries the box.
+    const before = (await scene(page)).elements.find((e) => e.type === 'rectangle').x;
+    await page.drag(at(-200, -60), at(-150, -60));
+    const after = (await scene(page)).elements.find((e) => e.type === 'rectangle').x;
+    assert.equal(after, before + 50);
+    // (Reading pixels back makes Chrome suggest willReadFrequently: that note comes from this test, not the page.)
+    assert.deepEqual(page.errors.filter((e) => !e.includes('willReadFrequently')), []);
+  } finally {
+    await page.close();
+  }
+});
+
+test('presentation mode: frames one by one, the laser changes nothing, Escape puts things back', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    // Two frames side by side, each with a box; the second one written first, so reading order matters.
+    await page.click('#menu-button');
+    await page.click('#text-diagram');
+    await page.fill('#td-text', 'graph LR\nB[Two] --> A[One]\nsubgraph S2 [Second]\nA\nend\nsubgraph S1 [First]\nB\nend');
+    await page.click('#td-insert');
+    await page.waitFor('!document.getElementById("td-dialog").open && document.getElementById("td-text").value === ""');
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('Escape');
+    const before = await scene(page);
+    const zoom0 = await page.eval('document.querySelector(".sk-zoomlabel").textContent');
+    await page.press('P', { shift: true });
+    await page.waitFor('document.querySelector(".sk-editor").classList.contains("sk-presenting")');
+    assert.equal(await page.eval('document.querySelector(".sk-slidecount").textContent'), '1 / 2');
+    assert.equal(await page.eval('getComputedStyle(document.querySelector(".sk-toolbar")).display'), 'none', 'the toolbar is hidden');
+    // The laser: dragging over the slide draws and changes nothing.
+    const at = await screen(page);
+    await page.drag(at(-100, 0), at(100, 40));
+    assert.deepEqual((await scene(page)).elements, before.elements, 'nothing changed');
+    await page.press('ArrowRight');
+    assert.equal(await page.eval('document.querySelector(".sk-slidecount").textContent'), '2 / 2');
+    await page.press('ArrowRight');
+    assert.equal(await page.eval('document.querySelector(".sk-slidecount").textContent'), '2 / 2', 'it stops at the last');
+    await page.press('ArrowLeft');
+    assert.equal(await page.eval('document.querySelector(".sk-slidecount").textContent'), '1 / 2');
+    await page.press('Escape');
+    assert.equal(await page.eval('document.querySelector(".sk-editor").classList.contains("sk-presenting")'), false);
+    assert.equal(await page.eval('document.querySelector(".sk-zoomlabel").textContent'), zoom0, 'the view is put back');
+    // Without frames, the whole drawing is one slide.
+    await page.press('a', { ctrl: true });
+    await page.press('Delete');
+    await page.press('r');
+    await page.drag(at(-50, -20), at(50, 20));
+    await page.press('P', { shift: true });
+    await page.waitFor('document.querySelector(".sk-editor").classList.contains("sk-presenting")');
+    assert.equal(await page.eval('document.querySelector(".sk-slidecount").textContent'), '1 / 1');
+    await page.click('.sk-present [aria-label="End the presentation"]');
+    assert.equal(await page.eval('document.querySelector(".sk-editor").classList.contains("sk-presenting")'), false);
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
+test('bend an arrow by dragging its middle; back near the line it is straight again', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('a');
+    await page.drag(at(-150, 0), at(150, 0));
+    // The arrow is selected: drag the handle in its middle down.
+    await page.drag(at(0, 0), at(0, 80));
+    let s = await scene(page);
+    let arrow = s.elements[0];
+    assert.equal(arrow.route, 'curve');
+    const ends = [arrow.x + arrow.points[0].x, arrow.x + arrow.points[1].x];
+    const mid = { x: (ends[0] + ends[1]) / 2, y: arrow.y };
+    // The curve's middle sits where it was dropped (80 px below, at 100%).
+    const zoom = parseFloat(await page.eval('document.querySelector(".sk-zoomlabel").textContent')) / 100;
+    const k = arrow.bend ?? 0.25;
+    const len = Math.abs(ends[1] - ends[0]);
+    assert.ok(Math.abs(k * len / 2 - 80 / zoom) < 3, `bent through the pointer: ${k * len / 2} vs ${80 / zoom}`);
+    // Undo puts it straight; redo bends it again.
+    await page.press('z', { ctrl: true });
+    s = await scene(page);
+    assert.equal(s.elements[0].route, undefined);
+    await page.press('y', { ctrl: true });
+    // Dragging the middle back onto the line makes it straight.
+    await page.press('a', { ctrl: true });
+    await page.drag(at(0, 80), at(0, 1));
+    s = await scene(page);
+    arrow = s.elements[0];
+    assert.equal(arrow.route, undefined, `straight again: ${JSON.stringify({ route: arrow.route, bend: arrow.bend })}`);
+    assert.equal(mid.y, arrow.y);
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});

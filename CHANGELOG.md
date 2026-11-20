@@ -4,6 +4,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-20
+### Added
+- **Presentation mode** (Shift+P or the bottom bar): full screen, the frames one by one in reading order (or the
+  whole drawing), each filling the screen without its border; arrow keys, Space, PageUp/PageDown, Home and End move
+  through them; a **laser pointer** leaves a fading red trail and changes nothing; Escape puts everything back.
+- **Curve an arrow by hand:** a selected arrow or line has a handle in its middle; drag it and the curve passes
+  through the pointer, to either side; back near the line it is straight again.
+
+### Changed
+- **Frames clip what lies on them**, on screen and in PNG and SVG: an element belongs to the frame its centre is on
+  (the smallest, when frames nest), and is cut at its border. Moving a frame carries what belongs to it, also when it
+  sticks out.
+
 ## [1.2.0] - 2026-11-20
 ### Added
 - **Text to diagram, offline and without AI:** an indented list, a Mermaid flowchart (shapes, labels, dashed and bold

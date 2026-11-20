@@ -13,9 +13,14 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- Version 1.2.0 prepared (PR to `main`); the owner releases it with `bsketch-release.sh 1.2.0` (outside the repo).
+- Version 1.3.0 prepared with S5 in PR #25; the owner releases it with `bsketch-release.sh 1.3.0` (outside the repo).
 
 ## Recently done
+- [P16](phases/P16-bend-arrows.md): curve an arrow by hand.
+- [P15](phases/P15-presentation.md): presentation mode with a laser pointer.
+- [P14](phases/P14-frame-clipping.md): frames clip what lies on them.
+- **v1.2.0 released** (2026-11-20) with the three executables and their signed provenance; Snowlog has the new engine
+  (serbenda/snowlog#8).
 - [P13](phases/P13-lock-search-styles.md): lock, search (Ctrl+F), dotted lines, cross-hatch, round corners.
 - [P12](phases/P12-excalidraw-export-snowlog.md): export to `.excalidraw`; Snowlog with the new engine.
 - [P11](phases/P11-animated-arrows.md): animated flow arrows, on screen and in the exported SVG.
@@ -49,9 +54,10 @@ Last updated: 2026-11-20
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. Owner: merge the 1.2.0 PR, then `bsketch-release.sh 1.2.0`: tag, executables and their signed provenance.
-2. Owner: merge Snowlog's engine update (serbenda/snowlog#8).
-3. Owner: P02's checklist on Safari, Firefox, a real phone and the desktop apps.
+1. Owner: P02's checklist on Safari, Firefox, a real phone and the desktop apps; anything failing becomes a 1.2.x.
+2. Optional (owner): signing for macOS (Apple Developer Program) and Windows. (The OpenSSF best-practices badge
+   needs an open-source license, so it doesn't apply since 1.1.0.)
+3. Owner: merge PR #25, then `bsketch-release.sh 1.3.0`.
 
 ## Blocked / awaiting decision
 - Nothing.

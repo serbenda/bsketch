@@ -324,7 +324,7 @@ function forAll(name, gen, prop, runs = RUNS) {
 
 const KEYS = new Set(['id', 'type', 'x', 'y', 'w', 'h', 'seed', 'stroke', 'fill', 'fillStyle', 'width', 'dashed', 'roughness',
   'opacity', 'fontSize', 'points', 'angle', 'text', 'font', 'containerId', 'align', 'startId', 'endId', 'heads', 'route', 'group',
-  'fileId', 'name', 'animated', 'dotted', 'rounded', 'locked']); // image, frame, flow, line and corner styles, lock
+  'fileId', 'name', 'animated', 'dotted', 'rounded', 'locked', 'bend']); // image, frame, flow, line and corner styles, lock
 const TAU = Math.PI * 2;
 const M = E.MAX_COORD;
 const inRange = (v, a, b) => typeof v === 'number' && Number.isFinite(v) && v >= a && v <= b;
@@ -349,6 +349,7 @@ function checkElement(el, where = '') {
   if ('dotted' in el) assert.ok(el.dotted === true && el.dashed === true, `dotted only on a dashed line ${at}`);
   if ('rounded' in el) assert.ok(el.rounded === true && el.type === 'rectangle', `rounded only on rectangles ${at}`);
   if ('locked' in el) assert.equal(el.locked, true, `locked ${at}`);
+  if ('bend' in el) assert.ok(el.route === 'curve' && inRange(el.bend, -2, 2), `bend only on curves, within ±2 ${at}`);
   if ('animated' in el) assert.ok(el.animated === true && (el.type === 'arrow' || el.type === 'line'), `animated ${at}`);
   assert.ok(inRange(el.width, 0.5, 40), `width ${at}`);
   assert.equal(typeof el.dashed, 'boolean', `dashed ${at}`);
