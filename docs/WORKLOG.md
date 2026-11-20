@@ -16,6 +16,18 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — 1.1.0 released
+- **Phase / issue:** —
+- **What:** the owner released v1.1.0 with the release script: tag on `main` (70225f1), the three executables and
+  their Sigstore provenance (`*.intoto.jsonl`) attached; the v1.0.0 tag removed. STATE updated.
+- **Why:** P08 and the new license on `main`.
+- **Rejected:** —
+- **Files:** docs/STATE.md
+- **Commits:** this one.
+- **Tested:** `gh attestation verify bsketch-windows.exe --bundle bsketch-windows.exe.intoto.jsonl` passes on the
+  release's own files.
+- **Pending:** —
+
 ## 2026-11-20 — The 1.0.0 release withdrawn
 - **Phase / issue:** — ([ADR 0006](decisions/0006-proprietary-license.md))
 - **What:** the v1.0.0 GitHub release is deleted (its tag goes with the owner's script); LICENSE, README, CHANGELOG
