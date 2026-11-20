@@ -46,6 +46,11 @@ const ICONS = {
   distV: 'M4 4h16 M4 20h16 M8 10h8v4H8z',
   group: 'M3 3h18v18H3z M7 7h5v5H7z M12 12h5v5h-5z',
   ungroup: 'M4 4h7v7H4z M13 13h7v7h-7z',
+  lock: 'M6 11h12v9H6z M8.5 11V8a3.5 3.5 0 0 1 7 0v3',
+  unlock: 'M6 11h12v9H6z M8.5 11V8a3.5 3.5 0 0 1 6.8-1.2',
+  search: 'M10.5 4a6.5 6.5 0 1 1 0 13a6.5 6.5 0 0 1 0-13z M15.5 15.5L20 20',
+  up: 'M6 15l6-6 6 6',
+  down: 'M6 9l6 6 6-6',
   frame: 'M7 3v18 M17 3v18 M3 7h18 M3 17h18',
   image: 'M4 5h16v14H4z M4 16l5-5 4 4 2-2 5 5 M15 9.5a1.5 1.5 0 1 0 0 .01',
   library: 'M5 4h4v16H5z M10 4h4v16h-4z M15.5 5l3.8-1 3.7 15-3.8 1z',
@@ -161,6 +166,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   const headsBlock = ui('div', {}, ui('div', { class: 'sk-label' }, 'Arrowheads'), headsSeg);
   const routeSeg = seg('Route', [['straight', 'Straight'], ['elbow', 'Elbow'], ['curve', 'Curve']], (v) => setStyle({ route: v }));
   const routeBlock = ui('div', {}, ui('div', { class: 'sk-label' }, 'Route'), routeSeg);
+  const cornersBlock = ui('div', {}, ui('div', { class: 'sk-label' }, 'Corners'), seg('Corners', [[false, 'Sharp'], [true, 'Round']], (v) => setStyle({ rounded: v })));
   const flowSeg = seg('Flow', [[false, 'Still'], [true, 'Animated']], (v) => setStyle({ animated: v }));
   const flowBlock = ui('div', {}, ui('div', { class: 'sk-label' }, 'Flow'), flowSeg);
   const panel = ui('div', { class: 'sk-panel', 'aria-label': 'Style' },
@@ -168,11 +174,12 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     ui('div', { class: 'sk-row', 'data-prop': 'stroke' }, ...STROKES.map((c) => swatch(c, (v) => setStyle({ stroke: v }), `${tr('Stroke')} ${c}`)), strokeColor),
     ui('div', { class: 'sk-label' }, 'Fill'),
     ui('div', { class: 'sk-row', 'data-prop': 'fill' }, ...FILLS.map((c) => swatch(c, (v) => setStyle({ fill: v }), c === 'transparent' ? 'No fill' : `${tr('Fill')} ${c}`)), fillColor),
-    seg('Fill style', [['hachure', 'Hachure'], ['solid', 'Solid']], (v) => setStyle({ fillStyle: v })),
+    seg('Fill style', [['hachure', 'Hachure'], ['cross-hatch', 'Cross-hatch'], ['solid', 'Solid']], (v) => setStyle({ fillStyle: v })),
     ui('div', { class: 'sk-label' }, 'Width'),
     seg('Stroke width', [[1, 'Thin'], [2, 'Medium'], [4, 'Bold']], (v) => setStyle({ width: v })),
     ui('div', { class: 'sk-label' }, 'Line'),
-    seg('Line style', [[false, 'Solid'], [true, 'Dashed']], (v) => setStyle({ dashed: v })),
+    seg('Line style', [['solid', 'Solid'], ['dashed', 'Dashed'], ['dotted', 'Dotted']], (v) => setStyle({ dashed: v !== 'solid', dotted: v === 'dotted' })),
+    cornersBlock,
     headsBlock,
     routeBlock,
     flowBlock,
@@ -188,7 +195,9 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       btn('back', 'Send to back', () => reorder(-1)),
       btn('copy', 'Duplicate (Ctrl+D)', () => duplicate()),
       groupBtn, ungroupBtn,
+      btn('lock', 'Lock (Ctrl+Shift+L)', () => lockSelected()),
       btn('trash', 'Delete (Del)', () => removeSelected())));
+  const unlockBtn = btn('unlock', 'Unlock all', () => unlockAll());
   const zoomLabel = ui('button', { class: 'sk-zoomlabel', type: 'button', title: 'Reset to 100%', 'aria-label': 'Reset to 100%', onclick: () => zoomAt(1 / view.zoom) }, '100%');
   const bottom = ui('div', { class: 'sk-bottom' },
     ui('div', { class: 'sk-group' },
@@ -198,7 +207,8 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       btn('fit', 'Fit the whole drawing', () => zoomToFit())),
     ui('div', { class: 'sk-group' },
       btn('undo', 'Undo (Ctrl+Z)', () => doUndo()),
-      btn('redo', 'Redo (Ctrl+Y)', () => doRedo())));
+      btn('redo', 'Redo (Ctrl+Y)', () => doRedo()),
+      unlockBtn));
   // The library: pieces kept to use again (only when the page gives the editor a place to keep them).
   const libList = ui('ul', { class: 'sk-liblist', 'aria-label': 'Library items' });
   const libEmpty = ui('p', { class: 'sk-libempty' }, 'Select something and press "Add" to keep it here.');
@@ -212,9 +222,17 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       btn('upload', 'Import a library', () => libFile.click()),
       btn('download', 'Export the library', () => exportLibrary())),
     libEmpty, libList, libFile);
+  // Search (Ctrl+F): texts and frame titles.
+  const searchInput = ui('input', { type: 'search', class: 'sk-searchinput', 'aria-label': 'Search the drawing', placeholder: tr('Search the drawing'), spellcheck: 'false' });
+  const searchCount = ui('span', { class: 'sk-searchcount', 'aria-live': 'polite' });
+  const searchBox = ui('div', { class: 'sk-panel sk-search', role: 'search', hidden: true },
+    icon('search'), searchInput, searchCount,
+    btn('up', 'Previous (Shift+Enter)', () => findNext(-1)),
+    btn('down', 'Next (Enter)', () => findNext(1)),
+    btn('close', 'Close the search (Esc)', () => closeSearch()));
   const stage = ui('div', { class: 'sk-stage' }, canvas, textBox);
   if (readOnly) root.append(stage);
-  else root.append(stage, toolbar, panel, ...(library ? [libPanel] : []), bottom, status, help, imageInput);
+  else root.append(stage, toolbar, panel, ...(library ? [libPanel] : []), searchBox, bottom, status, help, imageInput);
   container.append(root);
   const ctx = canvas.getContext('2d');
 
@@ -230,6 +248,9 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
 
   // The text inside a shape is selected with its shape.
   const owner = (e) => (e && E.isBoundText(e) ? byId(e.containerId) || e : e);
+  // What can be picked: not locked (a text inside a locked shape is locked with it).
+  const isLocked = (e) => !!(e.locked || (E.isBoundText(e) && byId(e.containerId)?.locked));
+  const free = () => scene.elements.filter((e) => !isLocked(e));
   // Adds to some ids the rest of their group and the texts inside their shapes.
   function expand(ids) {
     const set = new Set(ids);
@@ -483,6 +504,15 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
           const { route, ...rest } = { ...e, ...patch };
           return route === 'straight' ? rest : { ...rest, route };
         }
+        if ('rounded' in patch) {
+          if (e.type !== 'rectangle') return e;
+          const { rounded, ...rest } = { ...e, ...patch };
+          return rounded === true ? { ...rest, rounded: true } : rest;
+        }
+        if ('dotted' in patch) {
+          const { dotted, ...rest } = { ...e, ...patch };
+          return dotted === true && e.type !== 'text' && e.type !== 'image' && e.type !== 'frame' ? { ...rest, dotted: true } : rest;
+        }
         if ('animated' in patch) {
           if (e.type !== 'arrow' && e.type !== 'line') return e;
           const { animated, ...rest } = { ...e, ...patch };
@@ -522,7 +552,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       b.setAttribute('aria-pressed', String(cur[prop] === b.dataset.color));
     }
     const segs = panel.querySelectorAll('.sk-seg');
-    const props = ['fillStyle', 'width', 'dashed', 'heads', 'route', 'animated', 'roughness', 'font', 'fontSize'];
+    const props = ['fillStyle', 'width', 'line', 'rounded', 'heads', 'route', 'animated', 'roughness', 'font', 'fontSize'];
     const arrow = s.length ? s.filter((e) => e.type === 'arrow').pop() : null;
     headsBlock.hidden = !(arrow || (!s.length && tool === 'arrow'));
     const heads = (arrow || style).heads || 'end';
@@ -530,10 +560,14 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     routeBlock.hidden = !(lineEl || (!s.length && (tool === 'arrow' || tool === 'line')));
     const route = (lineEl || style).route || 'straight';
     flowBlock.hidden = routeBlock.hidden;
+    const rectEl = s.length ? s.filter((e) => e.type === 'rectangle').pop() : null;
+    cornersBlock.hidden = !(rectEl || (!s.length && tool === 'rectangle'));
+    const rounded = (rectEl || style).rounded === true;
+    unlockBtn.hidden = !scene.elements.some((e) => e.locked);
     const animated = (lineEl || style).animated === true;
     segs.forEach((g, i) => {
       const textEl = s.filter((e) => e.type === 'text').pop();
-      const value = props[i] === 'heads' ? heads : props[i] === 'route' ? route : props[i] === 'animated' ? animated : props[i] === 'font' ? (textEl || style).font || 'hand' : cur[props[i]];
+      const value = props[i] === 'line' ? (cur.dotted ? 'dotted' : cur.dashed ? 'dashed' : 'solid') : props[i] === 'rounded' ? rounded : props[i] === 'heads' ? heads : props[i] === 'route' ? route : props[i] === 'animated' ? animated : props[i] === 'font' ? (textEl || style).font || 'hand' : cur[props[i]];
       for (const b of g.children) b.setAttribute('aria-pressed', String(String(value) === b.dataset.value));
     });
     const n = s.length ? units().length : 0;
@@ -553,7 +587,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   // What moves with the selection: frames carry what is inside them.
   function withFrameContents(ids) {
     const out = new Set(ids);
-    for (const f of scene.elements) if (f.type === 'frame' && ids.has(f.id)) for (const e of E.inFrame(scene.elements, f)) out.add(e.id);
+    for (const f of scene.elements) if (f.type === 'frame' && ids.has(f.id)) for (const e of E.inFrame(free(), f)) out.add(e.id);
     return expand([...out]);
   }
   function renameFrame(f) {
@@ -870,6 +904,87 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     const sel = selection();
     const rest = scene.elements.filter((e) => !selected.has(e.id));
     scene.elements = dir > 0 ? [...rest, ...sel] : [...sel, ...rest];
+    changed();
+  }
+
+  // --- Search ---
+  // Case and accents don't matter: "accion" finds "Acción".
+  const fold = (t) => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  let matches = [];
+  let matchAt = -1;
+  function findAll() {
+    const q = fold(searchInput.value.trim());
+    matches = [];
+    if (q) {
+      for (const e of scene.elements) {
+        const text = e.type === 'text' ? e.text : e.type === 'frame' ? e.name : '';
+        if (!text || !fold(text).includes(q)) continue;
+        const target = owner(e);
+        if (!matches.includes(target)) matches.push(target);
+      }
+      // In reading order: top to bottom, then left to right.
+      matches.sort((a, b) => (Math.abs(E.aabb(a).y - E.aabb(b).y) > 10 ? E.aabb(a).y - E.aabb(b).y : E.aabb(a).x - E.aabb(b).x));
+    }
+    matchAt = -1;
+    showCount();
+  }
+  function showCount() {
+    searchCount.textContent = !searchInput.value.trim() ? '' : !matches.length ? tr('No results') : matchAt < 0 ? tr('{n} found').replace('{n}', matches.length) : tr('{i} of {n}').replace('{i}', matchAt + 1).replace('{n}', matches.length);
+  }
+  function findNext(dir) {
+    if (!matches.length) return;
+    matchAt = (matchAt + dir + matches.length) % matches.length;
+    const m = matches[matchAt];
+    setTool('select');
+    select([m.id]);
+    revealSelection();
+    syncPanel();
+    redraw();
+    showCount();
+  }
+  function openSearch() {
+    searchBox.hidden = false;
+    searchInput.focus();
+    searchInput.select();
+    findAll();
+  }
+  function closeSearch() {
+    searchBox.hidden = true;
+    root.focus();
+  }
+  searchInput.addEventListener('input', () => {
+    findAll();
+    if (matches.length) findNext(1);
+  });
+  searchInput.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') { ev.preventDefault(); findNext(ev.shiftKey ? -1 : 1); }
+    else if (ev.key === 'Escape') { ev.preventDefault(); closeSearch(); }
+    ev.stopPropagation();
+  });
+
+  // Locking: what is locked can't be picked until "Unlock all".
+  function lockSelected() {
+    const ids = new Set(primary().map((e) => e.id));
+    if (!ids.size) return;
+    commit();
+    update(scene.elements.map((e) => (ids.has(e.id) ? { ...e, locked: true } : e)));
+    selected.clear();
+    announce();
+    status.textContent = tr('Locked: {n}').replace('{n}', ids.size);
+    changed();
+  }
+  function unlockAll() {
+    if (!scene.elements.some((e) => e.locked)) return;
+    commit();
+    const ids = [];
+    update(scene.elements.map((e) => {
+      if (!e.locked) return e;
+      ids.push(e.id);
+      const { locked, ...rest } = e;
+      return rest;
+    }));
+    setTool('select');
+    select(ids);
     changed();
   }
 
@@ -1194,7 +1309,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
           : { kind: 'resize', handle: h, box: { x: f.x, y: f.y, w: f.w, h: f.h }, orig: primary().map((e) => structuredClone(e)) };
         return;
       }
-      const hit = owner(E.elementAt(scene.elements, p.x, p.y, 6 / view.zoom));
+      const hit = owner(E.elementAt(free(), p.x, p.y, 6 / view.zoom));
       if (hit) {
         if (ev.shiftKey) {
           const ids = expand([hit.id]);
@@ -1215,7 +1330,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       return;
     }
     if (tool === 'text') {
-      const shape = E.shapeAt(scene.elements, p.x, p.y, { containersOnly: true });
+      const shape = E.shapeAt(free(), p.x, p.y, { containersOnly: true });
       if (shape) editInside(shape);
       else newText(p);
       return;
@@ -1235,7 +1350,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   });
 
   function eraseAt(p) {
-    const hit = owner(E.elementAt(scene.elements, p.x, p.y, 8 / view.zoom));
+    const hit = owner(E.elementAt(free(), p.x, p.y, 8 / view.zoom));
     if (!hit) return;
     if (!action.started) {
       commit();
@@ -1253,7 +1368,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       if (tool === 'select') {
         const p = toWorld(ev.clientX, ev.clientY);
         const h = handleAt(p.x, p.y);
-        canvas.style.cursor = h ? CURSORS[h] : E.elementAt(scene.elements, p.x, p.y, 6 / view.zoom) ? 'move' : 'default';
+        canvas.style.cursor = h ? CURSORS[h] : E.elementAt(free(), p.x, p.y, 6 / view.zoom) ? 'move' : 'default';
       }
       return;
     }
@@ -1290,7 +1405,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       update(moved(action.orig, action.ids, dx, dy));
     } else if (action.kind === 'marquee') {
       action.box = { x: Math.min(action.start.x, p.x), y: Math.min(action.start.y, p.y), w: Math.abs(p.x - action.start.x), h: Math.abs(p.y - action.start.y) };
-      const inside = E.elementsInBox(scene.elements, action.box).filter((e) => !E.isBoundText(e)).map((e) => e.id);
+      const inside = E.elementsInBox(free(), action.box).filter((e) => !E.isBoundText(e)).map((e) => e.id);
       selected = expand([...action.base, ...inside]);
     } else if (action.kind === 'resize') {
       const b = action.box;
@@ -1418,7 +1533,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   canvas.addEventListener('dblclick', (ev) => {
     if (readOnly || tool === 'hand' || tool === 'eraser' || spaceDown) return;
     const p = toWorld(ev.clientX, ev.clientY);
-    const hit = E.elementAt(scene.elements, p.x, p.y, 6 / view.zoom);
+    const hit = E.elementAt(free(), p.x, p.y, 6 / view.zoom);
     if (hit?.type === 'text') {
       commit();
       editText(hit.id);
@@ -1428,7 +1543,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       renameFrame(hit);
       return;
     }
-    const shape = E.shapeAt(scene.elements, p.x, p.y, { containersOnly: true });
+    const shape = E.shapeAt(free(), p.x, p.y, { containersOnly: true });
     if (shape) editInside(shape);
     else if (!hit) newText(p);
   });
@@ -1456,8 +1571,10 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     if (readOnly) return;
     if (mod && k === 'z' && !ev.shiftKey) { ev.preventDefault(); doUndo(); return; }
     if (mod && (k === 'y' || (k === 'z' && ev.shiftKey))) { ev.preventDefault(); doRedo(); return; }
-    if (mod && k === 'a') { ev.preventDefault(); setTool('select'); select(scene.elements.map((e) => e.id)); syncPanel(); redraw(); return; }
+    if (mod && k === 'a') { ev.preventDefault(); setTool('select'); select(free().map((e) => e.id)); syncPanel(); redraw(); return; }
     if (mod && k === 'd') { ev.preventDefault(); duplicate(); return; }
+    if (mod && !ev.shiftKey && k === 'f') { ev.preventDefault(); openSearch(); return; }
+    if (mod && ev.shiftKey && k === 'l') { ev.preventDefault(); if (selected.size) lockSelected(); else unlockAll(); return; }
     if (mod && k === 'g') { ev.preventDefault(); if (ev.shiftKey) ungroupSelected(); else groupSelected(); return; }
     if (mod && k === 'c') { clipboard = selection().map((e) => structuredClone(e)); return; }
     if (mod && k === 'v' && clipboard?.length) {
@@ -1486,7 +1603,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     // Tab goes through the elements while something is selected (Escape clears it and Tab leaves the editor).
     if (ev.key === 'Tab' && ev.target === root && selected.size) {
       const list = [];
-      for (const e of scene.elements) if (!E.isBoundText(e) && !list.some((x) => e.group && x.group === e.group)) list.push(e);
+      for (const e of free()) if (!E.isBoundText(e) && !list.some((x) => e.group && x.group === e.group)) list.push(e);
       if (list.length) {
         ev.preventDefault();
         const cur = list.findIndex((e) => selected.has(e.id));
@@ -1500,8 +1617,8 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     }
     if (ev.key === 'Enter' && !selected.size) {
       ev.preventDefault();
-      if (tool === 'select' && scene.elements.length) {
-        select([scene.elements.find((e) => !E.isBoundText(e)).id]);
+      if (tool === 'select' && free().some((e) => !E.isBoundText(e))) {
+        select([free().find((e) => !E.isBoundText(e)).id]);
         revealSelection();
         syncPanel();
         redraw();

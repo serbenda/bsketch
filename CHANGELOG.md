@@ -11,6 +11,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
 - Pasting plain text on the canvas writes it as a text.
 - **Chain the next shape:** with a shape selected, Ctrl+arrow keys (Cmd on a Mac) add the same shape on that side,
   joined by an arrow, ready to write in; a taken place is skipped.
+- **Lock** (Ctrl+Shift+L or the panel): locked elements can't be selected, moved or erased until "Unlock all".
+- **Search** (Ctrl+F): finds texts and frame titles, without minding case or accents, and goes through them.
+- **More styles:** dotted lines, a cross-hatch fill and round corners for rectangles (also to and from Excalidraw).
 - **Export to Excalidraw** (☰ menu, `.excalidraw`): shapes, texts, fonts, attached arrows, groups, frames and
   pictures go across, so drawings move freely between both.
 - **Animated arrows:** a Flow choice (Still or Animated) for arrows and lines; their dashes move in their

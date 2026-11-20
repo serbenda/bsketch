@@ -41,3 +41,4 @@ would break that.
 | P10 | [Quick diagrams: Ctrl+arrow keys chain the next shape with an arrow; starter templates](phases/P10-quick-diagrams.md) | ✅ |
 | P11 | [Animated flow arrows (on screen and in the exported SVG)](phases/P11-animated-arrows.md) | ✅ |
 | P12 | [Export to `.excalidraw`; Snowlog updated with the new engine](phases/P12-excalidraw-export-snowlog.md) | ✅ |
+| P13 | [Lock, search and more styles](phases/P13-lock-search-styles.md) | ✅ |

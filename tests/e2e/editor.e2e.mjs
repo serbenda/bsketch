@@ -938,3 +938,48 @@ test('export to .excalidraw from the menu, and open it again', { skip }, async (
     await page.close();
   }
 });
+
+test('lock, search and more styles', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    await page.click('#menu-button');
+    await page.click('#text-diagram');
+    await page.fill('#td-text', 'graph LR\nA[Acción] --> B[Plan]\nB --> C[Acción final]');
+    await page.click('#td-insert');
+    await page.waitFor('!document.getElementById("td-dialog").open');
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    // Search: accents and case don't matter; Enter goes to the next match.
+    await page.press('f', { ctrl: true });
+    await page.waitFor('!document.querySelector(".sk-search").hidden');
+    await page.fill('.sk-searchinput', 'ACCION');
+    assert.equal(await page.eval('document.querySelector(".sk-searchcount").textContent'), '1 of 2');
+    await page.eval('document.querySelector(".sk-searchinput").dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); true');
+    assert.equal(await page.eval('document.querySelector(".sk-searchcount").textContent'), '2 of 2');
+    let s = await scene(page);
+    const second = s.elements.find((e) => e.text === 'Acción final').containerId;
+    assert.match(await page.eval('document.querySelector(".sk-sr[aria-live]").textContent'), /rectangle/);
+    await page.eval('document.querySelector(".sk-searchinput").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); true');
+    assert.equal(await page.eval('document.querySelector(".sk-search").hidden'), true);
+    // Styles on the selected box: dotted, cross-hatch, round corners.
+    await page.click('[aria-label="Line style"] button', 'Dotted');
+    await page.click('[aria-label="Fill style"] button', 'Cross-hatch');
+    await page.click('[aria-label="Corners"] button', 'Round');
+    s = await scene(page);
+    const box = s.elements.find((e) => e.id === second);
+    assert.deepEqual([box.dotted, box.dashed, box.fillStyle, box.rounded], [true, true, 'cross-hatch', true]);
+    // Lock it: it can't be selected any more, Ctrl+A skips it; Unlock all brings it back.
+    await page.press('L', { ctrl: true, shift: true });
+    s = await scene(page);
+    assert.equal(s.elements.find((e) => e.id === second).locked, true);
+    await page.press('a', { ctrl: true });
+    assert.match(await page.eval('document.querySelector(".sk-sr[aria-live]").textContent'), /Selected: 4 elements/, 'two boxes and two arrows, not the locked one');
+    assert.equal(await page.eval('document.querySelector("[aria-label=\\"Unlock all\\"]").hidden'), false);
+    await page.click('[aria-label="Unlock all"]');
+    s = await scene(page);
+    assert.equal(s.elements.find((e) => e.id === second).locked, undefined);
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});

@@ -13,9 +13,10 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- P11 and P12 done on `development`, in PR #23; Snowlog's engine update in serbenda/snowlog#8. S4's planned phases are done: next, small extras (lock, search, styles) and then `v1.2.0`.
+- P11, P12 and P13 done on `development`, in PR #23; Snowlog's engine update in serbenda/snowlog#8. 1.2.0 is complete: next, the `v1.2.0` release.
 
 ## Recently done
+- [P13](phases/P13-lock-search-styles.md): lock, search (Ctrl+F), dotted lines, cross-hatch, round corners.
 - [P12](phases/P12-excalidraw-export-snowlog.md): export to `.excalidraw`; Snowlog with the new engine.
 - [P11](phases/P11-animated-arrows.md): animated flow arrows, on screen and in the exported SVG.
 - [P09](phases/P09-text-to-diagram.md) and [P10](phases/P10-quick-diagrams.md) merged (PR #22).
@@ -48,7 +49,7 @@ Last updated: 2026-11-20
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. Small extras for 1.2.0 (lock elements, search text, more styles), then the `v1.2.0` release.
+1. The `v1.2.0` release (version bump PR, then the release script with provenance).
 2. Owner: P02's checklist on Safari, Firefox, a real phone and the desktop apps; anything failing becomes a 1.1.x.
 3. Optional (owner): the OpenSSF best-practices badge (bestpractices.dev); a lawyer's look at the license.
 

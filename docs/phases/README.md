@@ -21,3 +21,4 @@ Each block of work has a phase file `PNN-short-title.md` created with `/new-phas
 | [P10](P10-quick-diagrams.md) | S4 | Quick diagrams: chain the next shape, templates | ✅ |
 | [P11](P11-animated-arrows.md) | S4 | Animated flow arrows | ✅ |
 | [P12](P12-excalidraw-export-snowlog.md) | S4 | Export to Excalidraw; Snowlog with the new engine | ✅ |
+| [P13](P13-lock-search-styles.md) | S4 | Lock, search and more styles | ✅ |

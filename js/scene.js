@@ -11,6 +11,9 @@
 //   fileId        (image) its picture, kept once per scene in `scene.files` as a data: URL
 //   name          (frame) the frame's title, shown above it
 //   animated      (arrow, line) true: its dashes move along it, showing a flow
+//   dotted        true (with dashed): a dotted line instead of a dashed one
+//   rounded       (rectangle) true: round corners
+//   locked        true: can't be selected, moved, erased or written into until unlocked
 //
 // A scene is { type, version, background, elements, files? }; `files` maps a file id to an image's data: URL.
 
@@ -98,6 +101,8 @@ function cleanFiles(raw) {
 
 // Arrowheads of an arrow: at its end (the default, not stored), its start, both or none.
 export const HEADS = ['end', 'start', 'both', 'none'];
+// Fills: hachure (the default), cross-hatch or solid.
+export const FILL_STYLES = ['hachure', 'cross-hatch', 'solid'];
 
 // How a line or an arrow goes from one end to the other: straight (the default, not stored), with right-angle
 // elbows, or along a gentle curve. Only for lines and arrows with two points (their ends).
@@ -139,6 +144,9 @@ export function createElement(type, x, y, style = {}) {
   if (type !== 'arrow' || el.heads === 'end' || !HEADS.includes(el.heads)) delete el.heads;
   if ((type !== 'arrow' && type !== 'line') || el.route === 'straight' || !ROUTES.includes(el.route)) delete el.route;
   if ((type !== 'arrow' && type !== 'line') || el.animated !== true) delete el.animated;
+  if (type !== 'rectangle' || el.rounded !== true) delete el.rounded;
+  if (el.dotted !== true || type === 'text' || type === 'image' || type === 'frame') delete el.dotted;
+  delete el.locked;
   if (type !== 'text' || el.font === 'hand' || !Object.hasOwn(FONTS, String(el.font))) delete el.font;
   if (type === 'draw' || type === 'line' || type === 'arrow') el.points = [{ x: 0, y: 0 }];
   if (type === 'text') el.text = '';
@@ -704,7 +712,7 @@ export function cleanElement(raw) {
     seed: Math.floor(num(raw.seed, newSeed())) >>> 0,
     stroke: color(raw.stroke, DEFAULT_STYLE.stroke),
     fill: color(raw.fill, DEFAULT_STYLE.fill),
-    fillStyle: raw.fillStyle === 'solid' ? 'solid' : 'hachure',
+    fillStyle: FILL_STYLES.includes(raw.fillStyle) ? raw.fillStyle : 'hachure',
     width: clamp(num(raw.width, 2), 0.5, 40),
     dashed: raw.dashed === true,
     roughness: clamp(num(raw.roughness, 1), 0, 3),
@@ -740,6 +748,9 @@ export function cleanElement(raw) {
   if (el.type === 'arrow' && HEADS.includes(raw.heads) && raw.heads !== 'end') el.heads = raw.heads;
   if ((el.type === 'arrow' || el.type === 'line') && ROUTES.includes(raw.route) && raw.route !== 'straight' && el.points.length === 2) el.route = raw.route;
   if ((el.type === 'arrow' || el.type === 'line') && raw.animated === true) el.animated = true;
+  if (el.type === 'rectangle' && raw.rounded === true) el.rounded = true;
+  if (raw.dotted === true && raw.dashed === true && el.type !== 'text' && el.type !== 'image' && el.type !== 'frame') el.dotted = true;
+  if (raw.locked === true) el.locked = true;
   if (ref(raw.group)) el.group = ref(raw.group);
   return el;
 }
@@ -805,9 +816,12 @@ export function fromExcalidraw(data) {
       seed: e.seed,
       stroke: e.strokeColor,
       fill: e.backgroundColor,
-      fillStyle: e.fillStyle === 'solid' ? 'solid' : 'hachure',
+      fillStyle: FILL_STYLES.includes(e.fillStyle) ? e.fillStyle : 'hachure',
       width: e.strokeWidth,
       dashed: e.strokeStyle === 'dashed' || e.strokeStyle === 'dotted',
+      dotted: e.strokeStyle === 'dotted',
+      rounded: e.type === 'rectangle' && !!e.roundness,
+      locked: e.locked === true,
       roughness: e.roughness,
       opacity: e.opacity != null ? num(e.opacity, 100) / 100 : 1,
       fontSize: e.fontSize,
@@ -855,10 +869,10 @@ export function toExcalidraw(scene) {
     const base = {
       id: e.id, type: e.type === 'draw' ? 'freedraw' : e.type, x: e.x, y: e.y, width: b.w, height: b.h,
       angle: isLinear(e) ? 0 : e.angle || 0, strokeColor: e.stroke, backgroundColor: e.fill,
-      fillStyle: e.fillStyle === 'solid' ? 'solid' : 'hachure', strokeWidth: e.width, strokeStyle: e.dashed ? 'dashed' : 'solid',
+      fillStyle: FILL_STYLES.includes(e.fillStyle) ? e.fillStyle : 'hachure', strokeWidth: e.width, strokeStyle: e.dotted ? 'dotted' : e.dashed ? 'dashed' : 'solid',
       roughness: e.roughness, opacity: Math.round(e.opacity * 100), seed: e.seed, version: 1, versionNonce: nonce++,
       isDeleted: false, groupIds: e.group ? [e.group] : [], frameId: frameOf.get(e.id) || null,
-      boundElements: bound.get(e.id) || null, updated: 0, link: null, locked: false, roundness: null,
+      boundElements: bound.get(e.id) || null, updated: 0, link: null, locked: e.locked === true, roundness: e.rounded ? { type: 3 } : null,
     };
     if (isLinear(e)) {
       const pts = e.type === 'draw' ? e.points.map((p) => ({ x: e.x + p.x, y: e.y + p.y })) : routePoints(e);
@@ -910,16 +924,36 @@ const turnPath = (path, c, a) => path.map((cmd) => {
   return { ...cmd, x: p.x, y: p.y, cx: q.x, cy: q.y };
 });
 
+// A rectangle's outline with round corners: the straight sides and a few points along each corner.
+function roundedCorners(b) {
+  const r = Math.min(32, Math.min(b.w, b.h) * 0.2);
+  const pts = [];
+  const corner = (cx, cy, a0) => {
+    for (let i = 0; i <= 4; i++) {
+      const a = a0 + (i / 4) * (Math.PI / 2);
+      pts.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r });
+    }
+  };
+  corner(b.x + b.w - r, b.y + r, -Math.PI / 2);
+  corner(b.x + b.w - r, b.y + b.h - r, 0);
+  corner(b.x + r, b.y + b.h - r, Math.PI / 2);
+  corner(b.x + r, b.y + r, Math.PI);
+  return pts;
+}
+
+// A path mirrored left to right around x = axis / 2.
+const mirrorX = (path, axis) => path.map((c) => (c.op === 'Z' ? c : c.op === 'Q' ? { ...c, x: axis - c.x, cx: axis - c.cx } : { ...c, x: axis - c.x }));
+
 export function drawOps(el) {
   const opts = { seed: el.seed, roughness: el.roughness };
-  const base = { stroke: el.stroke, width: el.width, dashed: el.dashed, opacity: el.opacity };
+  const base = { stroke: el.stroke, width: el.width, dashed: el.dashed, opacity: el.opacity, ...(el.dotted ? { dotted: true } : {}) };
   const b = bounds(el);
   const ops = [];
   const filled = el.fill && el.fill !== 'transparent';
   let outline = null;
   let shape = null; // clean outline to fill or to clip the hachure
   if (el.type === 'rectangle') {
-    const pts = [{ x: b.x, y: b.y }, { x: b.x + b.w, y: b.y }, { x: b.x + b.w, y: b.y + b.h }, { x: b.x, y: b.y + b.h }];
+    const pts = el.rounded ? roundedCorners(b) : [{ x: b.x, y: b.y }, { x: b.x + b.w, y: b.y }, { x: b.x + b.w, y: b.y + b.h }, { x: b.x, y: b.y + b.h }];
     outline = polylinePath(pts, { ...opts, closed: true });
     shape = [{ op: 'M', ...pts[0] }, ...pts.slice(1).map((p) => ({ op: 'L', ...p })), { op: 'Z' }];
   } else if (el.type === 'diamond') {
@@ -959,7 +993,11 @@ export function drawOps(el) {
   }
   if (filled) {
     if (el.fillStyle === 'solid') ops.push({ fill: el.fill, opacity: el.opacity, path: shape });
-    else ops.push({ stroke: el.fill, width: Math.max(1, el.width / 2), opacity: el.opacity, path: hachurePath(b.x, b.y, b.w, b.h, opts), clip: shape });
+    else {
+      ops.push({ stroke: el.fill, width: Math.max(1, el.width / 2), opacity: el.opacity, path: hachurePath(b.x, b.y, b.w, b.h, opts), clip: shape });
+      // Cross-hatch: the same lines again, mirrored, so they cross.
+      if (el.fillStyle === 'cross-hatch') ops.push({ stroke: el.fill, width: Math.max(1, el.width / 2), opacity: el.opacity, path: mirrorX(hachurePath(b.x, b.y, b.w, b.h, { ...opts, seed: opts.seed + 11 }), b.x * 2 + b.w), clip: shape });
+    }
   }
   ops.push({ ...base, path: outline });
   if (!el.angle) return ops;

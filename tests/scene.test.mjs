@@ -656,3 +656,23 @@ test('export to .excalidraw: what bsketch has comes back the same when opened ag
   const curved = E.toExcalidraw({ ...E.emptyScene(), elements: [{ ...E.cleanElement({ id: 'c', type: 'arrow', x: 0, y: 0, points: [{ x: 0, y: 0 }, { x: 100, y: 0 }], route: 'curve' }) }] });
   assert.ok(curved.elements[0].points.length > 2 && curved.elements[0].roundness.type === 2);
 });
+
+test('more styles and lock: dotted, cross-hatch, round corners and locked are kept, checked and drawn', () => {
+  const rect = { id: 'r', type: 'rectangle', x: 0, y: 0, w: 100, h: 60, fill: '#a5d8ff', fillStyle: 'cross-hatch', rounded: true, dashed: true, dotted: true, locked: true };
+  const c = E.cleanElement(rect);
+  assert.deepEqual([c.fillStyle, c.rounded, c.dotted, c.locked], ['cross-hatch', true, true, true]);
+  assert.equal(E.cleanElement({ ...rect, fillStyle: 'zigzag' }).fillStyle, 'hachure');
+  assert.equal(E.cleanElement({ ...rect, type: 'ellipse' }).rounded, undefined, 'round corners only on rectangles');
+  assert.equal(E.cleanElement({ ...rect, dashed: false }).dotted, undefined, 'dotted needs a dashed line');
+  assert.equal(E.cleanElement({ ...rect, locked: 'yes' }).locked, undefined);
+  assert.equal(E.createElement('rectangle', 0, 0, { locked: true }).locked, undefined, 'new elements are never locked');
+  const ops = E.drawOps(c);
+  assert.equal(ops.filter((o) => o.clip).length, 2, 'cross-hatch: two sets of lines');
+  assert.ok(ops.at(-1).dotted && ops.at(-1).path.length > 20, 'a dotted, round outline');
+  const svg = toSvgString({ ...E.emptyScene(), elements: [c] });
+  assert.match(svg, /stroke-dasharray="0.1 /);
+  const ex = E.toExcalidraw({ ...E.emptyScene(), elements: [c] }).elements[0];
+  assert.deepEqual([ex.strokeStyle, ex.fillStyle, ex.roundness?.type, ex.locked], ['dotted', 'cross-hatch', 3, true]);
+  const back = E.parseScene(JSON.stringify(E.toExcalidraw({ ...E.emptyScene(), elements: [c] }))).elements[0];
+  assert.deepEqual([back.fillStyle, back.rounded, back.dotted, back.locked], ['cross-hatch', true, true, true]);
+});

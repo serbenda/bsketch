@@ -149,7 +149,7 @@ export function paintElement(ctx, el, files, imageFilter = '') {
       ctx.lineWidth = op.width;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.setLineDash(op.dashed ? [op.width * 4, op.width * 3] : []);
+      ctx.setLineDash(op.dotted ? [0.1, op.width * 2.4] : op.dashed ? [op.width * 4, op.width * 3] : []);
       // A flow moves its dashes from start to end: one pattern length per FLOW_PERIOD.
       if (op.flow) ctx.lineDashOffset = -((flowTime % FLOW_PERIOD) / FLOW_PERIOD) * op.width * 7;
       if (op.p2d) ctx.stroke(op.p2d);
@@ -232,7 +232,7 @@ export function toSvgString(scene, { padding = 20, background = true, box = null
       }
       const style = op.fill
         ? `fill="${esc(op.fill)}" stroke="none"`
-        : `fill="none" stroke="${esc(op.stroke)}" stroke-width="${n(op.width, 2)}" stroke-linecap="round" stroke-linejoin="round"${op.dashed ? ` stroke-dasharray="${n(op.width, 2) * 4} ${n(op.width, 2) * 3}"` : ''}`;
+        : `fill="none" stroke="${esc(op.stroke)}" stroke-width="${n(op.width, 2)}" stroke-linecap="round" stroke-linejoin="round"${op.dotted ? ` stroke-dasharray="0.1 ${n(op.width, 2) * 2.4}"` : op.dashed ? ` stroke-dasharray="${n(op.width, 2) * 4} ${n(op.width, 2) * 3}"` : ''}`;
       // A flow: the dashes move with SVG's own animation (no script).
       const flow = op.flow ? `<animate attributeName="stroke-dashoffset" from="${n(op.width, 2) * 7}" to="0" dur="${FLOW_PERIOD / 1000}s" repeatCount="indefinite"/>` : '';
       parts.push(flow ? `<path d="${toSvgD(op.path)}" ${style} opacity="${n(op.opacity, 1)}"${clip}>${flow}</path>` : `<path d="${toSvgD(op.path)}" ${style} opacity="${n(op.opacity, 1)}"${clip}/>`);
@@ -291,7 +291,7 @@ export function toSvgElement(doc, scene, { padding = 20, maxWidth = null, backgr
       const attrs = op.fill
         ? { d: toSvgD(op.path), fill: op.fill, stroke: 'none', opacity: op.opacity ?? 1 }
         : { d: toSvgD(op.path), fill: 'none', stroke: op.stroke, 'stroke-width': op.width, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: op.opacity ?? 1 };
-      if (!op.fill && op.dashed) attrs['stroke-dasharray'] = `${op.width * 4} ${op.width * 3}`;
+      if (!op.fill && op.dashed) attrs['stroke-dasharray'] = op.dotted ? `0.1 ${op.width * 2.4}` : `${op.width * 4} ${op.width * 3}`;
       if (op.clip) {
         clipN += 1;
         const cp = mk('clipPath', { id: `${prefix}c${clipN}` });

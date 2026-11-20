@@ -16,6 +16,22 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — P13: lock, search and more styles
+- **Phase / issue:** P13
+- **What:** `locked`, `dotted`, `rounded` and `fillStyle: 'cross-hatch'` in the model (validated, to and from
+  Excalidraw); round outlines and mirrored hachure in `drawOps`; dotted dashes on canvas and SVG; the panel's line
+  style (solid, dashed, dotted), fill (hachure, cross-hatch, solid) and corners; Lock and Unlock all; the search box
+  (Ctrl+F, accent- and case-insensitive, reading order); Spanish strings; fuzz checks for the new fields; service
+  worker v16.
+- **Why:** the 1.2.0 extras the owner chose.
+- **Rejected:** locking with a separate "locked layer" (a field per element is simpler and travels to Excalidraw);
+  search with regular expressions (plain text is what people type).
+- **Files:** js/scene.js, js/render.js, js/editor.js, js/i18n.js, css/sketch.css, sw.js, tests/, README.md,
+  CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 62 pass; fuzz seeds 1–2 at 2000 runs; `npm run test:e2e` 22 pass; a screenshot in Spanish.
+- **Pending:** —
+
 ## 2026-11-20 — The canvas locks as soon as a drawing switch starts
 - **Phase / issue:** P11 (CI on PR #23)
 - **What:** New, Open, choosing a drawing, a template and Delete lock the canvas before they start (it unlocked only
