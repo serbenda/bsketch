@@ -13,7 +13,7 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- Version 1.3.0 prepared with S5 in PR #25; the owner releases it with `bsketch-release.sh 1.3.0` (outside the repo).
+- 1.3.0 on `main`, waiting for the owner's release. The road to 2.0 (final) is in the [ROADMAP](ROADMAP.md): S6 (1.4), S7 (1.5), S8 (2.0).
 
 ## Recently done
 - [P16](phases/P16-bend-arrows.md): curve an arrow by hand.
@@ -54,10 +54,10 @@ Last updated: 2026-11-20
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. Owner: P02's checklist on Safari, Firefox, a real phone and the desktop apps; anything failing becomes a 1.2.x.
-2. Optional (owner): signing for macOS (Apple Developer Program) and Windows. (The OpenSSF best-practices badge
-   needs an open-source license, so it doesn't apply since 1.1.0.)
-3. Owner: merge PR #25, then `bsketch-release.sh 1.3.0`.
+1. Owner: `bsketch-release.sh 1.3.0`.
+2. S6 ([ROADMAP](ROADMAP.md)): P17 Snowlog on the 1.3 engine, P18 library and templates in Snowlog, P19 the owner's
+   device checklist, P20 three more languages.
+3. Then S7 (1.5: speaker notes, PDF, smart connectors) and S8 (2.0: signed apps, audits, help, format freeze).
 
 ## Blocked / awaiting decision
 - Nothing.
