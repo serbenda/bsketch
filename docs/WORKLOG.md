@@ -16,6 +16,17 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — P17: Snowlog on the 1.3 engine
+- **Phase / issue:** P17
+- **What:** the phase file, ROADMAP (S6 in progress) and STATE; the work itself is serbenda/snowlog#9 (engine from
+  `v1.3.0`, Chrome start, and a fix to Snowlog's sync: versions are date + a random `rev`).
+- **Why:** S6's first phase.
+- **Rejected:** copying from `development`'s tip (the copy should name the released commit).
+- **Files:** docs/phases/P17-snowlog-engine-1-3.md, docs/phases/README.md, docs/ROADMAP.md, docs/STATE.md
+- **Commits:** this one.
+- **Tested:** see Snowlog's PR.
+- **Pending:** —
+
 ## 2026-11-20 — The road to 2.0 (final)
 - **Phase / issue:** —
 - **What:** ROADMAP: S4 and S5 in the stage table; new stages S6 (1.4: Snowlog, the owner's devices, languages), S7

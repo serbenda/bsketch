@@ -25,3 +25,4 @@ Each block of work has a phase file `PNN-short-title.md` created with `/new-phas
 | [P14](P14-frame-clipping.md) | S5 | Frames clip what they hold | ✅ |
 | [P15](P15-presentation.md) | S5 | Presentation mode with a laser pointer | ✅ |
 | [P16](P16-bend-arrows.md) | S5 | Curve an arrow by hand | ✅ |
+| [P17](P17-snowlog-engine-1-3.md) | S6 | Snowlog on the 1.3 engine | ✅ |
