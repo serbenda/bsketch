@@ -515,7 +515,11 @@ test('drawings kept by older versions in localStorage move into IndexedDB; a fai
 test('languages: the chosen one, else the browser\'s, else English; untranslated text stays English', () => {
   assert.equal(pickLang('es', ['en-US']), 'es');
   assert.equal(pickLang('auto', ['es-ES', 'en']), 'es');
-  assert.equal(pickLang('auto', ['fr-FR', 'de']), 'en');
+  assert.equal(pickLang('auto', ['de-DE', 'es']), 'es');
+  assert.equal(pickLang('auto', ['fr-FR', 'de']), 'fr');
+  assert.equal(pickLang('auto', ['pt-BR']), 'pt');
+  assert.equal(pickLang('auto', ['ca-ES']), 'ca');
+  assert.equal(pickLang('auto', ['de', 'ja']), 'en');
   assert.equal(pickLang('auto', []), 'en');
   const es = translator('es');
   assert.equal(es('Rectangle'), 'Rectángulo');
@@ -719,4 +723,19 @@ test('bending a curve by hand: through a point, either side, checked and dropped
   assert.equal(back.bend, el.bend);
   const straight = E.cleanElement({ ...el, route: undefined });
   assert.deepEqual(E.midPoint(straight), { x: 100, y: 0 });
+});
+
+test('languages: Catalan, French and Portuguese translate what Spanish does, holes included', () => {
+  const probe = [
+    'Select', 'Text to diagram…', 'Selected: {n} elements', 'Opened "{name}": {n} elements.', '{i} of {n}',
+    'Drawn: {n} boxes, {e} arrows.', 'All rights reserved.', 'Present (Shift+P)', 'Delete (Del)',
+  ];
+  const holes = (x) => (x.match(/\{\w+\}/g) || []).sort().join();
+  for (const lang of ['ca', 'fr', 'pt']) {
+    const t = translator(lang);
+    for (const s of probe) {
+      assert.notEqual(t(s), s, `${lang}: "${s}" is translated`);
+      assert.equal(holes(t(s)), holes(s), `${lang}: "${s}" keeps its holes`);
+    }
+  }
 });

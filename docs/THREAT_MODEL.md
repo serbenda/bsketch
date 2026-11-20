@@ -26,7 +26,7 @@ Last reviewed: 2026-11-17
 | Browser storage (`sketch.drawings`) | Scripts on the same origin (none other) | The list of drawings: ids checked against `[a-z0-9]{4,40}`, names cut to 80 characters, at most 500; an unknown open drawing falls back to the first | No |
 | Pictures (insert, paste, drop) and library files | Anyone who gets a file to the user | Image files; `.bsketchlib` / `.excalidrawlib` JSON | No |
 | Pasted or typed text, the clipboard | Anyone who gets text into the user's clipboard | Text turned into a diagram (`js/textdiagram.js`, with limits: 50,000 characters, 300 boxes, 600 arrows, 200 characters per label; no `eval`); bsketch clipboard JSON, opened through `parseScene` | No |
-| Browser storage (`sketch.prefs`) | Scripts on the same origin (none other) | The appearance (`system`, `light` or `dark`), the grid (`true`/`false`) and the language (`auto`, `en` or `es`) | No |
+| Browser storage (`sketch.prefs`) | Scripts on the same origin (none other) | The appearance (`system`, `light` or `dark`), the grid (`true`/`false`) and the language (`auto`, `en`, `es`, `ca`, `fr` or `pt`) | No |
 | Snowlog embedding | Snowlog, with scenes decrypted from the user's vault | Scene object | Snowlog's session |
 | Desktop webview | The page inside the app | — (no IPC exposed) | No |
 | CI and desktop build | Workflows, actions, crates, `npx` tools | Code | GitHub permissions |

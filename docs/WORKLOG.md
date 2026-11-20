@@ -16,6 +16,20 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — P20: Catalan, French and Portuguese
+- **Phase / issue:** P20
+- **What:** `CA`, `FR` and `PT` dictionaries (194 strings each, every placeholder kept) in `js/i18n.js`; `LANGS` and
+  the prefs' `LANG_CHOICES`; the menu's Language radios (Català, Français, Português); the templates in each
+  language; icon buttons' accessible names translated (the translated title without its shortcut); service worker
+  v20; THREAT_MODEL's pref values.
+- **Why:** S6's last agent phase.
+- **Rejected:** Brazilian Portuguese as its own choice (one Portuguese for now; Portugal's, closest to the owner).
+- **Files:** js/i18n.js, js/prefs.js, js/templates.js, js/editor.js, index.html, sw.js, tests/, README.md,
+  CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 65 pass; `npm run test:e2e` 28 pass (one walkthrough per language); the portable build.
+- **Pending:** —
+
 ## 2026-11-20 — P18: library and templates in Snowlog
 - **Phase / issue:** P18
 - **What:** the phase file, ROADMAP and STATE; the work is serbenda/snowlog#9 (the library encrypted in the vault,

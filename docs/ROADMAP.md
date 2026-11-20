@@ -63,7 +63,7 @@ would break that.
 | P17 | [Snowlog on the 1.3 engine (frame clipping, presentation, bent arrows); its e2e driver starts Chrome like bsketch's](phases/P17-snowlog-engine-1-3.md) | Agent | ✅ |
 | P18 | [Library and templates in Snowlog, kept encrypted in the vault like any note](phases/P18-snowlog-library-templates.md) | Agent | ✅ |
 | P19 | The owner's checklist (P02) on Safari, Firefox, a real phone and the three desktop apps; every ❌ fixed in a 1.3.x | Owner, then agent | ⬜ |
-| P20 | Catalan, French and Portuguese (the translation system is ready: strings and a test that nothing is left in English) | Agent | ⬜ |
+| P20 | [Catalan, French and Portuguese (the translation system is ready: strings and a test that nothing is left in English)](phases/P20-languages.md) | Agent | ✅ |
 
 ## S7 — 1.5.0: presenting and sharing
 

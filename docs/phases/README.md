@@ -27,3 +27,4 @@ Each block of work has a phase file `PNN-short-title.md` created with `/new-phas
 | [P16](P16-bend-arrows.md) | S5 | Curve an arrow by hand | ✅ |
 | [P17](P17-snowlog-engine-1-3.md) | S6 | Snowlog on the 1.3 engine | ✅ |
 | [P18](P18-snowlog-library-templates.md) | S6 | Library and templates in Snowlog | ✅ |
+| [P20](P20-languages.md) | S6 | Catalan, French and Portuguese | ✅ |

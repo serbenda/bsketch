@@ -13,9 +13,10 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- S6 in progress: P17 and [P18](phases/P18-snowlog-library-templates.md) done (serbenda/snowlog#9). Next: P19 (the owner's device checklist) and P20 (three more languages).
+- S6: P17, P18 and [P20](phases/P20-languages.md) done; P19 (the owner's device checklist) is what is left before 1.4.0.
 
 ## Recently done
+- [P20](phases/P20-languages.md): Catalan, French and Portuguese.
 - [P18](phases/P18-snowlog-library-templates.md): library and templates in Snowlog.
 - **v1.3.0 released** (2026-11-20), tag on the built commit `fe1613f`, with signed provenance.
 - [P17](phases/P17-snowlog-engine-1-3.md): Snowlog on the 1.3 engine.
@@ -58,7 +59,7 @@ Last updated: 2026-11-20
 
 ## Next
 1. P19 (owner first): the device checklist on Safari, Firefox, a real phone and the desktop apps.
-2. P20: Catalan, French and Portuguese. Then S7 and S8 ([ROADMAP](ROADMAP.md)).
+2. Then 1.4.0, S7 and S8 ([ROADMAP](ROADMAP.md)).
 
 ## Blocked / awaiting decision
 - Nothing.

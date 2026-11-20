@@ -3,6 +3,13 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioned with [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- **Catalan, French and Portuguese**, chosen in the ☰ menu or taken from the browser; the templates too.
+
+### Fixed
+- Icon buttons (undo, redo, closing the search or the presentation…) are now named in the interface's language for
+  screen readers too.
+
 
 ## [1.3.0] - 2026-11-20
 ### Added
