@@ -59,7 +59,7 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 
 **Files and options** (the ☰ menu)
 - **Several drawings** kept in this browser: create, switch, rename and delete them from the menu.
-- Saves and opens `.sketch` files, opens `.excalidraw` files, exports to **PNG** and **SVG**, also with a
+- Saves and opens `.sketch` files, opens and saves `.excalidraw` files, exports to **PNG** and **SVG**, also with a
   transparent background or **only the selection**, and copies the drawing or the selection to the clipboard as a PNG.
 - **Appearance:** light, dark or the system's, whatever the system theme is.
 - **Canvas background:** six light colours, saved with the drawing.

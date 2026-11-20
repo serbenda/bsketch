@@ -40,4 +40,4 @@ would break that.
 | P09 | [Text to diagram, offline and without AI: an indented list or simple Mermaid pasted becomes boxes and arrows](phases/P09-text-to-diagram.md) | ✅ |
 | P10 | [Quick diagrams: Ctrl+arrow keys chain the next shape with an arrow; starter templates](phases/P10-quick-diagrams.md) | ✅ |
 | P11 | [Animated flow arrows (on screen and in the exported SVG)](phases/P11-animated-arrows.md) | ✅ |
-| P12 | Export to `.excalidraw`; Snowlog updated with the new engine | ⬜ |
+| P12 | [Export to `.excalidraw`; Snowlog updated with the new engine](phases/P12-excalidraw-export-snowlog.md) | ✅ |

@@ -11,6 +11,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
 - Pasting plain text on the canvas writes it as a text.
 - **Chain the next shape:** with a shape selected, Ctrl+arrow keys (Cmd on a Mac) add the same shape on that side,
   joined by an arrow, ready to write in; a taken place is skipped.
+- **Export to Excalidraw** (☰ menu, `.excalidraw`): shapes, texts, fonts, attached arrows, groups, frames and
+  pictures go across, so drawings move freely between both.
 - **Animated arrows:** a Flow choice (Still or Animated) for arrows and lines; their dashes move in their
   direction on screen and in the exported SVG (with SVG's own animation, offline), and stay still for people who ask
   for reduced motion.
