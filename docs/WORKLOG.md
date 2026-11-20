@@ -16,6 +16,18 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — The 1.0.0 release withdrawn
+- **Phase / issue:** — ([ADR 0006](decisions/0006-proprietary-license.md))
+- **What:** the v1.0.0 GitHub release is deleted (its tag goes with the owner's script); LICENSE, README, CHANGELOG
+  and ADR 0006 no longer refer to the earlier open-source license; the 1.1.0 release script no longer touches v1.0.0.
+- **Why:** the owner: "quita la release y modifica, no quiero que sea MIT".
+- **Rejected:** rewriting the repository's history to remove the old LICENSE (it would break every clone, the
+  merged PRs and the provenance of the builds, and `main` is protected against it).
+- **Files:** LICENSE, README.md, CHANGELOG.md, docs/decisions/0006-proprietary-license.md
+- **Commits:** this one.
+- **Tested:** `gh release list` shows no release; the release script still parses (`bash -n`).
+- **Pending:** the owner removes the v1.0.0 tag; then releases 1.1.0.
+
 ## 2026-11-20 — The license: all rights reserved, no use by AI
 - **Phase / issue:** — ([ADR 0006](decisions/0006-proprietary-license.md))
 - **What:** `LICENSE` becomes proprietary from 1.1.0 (viewing and personal evaluation only; anything else needs

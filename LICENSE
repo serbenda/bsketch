@@ -2,9 +2,8 @@ bsketch — Proprietary License (all rights reserved)
 
 Copyright (c) 2026 Sergio Santiago Bendaña Quesada. All rights reserved.
 
-This license applies to bsketch from version 1.1.0 onwards and to every commit of this repository made on or after
-20 November 2026: the source code, the documentation, the designs, the "bsketch" name and the "SB" logo (together,
-"the Software").
+This license applies to bsketch: the source code, the documentation, the designs, the "bsketch" name and the "SB"
+logo (together, "the Software").
 
 1. Ownership. The Software is the work of Sergio Santiago Bendaña Quesada ("the Author"), who keeps every
    intellectual and industrial property right in it. Nothing in this license transfers any of them.
@@ -40,8 +39,8 @@ This license applies to bsketch from version 1.1.0 onwards and to every commit o
 6. Contributions. Contributions are not accepted without a prior written agreement with the Author. Anything sent
    without one may be ignored and grants no right over the Software.
 
-7. Earlier versions. Versions published before this license (up to and including 1.0.0) were released under the MIT
-   License, which still applies to those exact copies; it does not apply to anything made later.
+7. Earlier versions. Earlier releases have been withdrawn and are no longer distributed by the Author. This license
+   governs the Software as published in this repository and anything obtained from it.
 
 8. Third-party parts. Parts made by others keep their own licenses, which this license does not change: the Caveat
    font (SIL Open Font License, fonts/OFL.txt), the agent skills under .claude/skills (each with its LICENSE), and

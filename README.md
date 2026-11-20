@@ -185,5 +185,4 @@ project itself is worked on: [AGENTS.md](AGENTS.md) and the [Definition of Done]
 © 2026 Sergio Santiago Bendaña Quesada. **All rights reserved.** The source is visible here, but it may not be used,
 copied, modified, redistributed, embedded or used to train AI models without the author's written permission:
 [LICENSE](LICENSE) says what is allowed and how to ask ([open an issue](https://github.com/serbenda/bsketch/issues) or
-write through [the author's profile](https://github.com/serbenda)). Versions up to 1.0.0 were published under the MIT
-License, which still applies to those copies.
+write through [the author's profile](https://github.com/serbenda)).
