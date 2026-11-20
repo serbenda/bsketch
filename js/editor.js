@@ -11,6 +11,7 @@
 
 import * as E from './scene.js';
 import { paintScene, measureWithCanvas, fontReady, onImageReady, toSvgElement } from './render.js';
+import { textToElements } from './textdiagram.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -113,7 +114,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   const helpId = `sk-help-${Math.random().toString(36).slice(2, 8)}`;
   const root = ui('div', { class: `sk-editor${readOnly ? ' sk-readonly' : ''}`, tabindex: '0', role: 'application', 'aria-label': readOnly ? 'Drawing' : 'Whiteboard', 'aria-describedby': readOnly ? null : helpId });
   const help = ui('p', { class: 'sk-sr', id: helpId },
-    'Tools: V select, R rectangle, D diamond, O ellipse, A arrow, L line, P pencil, T text, F frame, E eraser; I inserts an image; G shows the grid. '
+    'Tools: V select, R rectangle, D diamond, O ellipse, A arrow, L line, P pencil, T text, F frame, E eraser; I inserts an image; G shows the grid. Ctrl+arrow keys add the next shape, joined by an arrow. '
     + 'Enter creates the chosen shape in the center, or writes inside the selected one. Tab and Shift+Tab go through the elements; '
     + 'arrow keys move them; Alt+arrow keys resize them; [ and ] rotate them; Delete removes them; Escape clears the selection.');
   const canvas = ui('canvas', { class: 'sk-canvas', 'aria-label': 'Drawing canvas' });
@@ -628,15 +629,84 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     ev.stopPropagation();
     insertImage(file, toWorld(ev.clientX, ev.clientY));
   });
-  // Pasting: a picture from the clipboard goes in; otherwise what was copied in the editor (Ctrl+C) is pasted.
+  // New elements (copies, a diagram, a library piece) with the pictures they use: frames behind, the rest on top,
+  // selected. The caller has already called commit().
+  function addElements(list, files = {}) {
+    const all = { ...(scene.files || {}) };
+    for (const [k, v] of Object.entries(files || {})) if (!Object.hasOwn(all, k)) all[k] = v;
+    if (Object.keys(all).length) scene.files = all;
+    update([...list.filter((e) => e.type === 'frame'), ...scene.elements, ...list.filter((e) => e.type !== 'frame')]);
+    setTool('select');
+    select(list.map((e) => e.id));
+  }
+
+  // Text → a diagram (an indented list, Mermaid or `A -> B` lines) in the middle of the view; null if it isn't one.
+  function insertText(text, { direction, keepSelected = true } = {}) {
+    if (readOnly) return null;
+    const c = viewCenter();
+    const r = textToElements(text, { at: c, style: { ...style, fill: 'transparent', fillStyle: style.fillStyle }, direction });
+    if (!r) return null;
+    finishText();
+    commit();
+    addElements(r.elements);
+    revealSelection();
+    if (!keepSelected) {
+      selected.clear();
+      announce();
+    }
+    changed();
+    return { kind: r.kind, nodes: r.nodes, edges: r.edges };
+  }
+
+  // Copying puts the selection on the system clipboard too (as JSON), so it can be pasted in another tab.
+  const CLIP = 'bsketch-clipboard';
+  root.addEventListener('copy', (ev) => {
+    if (ev.target.closest('input, textarea') || !selected.size || !ev.clipboardData) return;
+    const elements = selection();
+    ev.clipboardData.setData('text/plain', JSON.stringify({ type: CLIP, version: 1, elements, files: E.filesFor(elements, scene.files) }));
+    ev.preventDefault();
+  });
+  // Pasting: a picture goes in; elements copied in bsketch (this tab or another) are pasted as copies; text becomes a
+  // diagram when it reads as one, or a text otherwise. Without a paste event (some browsers), Ctrl+V pastes what
+  // was copied in this tab.
   let pastedPicture = false;
   root.addEventListener('paste', (ev) => {
     if (readOnly || ev.target.closest('input, textarea')) return;
     const file = [...(ev.clipboardData?.items || [])].find((i) => i.kind === 'file' && i.type.startsWith('image/'))?.getAsFile();
-    if (!file) return;
+    if (file) {
+      ev.preventDefault();
+      pastedPicture = true;
+      insertImage(file);
+      return;
+    }
+    const text = ev.clipboardData?.getData('text/plain') || '';
+    if (!text.trim()) return;
     ev.preventDefault();
     pastedPicture = true;
-    insertImage(file);
+    if (text.includes(`"${CLIP}"`)) {
+      let data = null;
+      try {
+        const raw = JSON.parse(text);
+        if (raw?.type === CLIP && Array.isArray(raw.elements)) data = E.parseScene(JSON.stringify({ type: 'sketch', version: 1, elements: raw.elements, files: raw.files }));
+      } catch { /* not ours after all: treated as text below */ }
+      if (data?.elements.length) {
+        finishText();
+        commit();
+        const copies = E.cloneElements(data.elements, 24, 24);
+        addElements(copies, data.files);
+        clipboard = copies.map((e) => structuredClone(e));
+        changed();
+        return;
+      }
+    }
+    if (insertText(text)) return;
+    // Plain text: a text element in the middle of the view.
+    const c = viewCenter();
+    finishText();
+    commit();
+    const t = { ...E.createElement('text', c.x, c.y, { ...style, fill: 'transparent' }), text: text.replace(/\s+$/, '').slice(0, 10000) };
+    addElements([t]);
+    changed();
   });
 
   // --- Library ---
@@ -710,13 +780,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     }
     finishText();
     commit();
-    const copies = E.cloneElements(it.elements, dx, dy);
-    const files = { ...(scene.files || {}) };
-    for (const [k, v] of Object.entries(it.files || {})) if (!Object.hasOwn(files, k)) files[k] = v;
-    scene.files = files;
-    update([...copies.filter((e) => e.type === 'frame'), ...scene.elements, ...copies.filter((e) => e.type !== 'frame')]);
-    setTool('select');
-    select(copies.map((e) => e.id));
+    addElements(E.cloneElements(it.elements, dx, dy), it.files);
     changed();
   }
   function exportLibrary() {
@@ -877,6 +941,46 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     setTool('select');
     select([e.id]);
     changed();
+  }
+
+  // The next shape in a flowchart: same kind, size and style, on the side of `key` (an arrow key), joined to the
+  // selected one by an arrow, with its text open. A place already taken is skipped, sliding beside it.
+  const STYLE_KEYS = ['stroke', 'fill', 'fillStyle', 'width', 'dashed', 'roughness', 'opacity', 'fontSize'];
+  function chainNext(key) {
+    const from = primary()[0];
+    const b = E.bounds(from);
+    const [vx, vy] = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1] }[key];
+    const gap = 80;
+    const taken = (x, y) => scene.elements.some((e) => {
+      if (E.isBoundText(e) || e.type === 'frame' || E.isLinear(e)) return false;
+      const a = E.aabb(e);
+      return a.x < x + b.w + 20 && x - 20 < a.x + a.w && a.y < y + b.h + 20 && y - 20 < a.y + a.h;
+    });
+    let x = b.x + vx * (b.w + gap);
+    let y = b.y + vy * (b.h + gap);
+    const x0 = x;
+    const y0 = y;
+    for (let i = 1; i < 30 && taken(x, y); i++) {
+      const k = Math.ceil(i / 2) * (i % 2 ? 1 : -1);
+      if (vx) y = y0 + k * (b.h + 40);
+      else x = x0 + k * (b.w + 40);
+    }
+    if (grid) ({ x, y } = E.snapPoint({ x, y }));
+    finishText();
+    commit();
+    const own = Object.fromEntries(STYLE_KEYS.map((k) => [k, from[k]]));
+    const shape = { ...E.createElement(from.type, x, y, own), w: b.w, h: b.h };
+    if (from.group) shape.group = from.group;
+    const ca = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+    const cb = { x: x + b.w / 2, y: y + b.h / 2 };
+    const arrow = {
+      ...E.createElement('arrow', ca.x, ca.y, { ...own, fill: 'transparent', heads: style.heads, route: style.route }),
+      points: [{ x: 0, y: 0 }, { x: cb.x - ca.x, y: cb.y - ca.y }], startId: from.id, endId: shape.id,
+    };
+    update([...scene.elements, shape, arrow]);
+    select([shape.id]);
+    revealSelection();
+    editInside(shape);
   }
 
   // If the selection is out of view, the view moves to it.
@@ -1355,6 +1459,12 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     if (mod && (k === '+' || k === '=')) { ev.preventDefault(); zoomAt(1.2); return; }
     if (mod && k === '-') { ev.preventDefault(); zoomAt(1 / 1.2); return; }
     if (mod && k === '0') { ev.preventDefault(); zoomAt(1 / view.zoom); return; }
+    // Ctrl/Cmd+arrow keys with one shape selected: the next shape on that side, joined by an arrow.
+    if (mod && !ev.altKey && ev.key.startsWith('Arrow') && primary().length === 1 && E.isContainer(primary()[0])) {
+      ev.preventDefault();
+      chainNext(ev.key);
+      return;
+    }
     if (mod) return;
     if ((ev.key === 'Delete' || ev.key === 'Backspace') && selected.size) { ev.preventDefault(); removeSelected(); return; }
     if (ev.key === 'Escape') { selected.clear(); announce(); setTool('select'); return; }
@@ -1517,6 +1627,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     // The selected elements with what is inside the selected frames (for exporting a frame).
     getSelectionWithFrames: () => structuredClone(scene.elements.filter((e) => withFrameContents(selected).has(e.id))),
     insertImage,
+    insertText,
     setBackground,
     setGrid,
     setTheme,

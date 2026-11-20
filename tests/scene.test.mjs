@@ -543,6 +543,12 @@ test('images: only checked pictures are kept, once per scene, and they travel wi
   assert.deepEqual(JSON.parse(E.serializeScene({ ...s, files: { ...s.files, extra: png } })).files, { f1: png }, 'saving keeps only what is used');
   assert.equal(JSON.parse(E.serializeScene({ ...s, elements: [] })).files, undefined);
   assert.ok(!E.isImageData(`data:image/png;base64,${'A'.repeat(E.MAX_IMAGE_CHARS)}`), 'too big');
+  // A picture named like a prototype key is refused, and nothing reaches Object.prototype.
+  const evil = E.parseScene(`{"type":"sketch","version":1,"elements":[{"id":"x","type":"image","x":0,"y":0,"w":5,"h":5,"fileId":"__proto__"}],"files":{"__proto__":"${png}","constructor":"${png}"}}`);
+  assert.equal(evil.elements.length, 0);
+  assert.equal(evil.files, undefined);
+  assert.equal(({}).polluted, undefined);
+  assert.deepEqual(E.filesFor([{ type: 'image', fileId: '__proto__' }], JSON.parse(`{"__proto__":"${png}"}`)), {});
   // Excalidraw's pictures come in with their files.
   const ex = E.parseScene(JSON.stringify({ type: 'excalidraw', elements: [{ id: 'x', type: 'image', x: 1, y: 2, width: 30, height: 20, fileId: 'abc' }], files: { abc: { mimeType: 'image/png', dataURL: png } } }));
   assert.equal(ex.elements[0].type, 'image');

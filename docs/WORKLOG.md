@@ -16,6 +16,62 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — CI on PR #22: the HTML check and two CodeQL findings
+- **Phase / issue:** P09
+- **What:** the text-to-diagram dialog writes `A -&gt; B` (htmlhint refused a raw `>`); picture files read from a
+  file are built from pairs and refuse `__proto__`, `constructor` and `prototype` as names (CodeQL "remote property
+  injection"); Mermaid edges are detected by plain text search, not a regular expression (CodeQL took `-->` for an
+  HTML comment filter, a false positive).
+- **Why:** the PR's Tests and CodeQL checks failed.
+- **Rejected:** dismissing the CodeQL alerts (the first one is worth closing, and the second is cheaper to avoid).
+- **Files:** index.html, js/scene.js, js/textdiagram.js, tests/scene.test.mjs
+- **Commits:** this one.
+- **Tested:** `npm test` 59 pass (a new regression check for prototype names); fuzz with seeds 1–3 at 2000 runs;
+  `npm run test:e2e` 19 pass; no raw `>` left in the page's text.
+- **Pending:** —
+
+## 2026-11-20 — P10: chain the next shape, templates
+- **Phase / issue:** P10
+- **What:** Ctrl/Cmd+arrow keys with one shape selected add the same shape on that side (sliding past taken places),
+  joined by an arrow, with its text open (`chainNext` in `js/editor.js`); `js/templates.js` with five templates in
+  English and Spanish, drawn by text to diagram as new drawings from the ☰ menu; `insertText` can leave the result
+  unselected; service worker v13.
+- **Why:** S4's second phase: drawing flowcharts at the speed of typing (an idea from Excaliflow).
+- **Rejected:** Tab to chain (Excaliflow's key): Tab goes through the elements, which keyboard and screen-reader users
+  need; templates as stored scenes (text is smaller, editable and translatable).
+- **Files:** js/editor.js, js/templates.js, js/app.js, js/i18n.js, index.html, css/styles.css, sw.js,
+  tests/textdiagram.test.mjs, tests/e2e/editor.e2e.mjs, README.md, CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 59 pass; `npm run test:e2e` 19 pass; screenshots in Spanish.
+- **Pending:** —
+
+## 2026-11-20 — P09: text to diagram, offline and without AI
+- **Phase / issue:** P09
+- **What:** `js/textdiagram.js` reads an indented list, a Mermaid flowchart subset or `A -> B` lines and lays the
+  graph out in layers (cycles broken, barycentre ordering, parents centred, four directions); the editor's
+  `insertText`, paste of text (a diagram, or a text) and of bsketch clipboard JSON (copy now writes it); the menu's
+  "Text to diagram…" dialog with examples, direction and a live count; Spanish strings; service worker v12.
+- **Why:** S4's first phase: what other whiteboards do with a cloud AI, done in the browser.
+- **Rejected:** a Mermaid library (a dependency, and it renders its own SVG, not editable hand-drawn elements);
+  elbow arrows for lists (they zig-zag between siblings); reordering lists (their written order never crosses).
+- **Files:** js/textdiagram.js, js/editor.js, js/app.js, js/i18n.js, index.html, css/styles.css, sw.js,
+  tests/textdiagram.test.mjs, tests/e2e/editor.e2e.mjs, README.md, CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 58 pass; `npm run test:e2e` 18 pass; screenshots of the dialog and the diagrams.
+- **Pending:** —
+
+## 2026-11-20 — 1.1.0 released
+- **Phase / issue:** —
+- **What:** the owner released v1.1.0 with the release script: tag on `main` (70225f1), the three executables and
+  their Sigstore provenance (`*.intoto.jsonl`) attached; the v1.0.0 tag removed. STATE updated.
+- **Why:** P08 and the new license on `main`.
+- **Rejected:** —
+- **Files:** docs/STATE.md
+- **Commits:** this one.
+- **Tested:** `gh attestation verify bsketch-windows.exe --bundle bsketch-windows.exe.intoto.jsonl` passes on the
+  release's own files.
+- **Pending:** —
+
 ## 2026-11-20 — The 1.0.0 release withdrawn
 - **Phase / issue:** — ([ADR 0006](decisions/0006-proprietary-license.md))
 - **What:** the v1.0.0 GitHub release is deleted (its tag goes with the owner's script); LICENSE, README, CHANGELOG

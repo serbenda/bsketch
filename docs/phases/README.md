@@ -17,3 +17,5 @@ Each block of work has a phase file `PNN-short-title.md` created with `/new-phas
 | [P06](P06-text-fonts.md) | S3 | Text fonts: Hand, Normal, Code | ✅ |
 | [P07](P07-everyday-use.md) | S3 | Everyday use: several drawings, routes, export the selection, grid on resize, Spanish | ✅ |
 | [P08](P08-like-excalidraw.md) | S3 | Quality, pictures, frames and a library | ✅ |
+| [P09](P09-text-to-diagram.md) | S4 | Text to diagram, offline and without AI | ✅ |
+| [P10](P10-quick-diagrams.md) | S4 | Quick diagrams: chain the next shape, templates | ✅ |

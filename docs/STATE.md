@@ -13,9 +13,14 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- Version 1.1.0 prepared (PR to `main`); the owner releases it with the provenance script.
+- [P09](phases/P09-text-to-diagram.md) and [P10](phases/P10-quick-diagrams.md) done on `development`, in PR #22. Next: P11 (animated arrows).
 
 ## Recently done
+- [P10](phases/P10-quick-diagrams.md): Ctrl+arrow keys chain the next shape; five templates.
+- [P09](phases/P09-text-to-diagram.md): text to diagram (list, Mermaid, arrows), offline; copy and paste between tabs.
+- **v1.1.0 released** (2026-11-20) with the three executables and their signed provenance; proprietary license
+  ([ADR 0006](decisions/0006-proprietary-license.md)); the 1.0.0 release and tag withdrawn; AI crawlers kept out of
+  `/bsketch/` by bendi.dev's robots.txt.
 - OpenSSF Scorecard running on `main` (5.5/10 on its first run; badge in the README).
 - [P08](phases/P08-like-excalidraw.md): P07 reviewed, fuzz tests, drawings in IndexedDB, pictures, frames, a library.
 - **v1.0.0 released** (2026-11-19) with the three executables ([P02](phases/P02-owner-tests-and-release.md)).
@@ -40,10 +45,9 @@ Last updated: 2026-11-20
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. Owner: merge the 1.1.0 PR, then release it (`bsketch-release-1.1.0.sh`, outside the repo): tag, executables and
-   their signed provenance.
+1. P11: animated flow arrows ([ROADMAP](ROADMAP.md), S4).
 2. Owner: P02's checklist on Safari, Firefox, a real phone and the desktop apps; anything failing becomes a 1.1.x.
-3. Optional (owner): the OpenSSF best-practices badge (bestpractices.dev) for Scorecard.
+3. Optional (owner): the OpenSSF best-practices badge (bestpractices.dev); a lawyer's look at the license.
 
 ## Blocked / awaiting decision
 - Nothing.

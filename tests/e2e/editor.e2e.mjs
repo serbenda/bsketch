@@ -757,3 +757,126 @@ test('pictures, frames and the library', { skip }, async () => {
     await page.close();
   }
 });
+
+test('text to diagram: from the menu, by pasting text, and copying between tabs', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    // From the menu: an example, the live count, Insert.
+    await page.click('#menu-button');
+    await page.click('#text-diagram');
+    await page.waitFor('document.getElementById("td-dialog").open');
+    assert.equal(await page.eval('document.getElementById("td-insert").disabled'), true, 'nothing to insert yet');
+    await page.click('.td-example', 'Mermaid');
+    assert.match(await page.eval('document.getElementById("td-count").textContent'), /5 boxes, 4 arrows/);
+    await page.click('#td-insert');
+    await page.waitFor('!document.getElementById("td-dialog").open');
+    let s = await scene(page);
+    assert.equal(s.elements.filter((e) => e.type === 'arrow').length, 4);
+    assert.equal(s.elements[0].type, 'frame', 'the subgraph becomes a frame');
+    assert.ok(s.elements.filter((e) => e.type === 'arrow').every((a) => a.startId && a.endId), 'attached');
+    assert.ok(s.elements.some((e) => e.type === 'diamond'));
+
+    // Pasting text on the canvas.
+    const paste = (text) => page.eval(`(() => {
+      const dt = new DataTransfer();
+      dt.setData('text/plain', ${JSON.stringify(text)});
+      document.querySelector('.sk-editor').focus();
+      document.querySelector('.sk-editor').dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+      return true;
+    })()`);
+    const before = s.elements.length;
+    await paste('Home\n  Docs\n  Blog\n    Post');
+    s = await scene(page);
+    assert.equal(s.elements.length, before + 4 * 2 + 3, 'four boxes with their texts and three arrows');
+    await paste('just a note');
+    s = await scene(page);
+    assert.ok(s.elements.some((e) => e.type === 'text' && e.text === 'just a note' && !e.containerId), 'one line stays text');
+
+    // Copying a selection puts it on the clipboard; another tab pastes it.
+    const copied = await page.eval(`(() => {
+      const dt = new DataTransfer();
+      document.querySelector('.sk-editor').dispatchEvent(new ClipboardEvent('copy', { clipboardData: dt, bubbles: true, cancelable: true }));
+      return dt.getData('text/plain');
+    })()`);
+    assert.match(copied, /"bsketch-clipboard"/);
+    const other = await browser.newPage();
+    try {
+      await open(other);
+      await other.eval(`(() => {
+        const dt = new DataTransfer();
+        dt.setData('text/plain', ${JSON.stringify(copied)});
+        document.querySelector('.sk-editor').focus();
+        document.querySelector('.sk-editor').dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+        return true;
+      })()`);
+      const s2 = await scene(other);
+      assert.ok(s2.elements.some((e) => e.type === 'text' && e.text === 'just a note'), 'pasted in the other tab');
+      assert.deepEqual(other.errors, []);
+    } finally {
+      await other.close();
+    }
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
+test('quick diagrams: Ctrl+arrow keys chain the next shape; a template opens as a new drawing', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('r');
+    await page.drag(at(-300, -40), at(-160, 30));
+    // Ctrl+→: the next box on the right, joined by an arrow, its text open.
+    await page.press('ArrowRight', { ctrl: true });
+    await page.waitFor('!document.querySelector(".sk-textbox").hidden');
+    await page.type('Second');
+    await page.press('Escape');
+    await page.press('ArrowDown', { ctrl: true });
+    await page.waitFor('!document.querySelector(".sk-textbox").hidden');
+    await page.type('Third');
+    await page.press('Escape');
+    let s = await scene(page);
+    const boxes = s.elements.filter((e) => e.type === 'rectangle');
+    const arrows = s.elements.filter((e) => e.type === 'arrow');
+    assert.equal(boxes.length, 3);
+    assert.equal(arrows.length, 2);
+    assert.ok(arrows.every((a) => a.startId && a.endId), 'attached at both ends');
+    assert.ok(boxes[1].x > boxes[0].x + boxes[0].w && Math.abs(boxes[1].y - boxes[0].y) < 1, 'to the right');
+    assert.ok(boxes[2].y > boxes[1].y + boxes[1].h && Math.abs(boxes[2].x - boxes[1].x) < 1, 'below');
+    assert.deepEqual(s.elements.filter((e) => e.containerId).map((e) => e.text), ['Second', 'Third']);
+    // From the first box again to the right: that place is taken, so it slides beside it.
+    await page.press('v');
+    await page.mouseClick(at(-230, -40));
+    await page.press('ArrowRight', { ctrl: true });
+    await page.press('Escape');
+    s = await scene(page);
+    const all = s.elements.filter((e) => e.type === 'rectangle');
+    for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
+      const a = all[i];
+      const b = all[j];
+      assert.ok(!(a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h), 'no box on top of another');
+    }
+    // One undo removes the box and its arrow together.
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('z', { ctrl: true });
+    s = await scene(page);
+    assert.equal(s.elements.filter((e) => e.type === 'rectangle').length, 3);
+    assert.equal(s.elements.filter((e) => e.type === 'arrow').length, 2);
+
+    // A template: a new drawing named after it.
+    await page.click('#menu-button');
+    await page.click('#templates button', 'Org chart');
+    await page.waitFor('JSON.parse(localStorage.getItem("sketch.drawings")).list.length === 2');
+    s = await scene(page);
+    assert.ok(s.elements.filter((e) => e.type === 'rectangle').length >= 8);
+    const idx = JSON.parse(await page.eval('localStorage.getItem("sketch.drawings")'));
+    assert.equal(idx.list.find((d) => d.id === idx.active).name, 'Org chart');
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});

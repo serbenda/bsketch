@@ -10,8 +10,8 @@ const ES = {
   Select: 'Seleccionar', 'Pan the canvas': 'Mover el lienzo', Rectangle: 'Rectángulo', Diamond: 'Rombo',
   Ellipse: 'Elipse', Arrow: 'Flecha', Line: 'Línea', Pencil: 'Lápiz', Text: 'Texto', Eraser: 'Goma',
   Tools: 'Herramientas', Whiteboard: 'Pizarra', Drawing: 'Dibujo', 'Drawing canvas': 'Lienzo de dibujo',
-  'Tools: V select, R rectangle, D diamond, O ellipse, A arrow, L line, P pencil, T text, F frame, E eraser; I inserts an image; G shows the grid. Enter creates the chosen shape in the center, or writes inside the selected one. Tab and Shift+Tab go through the elements; arrow keys move them; Alt+arrow keys resize them; [ and ] rotate them; Delete removes them; Escape clears the selection.':
-    'Herramientas: V seleccionar, R rectángulo, D rombo, O elipse, A flecha, L línea, P lápiz, T texto, F marco, E goma; I inserta una imagen; G muestra la rejilla. Intro crea la forma elegida en el centro, o escribe dentro de la seleccionada. Tab y Mayús+Tab recorren los elementos; las flechas los mueven; Alt+flechas cambian su tamaño; [ y ] los giran; Supr los borra; Escape quita la selección.',
+  'Tools: V select, R rectangle, D diamond, O ellipse, A arrow, L line, P pencil, T text, F frame, E eraser; I inserts an image; G shows the grid. Ctrl+arrow keys add the next shape, joined by an arrow. Enter creates the chosen shape in the center, or writes inside the selected one. Tab and Shift+Tab go through the elements; arrow keys move them; Alt+arrow keys resize them; [ and ] rotate them; Delete removes them; Escape clears the selection.':
+    'Herramientas: V seleccionar, R rectángulo, D rombo, O elipse, A flecha, L línea, P lápiz, T texto, F marco, E goma; I inserta una imagen; G muestra la rejilla. Ctrl+flechas añade la siguiente forma, unida con una flecha. Intro crea la forma elegida en el centro, o escribe dentro de la seleccionada. Tab y Mayús+Tab recorren los elementos; las flechas los mueven; Alt+flechas cambian su tamaño; [ y ] los giran; Supr los borra; Escape quita la selección.',
   // Editor: frames, images and the library
   Frame: 'Marco', 'Name of this frame:': 'Nombre de este marco:', 'Insert an image': 'Insertar una imagen',
   'That file is not a picture bsketch can use (PNG, JPEG, GIF or WebP).': 'Ese archivo no es una imagen que bsketch pueda usar (PNG, JPEG, GIF o WebP).',
@@ -48,7 +48,14 @@ const ES = {
   'New drawing': 'Dibujo nuevo', 'Open…': 'Abrir…', Save: 'Guardar', Export: 'Exportar', 'Copy as PNG': 'Copiar como PNG',
   'Transparent background': 'Fondo transparente', 'Only the selection': 'Solo la selección', 'Portable version': 'Versión portátil',
   'A single file that opens with a double click, offline': 'Un solo archivo que se abre con doble clic, sin conexión',
-  'All rights reserved.': 'Todos los derechos reservados.', License: 'Licencia', Appearance: 'Apariencia', System: 'Sistema', Light: 'Claro', Dark: 'Oscuro', Language: 'Idioma', Automatic: 'Automático',
+  'All rights reserved.': 'Todos los derechos reservados.',
+  'Start from a template': 'Empezar con una plantilla', 'Text to diagram…': 'Texto a diagrama…', 'Text to diagram': 'Texto a diagrama',
+  'Write or paste an indented list, a Mermaid flowchart or lines like': 'Escribe o pega una lista con sangría, un diagrama de flujo de Mermaid o líneas como',
+  '. It is drawn here, in your browser: the text is not sent anywhere.': '. Se dibuja aquí, en tu navegador: el texto no se envía a ningún sitio.',
+  'Examples:': 'Ejemplos:', Examples: 'Ejemplos', List: 'Lista', Arrows: 'Flechas', Direction: 'Dirección',
+  'As written': 'Como esté escrito', Down: 'Hacia abajo', 'To the right': 'Hacia la derecha', Cancel: 'Cancelar',
+  '{n} boxes, {e} arrows': '{n} cajas, {e} flechas', 'Drawn: {n} boxes, {e} arrows.': 'Dibujado: {n} cajas, {e} flechas.',
+  'Not a diagram yet: write two lines or more.': 'Aún no es un diagrama: escribe dos líneas o más.', License: 'Licencia', Appearance: 'Apariencia', System: 'Sistema', Light: 'Claro', Dark: 'Oscuro', Language: 'Idioma', Automatic: 'Automático',
   'Canvas background': 'Fondo del lienzo', 'Show grid': 'Mostrar rejilla', White: 'Blanco', Paper: 'Papel',
   'Light grey': 'Gris claro', 'Light blue': 'Azul claro', 'Light yellow': 'Amarillo claro', 'Light green': 'Verde claro',
   'In the dark appearance the canvas is shown inverted. Files and exports keep the real colour.':

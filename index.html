@@ -46,6 +46,11 @@
       <button type="button" id="new" class="drawer-item">New drawing</button>
       <button type="button" id="open" class="drawer-item">Open… <kbd>Ctrl+O</kbd></button>
       <button type="button" id="save" class="drawer-item">Save <kbd>Ctrl+S</kbd></button>
+      <button type="button" id="text-diagram" class="drawer-item">Text to diagram…</button>
+    </section>
+    <section class="drawer-section" aria-labelledby="menu-templates">
+      <h3 id="menu-templates">Start from a template</h3>
+      <div id="templates" class="drawer-chips"></div>
     </section>
     <section class="drawer-section" aria-labelledby="menu-export">
       <h3 id="menu-export">Export</h3>
@@ -81,6 +86,33 @@
       <p id="background-note" class="drawer-note" hidden>In the dark appearance the canvas is shown inverted. Files and exports keep the real colour.</p>
     </fieldset>
     <p class="drawer-note drawer-legal">© 2026 Sergio Santiago Bendaña Quesada. <span>All rights reserved.</span> <a href="https://github.com/serbenda/bsketch/blob/main/LICENSE" rel="noopener noreferrer" target="_blank">License</a></p>
+  </dialog>
+  <dialog id="td-dialog" class="td-dialog" aria-labelledby="td-title">
+    <form method="dialog" id="td-form">
+      <h2 id="td-title">Text to diagram</h2>
+      <p class="td-help">Write or paste an indented list, a Mermaid flowchart or lines like <code>A -&gt; B</code>. It is drawn here, in your browser: the text is not sent anywhere.</p>
+      <div class="td-examples" role="group" aria-label="Examples">
+        <span>Examples:</span>
+        <button type="button" class="td-example" data-example="list">List</button>
+        <button type="button" class="td-example" data-example="mermaid">Mermaid</button>
+        <button type="button" class="td-example" data-example="arrows">Arrows</button>
+      </div>
+      <label class="visually-hidden" for="td-text">Text</label>
+      <textarea id="td-text" rows="12" spellcheck="false"></textarea>
+      <div class="td-row">
+        <label for="td-direction">Direction</label>
+        <select id="td-direction">
+          <option value="">As written</option>
+          <option value="TD">Down</option>
+          <option value="LR">To the right</option>
+        </select>
+        <output id="td-count" aria-live="polite"></output>
+      </div>
+      <div class="td-actions">
+        <button type="submit" value="cancel" class="drawer-item td-cancel">Cancel</button>
+        <button type="submit" value="insert" id="td-insert" class="drawer-item td-insert" disabled>Insert</button>
+      </div>
+    </form>
   </dialog>
   <main id="canvas" class="board" aria-label="Whiteboard"></main>
   <p id="status" class="status" aria-live="polite"></p>

@@ -357,3 +357,126 @@ fieldset.drawer-section legend {
     transition: none !important;
   }
 }
+
+/* Text to diagram: a centred dialog with the text, examples and the direction. */
+.td-dialog {
+  width: min(36rem, 100vw - 2rem);
+  max-height: calc(100vh - 2rem);
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.td-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.td-dialog h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+}
+
+.td-help {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.td-examples {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.td-example {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.td-example:hover {
+  border-color: var(--accent);
+}
+
+#td-text {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 12rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: 0.9rem/1.45 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  resize: vertical;
+}
+
+.td-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+  font-size: 0.9rem;
+}
+
+.td-row select {
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+#td-count {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.td-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.td-actions .drawer-item {
+  width: auto;
+  justify-content: center;
+}
+
+.td-insert {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.td-insert:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Templates in the menu: small buttons that wrap. */
+.drawer-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.drawer-chips .drawer-item {
+  width: auto;
+  padding: 0.35rem 0.7rem;
+  border-color: var(--border);
+  border-radius: 999px;
+}
