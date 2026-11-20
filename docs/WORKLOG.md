@@ -16,6 +16,17 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — P18: library and templates in Snowlog
+- **Phase / issue:** P18
+- **What:** the phase file, ROADMAP and STATE; the work is serbenda/snowlog#9 (the library encrypted in the vault,
+  templates in the command palette).
+- **Why:** S6's second phase.
+- **Rejected:** see Snowlog's worklog.
+- **Files:** docs/phases/P18-snowlog-library-templates.md, docs/phases/README.md, docs/ROADMAP.md, docs/STATE.md
+- **Commits:** this one.
+- **Tested:** see Snowlog's PR.
+- **Pending:** —
+
 ## 2026-11-20 — P17: Snowlog on the 1.3 engine
 - **Phase / issue:** P17
 - **What:** the phase file, ROADMAP (S6 in progress) and STATE; the work itself is serbenda/snowlog#9 (engine from
