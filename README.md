@@ -49,6 +49,7 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 - A **library** of pieces to reuse, which also reads Excalidraw libraries.
 - **Text to diagram, without AI:** paste an indented list, a Mermaid flowchart or `A -> B` lines and it is drawn
   for you, in your browser.
+- **Quick flowcharts:** Ctrl+arrow keys add the next box, joined by an arrow; templates to start from.
 
 **Editing**
 - Select, move, resize, **rotate**, **group**, **align and distribute**, duplicate, reorder and delete.
@@ -87,6 +88,7 @@ the antivirus may block an unsigned executable (use the portable file there). Th
 | R · D · O | Rectangle · diamond · ellipse |
 | A · L · P · T · F · E | Arrow · line · pencil · text · frame · eraser |
 | I · Shift+L | Insert a picture · open the library |
+| Ctrl+arrow keys | With a shape selected: the next shape on that side, joined by an arrow (Cmd on a Mac) |
 | Shift | Keep proportions while drawing or resizing; 15° steps for lines and rotation |
 | Ctrl+Z · Ctrl+Y | Undo · redo |
 | Ctrl+D · Ctrl+C · Ctrl+V | Duplicate · copy · paste |

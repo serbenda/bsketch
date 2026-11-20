@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseText, layoutGraph, textToElements, LIMITS } from '../js/textdiagram.js';
 import * as E from '../js/scene.js';
+import { TEMPLATES, template } from '../js/templates.js';
 
 const overlap = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 
@@ -110,4 +111,17 @@ test('text to diagram: limits, and hostile or huge text never throws or hangs', 
     const r = textToElements(s);
     if (r) for (const e of r.elements) assert.ok(E.cleanElement(e), `valid element from ${JSON.stringify(s)}`);
   }
+});
+
+test('templates: each one, in each language, is a diagram', () => {
+  for (const id of Object.keys(TEMPLATES)) {
+    for (const lang of ['en', 'es', 'fr']) {
+      const t = template(id, lang);
+      const r = textToElements(t.text, { direction: t.direction });
+      assert.ok(r && r.nodes >= 4 && r.edges >= 3, `${id} (${lang})`);
+      assert.ok(r.elements.filter((e) => e.type === 'arrow').every((a) => a.startId && a.endId));
+    }
+  }
+  assert.equal(template('__proto__'), null, 'only real templates');
+  assert.equal(template('flowchart', 'es').name, 'Diagrama de flujo');
 });

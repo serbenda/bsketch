@@ -16,6 +16,21 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — P10: chain the next shape, templates
+- **Phase / issue:** P10
+- **What:** Ctrl/Cmd+arrow keys with one shape selected add the same shape on that side (sliding past taken places),
+  joined by an arrow, with its text open (`chainNext` in `js/editor.js`); `js/templates.js` with five templates in
+  English and Spanish, drawn by text to diagram as new drawings from the ☰ menu; `insertText` can leave the result
+  unselected; service worker v13.
+- **Why:** S4's second phase: drawing flowcharts at the speed of typing (an idea from Excaliflow).
+- **Rejected:** Tab to chain (Excaliflow's key): Tab goes through the elements, which keyboard and screen-reader users
+  need; templates as stored scenes (text is smaller, editable and translatable).
+- **Files:** js/editor.js, js/templates.js, js/app.js, js/i18n.js, index.html, css/styles.css, sw.js,
+  tests/textdiagram.test.mjs, tests/e2e/editor.e2e.mjs, README.md, CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 59 pass; `npm run test:e2e` 19 pass; screenshots in Spanish.
+- **Pending:** —
+
 ## 2026-11-20 — P09: text to diagram, offline and without AI
 - **Phase / issue:** P09
 - **What:** `js/textdiagram.js` reads an indented list, a Mermaid flowchart subset or `A -> B` lines and lays the

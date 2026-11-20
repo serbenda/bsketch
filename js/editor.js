@@ -114,7 +114,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   const helpId = `sk-help-${Math.random().toString(36).slice(2, 8)}`;
   const root = ui('div', { class: `sk-editor${readOnly ? ' sk-readonly' : ''}`, tabindex: '0', role: 'application', 'aria-label': readOnly ? 'Drawing' : 'Whiteboard', 'aria-describedby': readOnly ? null : helpId });
   const help = ui('p', { class: 'sk-sr', id: helpId },
-    'Tools: V select, R rectangle, D diamond, O ellipse, A arrow, L line, P pencil, T text, F frame, E eraser; I inserts an image; G shows the grid. '
+    'Tools: V select, R rectangle, D diamond, O ellipse, A arrow, L line, P pencil, T text, F frame, E eraser; I inserts an image; G shows the grid. Ctrl+arrow keys add the next shape, joined by an arrow. '
     + 'Enter creates the chosen shape in the center, or writes inside the selected one. Tab and Shift+Tab go through the elements; '
     + 'arrow keys move them; Alt+arrow keys resize them; [ and ] rotate them; Delete removes them; Escape clears the selection.');
   const canvas = ui('canvas', { class: 'sk-canvas', 'aria-label': 'Drawing canvas' });
@@ -641,7 +641,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   }
 
   // Text → a diagram (an indented list, Mermaid or `A -> B` lines) in the middle of the view; null if it isn't one.
-  function insertText(text, { direction } = {}) {
+  function insertText(text, { direction, keepSelected = true } = {}) {
     if (readOnly) return null;
     const c = viewCenter();
     const r = textToElements(text, { at: c, style: { ...style, fill: 'transparent', fillStyle: style.fillStyle }, direction });
@@ -649,9 +649,12 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     finishText();
     commit();
     addElements(r.elements);
-    changed();
     revealSelection();
-    redraw();
+    if (!keepSelected) {
+      selected.clear();
+      announce();
+    }
+    changed();
     return { kind: r.kind, nodes: r.nodes, edges: r.edges };
   }
 
@@ -938,6 +941,46 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     setTool('select');
     select([e.id]);
     changed();
+  }
+
+  // The next shape in a flowchart: same kind, size and style, on the side of `key` (an arrow key), joined to the
+  // selected one by an arrow, with its text open. A place already taken is skipped, sliding beside it.
+  const STYLE_KEYS = ['stroke', 'fill', 'fillStyle', 'width', 'dashed', 'roughness', 'opacity', 'fontSize'];
+  function chainNext(key) {
+    const from = primary()[0];
+    const b = E.bounds(from);
+    const [vx, vy] = { ArrowRight: [1, 0], ArrowLeft: [-1, 0], ArrowDown: [0, 1], ArrowUp: [0, -1] }[key];
+    const gap = 80;
+    const taken = (x, y) => scene.elements.some((e) => {
+      if (E.isBoundText(e) || e.type === 'frame' || E.isLinear(e)) return false;
+      const a = E.aabb(e);
+      return a.x < x + b.w + 20 && x - 20 < a.x + a.w && a.y < y + b.h + 20 && y - 20 < a.y + a.h;
+    });
+    let x = b.x + vx * (b.w + gap);
+    let y = b.y + vy * (b.h + gap);
+    const x0 = x;
+    const y0 = y;
+    for (let i = 1; i < 30 && taken(x, y); i++) {
+      const k = Math.ceil(i / 2) * (i % 2 ? 1 : -1);
+      if (vx) y = y0 + k * (b.h + 40);
+      else x = x0 + k * (b.w + 40);
+    }
+    if (grid) ({ x, y } = E.snapPoint({ x, y }));
+    finishText();
+    commit();
+    const own = Object.fromEntries(STYLE_KEYS.map((k) => [k, from[k]]));
+    const shape = { ...E.createElement(from.type, x, y, own), w: b.w, h: b.h };
+    if (from.group) shape.group = from.group;
+    const ca = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+    const cb = { x: x + b.w / 2, y: y + b.h / 2 };
+    const arrow = {
+      ...E.createElement('arrow', ca.x, ca.y, { ...own, fill: 'transparent', heads: style.heads, route: style.route }),
+      points: [{ x: 0, y: 0 }, { x: cb.x - ca.x, y: cb.y - ca.y }], startId: from.id, endId: shape.id,
+    };
+    update([...scene.elements, shape, arrow]);
+    select([shape.id]);
+    revealSelection();
+    editInside(shape);
   }
 
   // If the selection is out of view, the view moves to it.
@@ -1416,6 +1459,12 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     if (mod && (k === '+' || k === '=')) { ev.preventDefault(); zoomAt(1.2); return; }
     if (mod && k === '-') { ev.preventDefault(); zoomAt(1 / 1.2); return; }
     if (mod && k === '0') { ev.preventDefault(); zoomAt(1 / view.zoom); return; }
+    // Ctrl/Cmd+arrow keys with one shape selected: the next shape on that side, joined by an arrow.
+    if (mod && !ev.altKey && ev.key.startsWith('Arrow') && primary().length === 1 && E.isContainer(primary()[0])) {
+      ev.preventDefault();
+      chainNext(ev.key);
+      return;
+    }
     if (mod) return;
     if ((ev.key === 'Delete' || ev.key === 'Backspace') && selected.size) { ev.preventDefault(); removeSelected(); return; }
     if (ev.key === 'Escape') { selected.clear(); announce(); setTool('select'); return; }

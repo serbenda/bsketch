@@ -821,3 +821,62 @@ test('text to diagram: from the menu, by pasting text, and copying between tabs'
     await page.close();
   }
 });
+
+test('quick diagrams: Ctrl+arrow keys chain the next shape; a template opens as a new drawing', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('r');
+    await page.drag(at(-300, -40), at(-160, 30));
+    // Ctrl+→: the next box on the right, joined by an arrow, its text open.
+    await page.press('ArrowRight', { ctrl: true });
+    await page.waitFor('!document.querySelector(".sk-textbox").hidden');
+    await page.type('Second');
+    await page.press('Escape');
+    await page.press('ArrowDown', { ctrl: true });
+    await page.waitFor('!document.querySelector(".sk-textbox").hidden');
+    await page.type('Third');
+    await page.press('Escape');
+    let s = await scene(page);
+    const boxes = s.elements.filter((e) => e.type === 'rectangle');
+    const arrows = s.elements.filter((e) => e.type === 'arrow');
+    assert.equal(boxes.length, 3);
+    assert.equal(arrows.length, 2);
+    assert.ok(arrows.every((a) => a.startId && a.endId), 'attached at both ends');
+    assert.ok(boxes[1].x > boxes[0].x + boxes[0].w && Math.abs(boxes[1].y - boxes[0].y) < 1, 'to the right');
+    assert.ok(boxes[2].y > boxes[1].y + boxes[1].h && Math.abs(boxes[2].x - boxes[1].x) < 1, 'below');
+    assert.deepEqual(s.elements.filter((e) => e.containerId).map((e) => e.text), ['Second', 'Third']);
+    // From the first box again to the right: that place is taken, so it slides beside it.
+    await page.press('v');
+    await page.mouseClick(at(-230, -40));
+    await page.press('ArrowRight', { ctrl: true });
+    await page.press('Escape');
+    s = await scene(page);
+    const all = s.elements.filter((e) => e.type === 'rectangle');
+    for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
+      const a = all[i];
+      const b = all[j];
+      assert.ok(!(a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h), 'no box on top of another');
+    }
+    // One undo removes the box and its arrow together.
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('z', { ctrl: true });
+    s = await scene(page);
+    assert.equal(s.elements.filter((e) => e.type === 'rectangle').length, 3);
+    assert.equal(s.elements.filter((e) => e.type === 'arrow').length, 2);
+
+    // A template: a new drawing named after it.
+    await page.click('#menu-button');
+    await page.click('#templates button', 'Org chart');
+    await page.waitFor('JSON.parse(localStorage.getItem("sketch.drawings")).list.length === 2');
+    s = await scene(page);
+    assert.ok(s.elements.filter((e) => e.type === 'rectangle').length >= 8);
+    const idx = JSON.parse(await page.eval('localStorage.getItem("sketch.drawings")'));
+    assert.equal(idx.list.find((d) => d.id === idx.active).name, 'Org chart');
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});

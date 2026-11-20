@@ -466,3 +466,17 @@ fieldset.drawer-section legend {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Templates in the menu: small buttons that wrap. */
+.drawer-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.drawer-chips .drawer-item {
+  width: auto;
+  padding: 0.35rem 0.7rem;
+  border-color: var(--border);
+  border-radius: 999px;
+}

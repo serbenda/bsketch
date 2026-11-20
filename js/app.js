@@ -11,6 +11,7 @@ import { pickLang, translator, fill } from './i18n.js';
 import { loadIndex, saveIndex, activeOf, createDrawing, openDrawing, renameDrawing, deleteDrawing, touch, nextName, migrate, readActive, recover, refreshIndex, INDEX_KEY } from './drawings.js';
 import { openSceneStore } from './store.js';
 import { parseText } from './textdiagram.js';
+import { TEMPLATES, template } from './templates.js';
 
 const $ = (id) => document.getElementById(id);
 const statusLine = $('status');
@@ -301,6 +302,29 @@ tdDialog.addEventListener('close', () => {
   }
   editor.focus();
 });
+
+// --- Templates: each opens as a new drawing, drawn from its text ---
+for (const id of Object.keys(TEMPLATES)) {
+  const tpl = template(id, lang);
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'drawer-item';
+  b.dataset.template = id;
+  b.textContent = tpl.name;
+  b.addEventListener('click', async () => {
+    closeMenu();
+    try {
+      await flush();
+      await createDrawing(storage, scenes, drawings, tpl.name);
+      await showActive();
+      editor.insertText(tpl.text, { direction: tpl.direction, keepSelected: false });
+      editor.zoomToFit();
+    } catch {
+      notify(t('Could not keep another drawing in this browser (its storage is full): delete some first.'));
+    }
+  });
+  $('templates').append(b);
+}
 
 // --- The side menu: file actions and options ---
 const menu = $('menu');
