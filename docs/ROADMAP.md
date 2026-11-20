@@ -42,3 +42,11 @@ would break that.
 | P11 | [Animated flow arrows (on screen and in the exported SVG)](phases/P11-animated-arrows.md) | ✅ |
 | P12 | [Export to `.excalidraw`; Snowlog updated with the new engine](phases/P12-excalidraw-export-snowlog.md) | ✅ |
 | P13 | [Lock, search and more styles](phases/P13-lock-search-styles.md) | ✅ |
+
+## S5 — 1.3.0: frames you can present
+
+| Phase | What | Status |
+|---|---|---|
+| P14 | [Frames clip what they hold (on screen and in exports)](phases/P14-frame-clipping.md) | ✅ |
+| P15 | Presentation mode: frames one by one, full screen, with a laser pointer | ⬜ |
+| P16 | Curve an arrow by hand: drag its middle | ⬜ |

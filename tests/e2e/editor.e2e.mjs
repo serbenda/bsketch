@@ -984,3 +984,38 @@ test('lock, search and more styles', { skip }, async () => {
     await page.close();
   }
 });
+
+test('frames clip what lies on them, on screen', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('f');
+    await page.drag(at(-200, -120), at(100, 120));
+    // A solid box whose right part sticks out of the frame.
+    await page.press('r');
+    await page.click('.sk-row[data-prop="fill"] .sk-swatch[data-color="#a5d8ff"]');
+    await page.click('[aria-label="Fill style"] button', 'Solid');
+    await page.drag(at(0, -30), at(180, 30));
+    await page.press('Escape');
+    await page.press('v');
+    await page.mouseClick(at(-400, 300));
+    await new Promise((r) => setTimeout(r, 300));
+    // A pixel of the box inside the frame is blue; one outside the frame's border is the background.
+    const px = (x, y) => page.eval(`(() => { const c = document.querySelector('.sk-canvas'); const r = c.getBoundingClientRect(); const k = c.width / r.width; const p = c.getContext('2d').getImageData(Math.round((r.width / 2 + ${x}) * k), Math.round((r.height / 2 + ${y}) * k), 1, 1).data; return [p[0], p[1], p[2]]; })()`);
+    const inside = await px(60, 0);
+    const outside = await px(150, 0);
+    assert.ok(inside[2] > 200 && inside[0] < 200, `inside the frame the box shows: ${inside}`);
+    assert.deepEqual(outside, [255, 255, 255], `outside the frame it is cut: ${outside}`);
+    // Moving the frame carries the box.
+    const before = (await scene(page)).elements.find((e) => e.type === 'rectangle').x;
+    await page.drag(at(-200, -60), at(-150, -60));
+    const after = (await scene(page)).elements.find((e) => e.type === 'rectangle').x;
+    assert.equal(after, before + 50);
+    // (Reading pixels back makes Chrome suggest willReadFrequently: that note comes from this test, not the page.)
+    assert.deepEqual(page.errors.filter((e) => !e.includes('willReadFrequently')), []);
+  } finally {
+    await page.close();
+  }
+});

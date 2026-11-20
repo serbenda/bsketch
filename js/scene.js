@@ -378,11 +378,39 @@ export function shapeAt(elements, x, y, { tol = 0, except = null, containersOnly
   return null;
 }
 
-// The elements inside a frame: those whose box lies within it (other frames too, so frames can nest).
+// Frames hold what lies on them: an element belongs to a frame when the centre of its box is inside it (the smallest
+// frame, when they nest); a frame belongs to one only when it lies wholly inside it. Worked out per list of elements
+// and kept while that list is the same.
+const centreOf = (e) => {
+  const a = aabb(e);
+  return { x: a.x + a.w / 2, y: a.y + a.h / 2 };
+};
+const inside = (p, b) => p.x >= b.x && p.y >= b.y && p.x <= b.x + b.w && p.y <= b.y + b.h;
+const owners = new WeakMap();
+// id → the frame that clips it.
+export function frameOwners(elements) {
+  let map = owners.get(elements);
+  if (map) return map;
+  map = new Map();
+  const frames = elements.filter((e) => e.type === 'frame').map((f) => ({ f, b: bounds(f) })).sort((x, y) => x.b.w * x.b.h - y.b.w * y.b.h);
+  if (frames.length) {
+    for (const e of elements) {
+      if (e.type === 'frame') continue;
+      const c = centreOf(e);
+      const hit = frames.find((x) => inside(c, x.b));
+      if (hit) map.set(e.id, hit.f);
+    }
+  }
+  owners.set(elements, map);
+  return map;
+}
+
+// What a frame carries when it moves: the elements on it (also inside frames nested in it) and those frames.
 export function inFrame(elements, frame) {
   const b = bounds(frame);
   return elements.filter((e) => {
     if (e === frame || e.id === frame.id) return false;
+    if (e.type !== 'frame') return inside(centreOf(e), b);
     const a = aabb(e);
     return a.x >= b.x && a.y >= b.y && a.x + a.w <= b.x + b.w && a.y + a.h <= b.y + b.h;
   });
@@ -861,8 +889,7 @@ export function toExcalidraw(scene) {
       if (e.endId !== e.startId) attach(e.endId, e.id, 'arrow');
     }
   }
-  const frameOf = new Map();
-  for (const f of els) if (f.type === 'frame') for (const e of inFrame(els, f)) if (!frameOf.has(e.id)) frameOf.set(e.id, f.id);
+  const frameOf = new Map([...frameOwners(els)].map(([id, f]) => [id, f.id]));
   let nonce = 1;
   const out = els.map((e) => {
     const b = bounds(e);

@@ -676,3 +676,25 @@ test('more styles and lock: dotted, cross-hatch, round corners and locked are ke
   const back = E.parseScene(JSON.stringify(E.toExcalidraw({ ...E.emptyScene(), elements: [c] }))).elements[0];
   assert.deepEqual([back.fillStyle, back.rounded, back.dotted, back.locked], ['cross-hatch', true, true, true]);
 });
+
+test('frames clip what lies on them: by its centre, the smallest frame, also in SVG', () => {
+  const big = { ...E.createElement('frame', 0, 0), id: 'big', w: 400, h: 300, name: 'Big' };
+  const small = { ...E.createElement('frame', 20, 20), id: 'small', w: 150, h: 120, name: 'Small' };
+  const half = { ...E.createElement('rectangle', 330, 100), id: 'half', w: 140, h: 60 }; // centre (400, 130): on the border
+  const mostly = { ...E.createElement('rectangle', 300, 100), id: 'mostly', w: 140, h: 60 }; // centre inside, right part out
+  const out = { ...E.createElement('rectangle', 380, 100), id: 'out', w: 200, h: 60 }; // centre outside
+  const inner = { ...E.createElement('ellipse', 100, 100), id: 'inner', w: 100, h: 60 }; // centre in both: the smaller wins
+  const els = [big, small, half, mostly, out, inner];
+  const owners = E.frameOwners(els);
+  assert.equal(owners.get('mostly').id, 'big');
+  assert.equal(owners.get('out'), undefined, 'its centre is outside: not clipped');
+  assert.equal(owners.get('inner').id, 'small', 'nested frames: the smallest');
+  assert.equal(owners.has('small'), false, 'frames themselves are not clipped');
+  assert.equal(E.frameOwners(els), owners, 'worked out once per list');
+  // Moving the big frame carries what lies on it (also partly outside) and the small frame.
+  assert.deepEqual(E.inFrame(els, big).map((e) => e.id).sort(), ['half', 'inner', 'mostly', 'small']);
+  const svg = toSvgString({ ...E.emptyScene(), elements: els });
+  assert.equal((svg.match(/<clipPath id="f\d+"><rect /g) || []).length, 2, 'one clip per frame used');
+  assert.match(svg, /<g clip-path="url\(#f\d+\)">/);
+  assert.equal(E.toExcalidraw({ ...E.emptyScene(), elements: els }).elements.find((e) => e.id === 'inner').frameId, 'small');
+});

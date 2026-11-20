@@ -13,9 +13,10 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- Nothing in progress: 1.2.0 released.
+- [P14](phases/P14-frame-clipping.md) done on `development`, its PR to `main` open. Next in S5: P15 (presentation mode), P16 (curving arrows by hand).
 
 ## Recently done
+- [P14](phases/P14-frame-clipping.md): frames clip what lies on them.
 - **v1.2.0 released** (2026-11-20) with the three executables and their signed provenance; Snowlog has the new engine
   (serbenda/snowlog#8).
 - [P13](phases/P13-lock-search-styles.md): lock, search (Ctrl+F), dotted lines, cross-hatch, round corners.
@@ -52,8 +53,9 @@ Last updated: 2026-11-20
 
 ## Next
 1. Owner: P02's checklist on Safari, Firefox, a real phone and the desktop apps; anything failing becomes a 1.2.x.
-2. Optional (owner): signing for macOS (Apple Developer Program) and Windows; the OpenSSF best-practices badge.
-3. Ideas for 1.3: clip drawings to their frame, presentation mode with a laser pointer, curving arrows by hand.
+2. Optional (owner): signing for macOS (Apple Developer Program) and Windows. (The OpenSSF best-practices badge
+   needs an open-source license, so it doesn't apply since 1.1.0.)
+3. 1.3 ([ROADMAP](ROADMAP.md), S5): P15 presentation mode, P16 curving arrows by hand.
 
 ## Blocked / awaiting decision
 - Nothing.

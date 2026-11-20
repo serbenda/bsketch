@@ -45,7 +45,8 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 - Three fonts for text: handwriting, normal and code.
 - Arrows and lines straight, **with an elbow** or **curved**.
 - **Pictures:** insert, paste or drop them; arrows attach to them.
-- **Frames** to title and group part of a drawing, and export exactly that part.
+- **Frames** to title and group part of a drawing: what lies on them is cut at their border, and a frame exports
+  exactly that part.
 - A **library** of pieces to reuse, which also reads Excalidraw libraries.
 - **Text to diagram, without AI:** paste an indented list, a Mermaid flowchart or `A -> B` lines and it is drawn
   for you, in your browser.

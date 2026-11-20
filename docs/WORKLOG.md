@@ -16,6 +16,20 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — P14: frames clip what lies on them
+- **Phase / issue:** P14
+- **What:** `frameOwners` (each element belongs to the smallest frame its centre is on; cached per list) and
+  `inFrame` by centre; the canvas clips each member to its frame; both SVG exports wrap members in a group with a
+  `clipPath` per frame; `.excalidraw` `frameId` from the same rule; S5 in the ROADMAP; service worker v17. STATE no
+  longer lists the OpenSSF badge (it needs an open-source license).
+- **Why:** S5's first phase: frames that read like slides, before presenting them (P15).
+- **Rejected:** storing a `frameId` on each element (it would have to be kept right on every change; the centre rule
+  needs nothing stored); a switch to turn clipping off (out of scope for now).
+- **Files:** js/scene.js, js/render.js, sw.js, tests/, README.md, CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 63 pass; `npm run test:e2e` 23 pass, one reading the canvas' pixels; the portable build.
+- **Pending:** —
+
 ## 2026-11-20 — 1.2.0 released
 - **Phase / issue:** S4
 - **What:** the owner released v1.2.0 with `bsketch-release.sh 1.2.0`: tag on `main` (ce451b0), the three

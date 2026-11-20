@@ -3,6 +3,10 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioned with [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Changed
+- **Frames clip what lies on them**, on screen and in PNG and SVG: an element belongs to the frame its centre is on
+  (the smallest, when frames nest), and is cut at its border. Moving a frame carries what belongs to it, also when it
+  sticks out.
 
 ## [1.2.0] - 2026-11-20
 ### Added
