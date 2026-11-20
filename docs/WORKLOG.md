@@ -16,6 +16,18 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — The Tauri CLI's lockfile, made by the Lockfile workflow
+- **Phase / issue:** P08
+- **What:** `desktop/package-lock.json` from the Lockfile workflow's run 44705853015 (artifact `desktop-lockfile`):
+  `@tauri-apps/cli` 2.12.4 and its platform packages, every one from registry.npmjs.org with its sha512.
+- **Why:** the Desktop workflow now installs the CLI with `npm ci`, so each build uses exactly these versions,
+  checked against their hashes; Dependabot watches them.
+- **Rejected:** writing the lockfile by hand from CDN data (npm's registry is not reachable from this machine).
+- **Files:** desktop/package-lock.json
+- **Commits:** 90b32f4
+- **Tested:** the Desktop workflow on 90b32f4 built and smoke-tested Windows, macOS and Linux with it.
+- **Pending:** —
+
 ## 2026-11-20 — P08: review, fuzzing, IndexedDB, pictures, frames and a library
 - **Phase / issue:** P08
 - **What:** a security review of P07 (four data-loss findings: two fixed by the new store, two fixed here); fuzz
