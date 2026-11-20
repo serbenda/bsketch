@@ -1,9 +1,9 @@
 # P02 — The owner's tests on other browsers and devices, and the first release (v1.0.0)
 
 - **Stage:** S3
-- **Status:** ⏳ in progress
+- **Status:** ✅ done (the owner's checks on other devices stay open as a follow-up)
 - **Issue:** —
-- **Dates:** 2026-11-18 → —
+- **Dates:** 2026-11-18 → 2026-11-19
 - **Owner approvals:** 2026-11-18 "prepara todo" (prepare everything for a 10/10: tests on devices, audits,
   release)
 
@@ -83,8 +83,13 @@ the owner's.
 
 ## Result
 <!-- Filled in with /close-phase. -->
-- **What was done:**
-- **How it was tested:**
-- **What was left out and why:**
-- **Lessons learned:**
-- **PR:** #
+- **What was done:** version 1.0.0 released on 2026-11-19 (tag `v1.0.0`, GitHub release with the three
+  executables); the agent's checks on the published site (above); `Tests` and `Hook (macOS bash 3.2)` required on
+  `main`; the repository's social preview.
+- **How it was tested:** a smoke script on bendi.dev in Chrome (desktop and phone emulation); the Desktop workflow
+  built and smoke-tested the three executables for the release commit.
+- **What was left out and why:** the checklist on Safari, Firefox, a real phone and the desktop apps needs the
+  owner's devices; it stays in STATE's *Next*.
+- **Lessons learned:** the Desktop workflow runs on `development` only, so a release builds `main` on purpose
+  (`workflow_dispatch`).
+- **PR:** #17

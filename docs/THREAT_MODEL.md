@@ -22,8 +22,9 @@ Last reviewed: 2026-11-17
 | Entry point | Who can reach it | Data it receives | Authenticated? |
 |---|---|---|---|
 | Open file / drag and drop | Anyone who gets a file to the user | JSON drawing | No |
-| Browser storage (`sketch.current`) | Scripts on the same origin (none other) | JSON drawing | No |
-| Browser storage (`sketch.drawings`, `sketch.drawing.<id>`) | Scripts on the same origin (none other) | The list of drawings (ids checked against `[a-z0-9]{4,40}`, names cut to 80 characters, at most 500) and each drawing's JSON, opened through `parseScene` | No |
+| Browser storage: IndexedDB `bsketch` (or `sketch.drawing.<id>` without it; `sketch.current` from older versions) | Scripts on the same origin (none other) | Each drawing's JSON, opened through `parseScene`; the library (`_library`), opened through `parseLibrary` | No |
+| Browser storage (`sketch.drawings`) | Scripts on the same origin (none other) | The list of drawings: ids checked against `[a-z0-9]{4,40}`, names cut to 80 characters, at most 500; an unknown open drawing falls back to the first | No |
+| Pictures (insert, paste, drop) and library files | Anyone who gets a file to the user | Image files; `.bsketchlib` / `.excalidrawlib` JSON | No |
 | Browser storage (`sketch.prefs`) | Scripts on the same origin (none other) | The appearance (`system`, `light` or `dark`), the grid (`true`/`false`) and the language (`auto`, `en` or `es`) | No |
 | Snowlog embedding | Snowlog, with scenes decrypted from the user's vault | Scene object | Snowlog's session |
 | Desktop webview | The page inside the app | — (no IPC exposed) | No |
@@ -33,6 +34,7 @@ Last reviewed: 2026-11-17
 | Threat | Entry point | Control | How it is checked |
 |---|---|---|---|
 | Script injection through drawing text or attributes (XSS) | Files, storage, Snowlog | Texts rendered with `textContent` or escaped; colors and fields validated by `cleanElement`; every number in SVG markup forced to a number (for scenes an embedder passes without `parseScene`); no `innerHTML`; Trusted Types required | Unit test "opening: validates whatever comes from the file"; SAST |
+| A picture used to run script or reach the network | Files, pictures, library | Only base64 `data:` URLs of PNG, JPEG, GIF or WebP are kept (no SVG, no remote URL), each up to ~7.5 MB and ~45 MB per drawing; checked again before they go into SVG markup; CSP `img-src 'self' data: blob:` | Unit tests "images: …"; fuzz tests |
 | Data exfiltration from a malicious file or injected code | Files, any script | CSP `connect-src 'none'` (site and portable), `default-src 'none'`, no third-party scripts | CSP in `index.html` and the portable build; e2e checks no request leaves |
 | Denial of service with huge files | Files | Limits: 20,000 elements, 5,000 points, 10,000 characters per text, clamped sizes; coordinates within ±1e6; at most 2,000 hachure lines per shape; long words split by halving | Unit tests "security: …" |
 | Page escaping the desktop app | Desktop webview | No commands, plugins or global Tauri API exposed; the page's own CSP (the portable file's: `default-src 'none'`, `connect-src 'none'`, script by hash, Trusted Types) is the app's CSP (`"csp": null` in `tauri.conf.json`, so Tauri doesn't rewrite the HTML) | `desktop/src-tauri` review; WebDriver smoke test; the portable walkthrough checks that CSP and that a request is refused |
