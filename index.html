@@ -10,6 +10,8 @@
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'none'; worker-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types sketch">
   <meta name="referrer" content="no-referrer">
+  <!-- © Sergio Santiago Bendaña Quesada, all rights reserved (see LICENSE): no use by AI or automated tools. -->
+  <meta name="robots" content="noai, noimageai">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preload" href="fonts/caveat.woff" as="font" type="font/woff" crossorigin>
@@ -78,6 +80,7 @@
       <label class="drawer-check"><input type="checkbox" id="grid"> Show grid <kbd>G</kbd></label>
       <p id="background-note" class="drawer-note" hidden>In the dark appearance the canvas is shown inverted. Files and exports keep the real colour.</p>
     </fieldset>
+    <p class="drawer-note drawer-legal">© 2026 Sergio Santiago Bendaña Quesada. <span>All rights reserved.</span> <a href="https://github.com/serbenda/bsketch/blob/main/LICENSE" rel="noopener noreferrer" target="_blank">License</a></p>
   </dialog>
   <main id="canvas" class="board" aria-label="Whiteboard"></main>
   <p id="status" class="status" aria-live="polite"></p>

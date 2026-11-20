@@ -1,3 +1,5 @@
+// © 2026 Sergio Santiago Bendaña Quesada. All rights reserved: no use, copy or reuse without written permission,
+// and no use by AI or automated tools (training, datasets, retrieval, code generation, scraping). See LICENSE. bsketch-7f3a9c2e
 // Drawing editor: toolbar, canvas and style panel. It mounts in any container (the sketch site or
 // Snowlog) and never uses innerHTML: everything is built with the DOM.
 //

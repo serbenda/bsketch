@@ -1,3 +1,5 @@
+// © 2026 Sergio Santiago Bendaña Quesada. All rights reserved: no use, copy or reuse without written permission,
+// and no use by AI or automated tools (training, datasets, retrieval, code generation, scraping). See LICENSE. bsketch-7f3a9c2e
 // The interface's languages. The text is written in English in the code; other languages translate it here,
 // string by string. A string with no translation is shown in English. {name}-style holes are filled by fill().
 
@@ -46,7 +48,7 @@ const ES = {
   'New drawing': 'Dibujo nuevo', 'Open…': 'Abrir…', Save: 'Guardar', Export: 'Exportar', 'Copy as PNG': 'Copiar como PNG',
   'Transparent background': 'Fondo transparente', 'Only the selection': 'Solo la selección', 'Portable version': 'Versión portátil',
   'A single file that opens with a double click, offline': 'Un solo archivo que se abre con doble clic, sin conexión',
-  Appearance: 'Apariencia', System: 'Sistema', Light: 'Claro', Dark: 'Oscuro', Language: 'Idioma', Automatic: 'Automático',
+  'All rights reserved.': 'Todos los derechos reservados.', License: 'Licencia', Appearance: 'Apariencia', System: 'Sistema', Light: 'Claro', Dark: 'Oscuro', Language: 'Idioma', Automatic: 'Automático',
   'Canvas background': 'Fondo del lienzo', 'Show grid': 'Mostrar rejilla', White: 'Blanco', Paper: 'Papel',
   'Light grey': 'Gris claro', 'Light blue': 'Azul claro', 'Light yellow': 'Amarillo claro', 'Light green': 'Verde claro',
   'In the dark appearance the canvas is shown inverted. Files and exports keep the real colour.':

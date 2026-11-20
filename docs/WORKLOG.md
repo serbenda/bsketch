@@ -16,6 +16,25 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — The license: all rights reserved, no use by AI
+- **Phase / issue:** — ([ADR 0006](decisions/0006-proprietary-license.md))
+- **What:** `LICENSE` becomes proprietary from 1.1.0 (viewing and personal evaluation only; anything else needs
+  written permission; a text-and-data-mining reservation and no use by AI or automated tools). The notice and a
+  marker (`bsketch-7f3a9c2e`) at the top of every JS and CSS file; `noai` meta in the page; the copyright in the menu
+  (translated) and in the desktop app; `license-file` in Cargo.toml and `UNLICENSED` in package.json; README badge,
+  Contributing and License sections. ROADMAP: S4 with P09–P12 for 1.2.0.
+- **Why:** the owner: "no se puede usar, es personal… que me proteja la propiedad intelectual" and "no puede
+  reutilizarse por ninguna IA, bot".
+- **Rejected:** a `robots.txt` in this repository (crawlers only read the one at the domain's root, which belongs to
+  the `bendi.dev` site); obfuscating the code (it would not stop a determined copier and would break the readable
+  portable file and the reviews).
+- **Files:** LICENSE, README.md, index.html, js/*.js, css/*.css, sw.js, js/i18n.js, package.json,
+  desktop/package.json, desktop/src-tauri/Cargo.toml, desktop/src-tauri/tauri.conf.json, CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 53 pass; `npm run test:e2e` 17 pass; the portable build carries the notice in every module.
+- **Pending:** the owner decides on a private repository and on the domain-wide `robots.txt`; a lawyer's review is
+  advisable.
+
 ## 2026-11-20 — Nothing drawn is lost while another drawing loads
 - **Phase / issue:** P08
 - **What:** while the site loads the next drawing (after New, Open, choosing one or deleting the open one) the canvas

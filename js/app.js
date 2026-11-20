@@ -1,3 +1,5 @@
+// © 2026 Sergio Santiago Bendaña Quesada. All rights reserved: no use, copy or reuse without written permission,
+// and no use by AI or automated tools (training, datasets, retrieval, code generation, scraping). See LICENSE. bsketch-7f3a9c2e
 // The sketch site: the editor full screen, with opening, saving and exporting files on the computer.
 // The drawings are kept in this browser (IndexedDB, see store.js) so they are not lost when the tab closes.
 

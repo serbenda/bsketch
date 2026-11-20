@@ -28,3 +28,16 @@ S0–S2 were done before the project adopted the template (2026-11-13 to 2026-11
 | P06 | [Text fonts: Hand, Normal, Code](phases/P06-text-fonts.md) | ✅ |
 | P07 | [Everyday use: several drawings, elbow and curved arrows, export the selection, grid on resize, Spanish](phases/P07-everyday-use.md) | ✅ |
 | P08 | [Quality, pictures, frames and a library](phases/P08-like-excalidraw.md) | ✅ |
+
+## S4 — 1.2.0: what only bsketch does
+
+The aim: the whiteboard you can use for confidential diagrams (nothing leaves your computer, it works where nothing can
+be installed, and that can be checked), and quick to draw with. No real-time collaboration and no cloud AI: they
+would break that.
+
+| Phase | What | Status |
+|---|---|---|
+| P09 | Text to diagram, offline and without AI: an indented list or simple Mermaid pasted becomes boxes and arrows | ⬜ |
+| P10 | Quick diagrams: Tab chains the next shape with an arrow; starter templates | ⬜ |
+| P11 | Animated flow arrows (on screen and in the exported SVG) | ⬜ |
+| P12 | Export to `.excalidraw`; Snowlog updated with the new engine | ⬜ |
