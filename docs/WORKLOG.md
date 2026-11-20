@@ -16,6 +16,17 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — 1.4.0 released
+- **Phase / issue:** S6
+- **What:** the owner released v1.4.0 (tag on `f9b95d6`, the built commit) with the three executables and their
+  Sigstore provenance; Snowlog's PR #9 merged. STATE updated.
+- **Why:** S6's agent phases done.
+- **Rejected:** —
+- **Files:** docs/STATE.md
+- **Commits:** this one.
+- **Tested:** `gh attestation verify` passes on the release's own Windows executable.
+- **Pending:** P19.
+
 ## 2026-11-21 — Version 1.4.0
 - **Phase / issue:** S6 (P17, P18, P20; P19 continues after the release)
 - **What:** version 1.4.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's
