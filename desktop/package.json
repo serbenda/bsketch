@@ -1,0 +1,8 @@
+{
+  "name": "bsketch-desktop",
+  "private": true,
+  "description": "The Tauri CLI that builds the desktop app, pinned with its lockfile (package-lock.json).",
+  "devDependencies": {
+    "@tauri-apps/cli": "2.12.4"
+  }
+}

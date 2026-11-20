@@ -1,15 +1,14 @@
 // The sketch site: the editor full screen, with opening, saving and exporting files on the computer.
-// The drawing in progress is kept in this browser so it is not lost when the tab closes.
+// The drawings are kept in this browser (IndexedDB, see store.js) so they are not lost when the tab closes.
 
 import { createEditor } from './editor.js';
 import { emptyScene, parseScene, serializeScene } from './scene.js';
 import { toSvgString, toPngBlob } from './render.js';
 import { loadPrefs, savePrefs, BACKGROUNDS } from './prefs.js';
 import { pickLang, translator, fill } from './i18n.js';
-import { loadIndex, saveIndex, activeOf, createDrawing, openDrawing, renameDrawing, deleteDrawing, touch, nextName } from './drawings.js';
+import { loadIndex, saveIndex, activeOf, createDrawing, openDrawing, renameDrawing, deleteDrawing, touch, nextName, migrate, readActive, recover, refreshIndex, INDEX_KEY } from './drawings.js';
+import { openSceneStore } from './store.js';
 
-const KEY = 'sketch.current';
-const OLD_KEY = 'sketch.actual'; // before 0.4.0: read once and moved to KEY
 const $ = (id) => document.getElementById(id);
 const statusLine = $('status');
 
@@ -35,46 +34,55 @@ function notify(text) {
   notify.timer = setTimeout(() => { statusLine.textContent = ''; }, 3500);
 }
 
-function saved() {
+// The drawings kept in this browser (see drawings.js and store.js). Storage that can't be read (blocked site data)
+// leaves just the one drawing open, until the tab closes.
+const ls = (() => { try { return localStorage; } catch { return null; } })();
+const memory = new Map();
+const storage = ls || { getItem: (k) => memory.get(k) ?? null, setItem: (k, v) => memory.set(k, v), removeItem: (k) => memory.delete(k) };
+const drawings = loadIndex(storage, `${t('Drawing')} 1`);
+try { saveIndex(storage, drawings); } catch { /* full storage: the open drawing still works */ }
+let scenes = null; // the scene store, once open
+const LIBRARY_ID = '_library';
+
+// The open drawing as stored, or null.
+async function saved() {
   try {
-    const raw = storage.getItem(KEY) ?? storage.getItem(OLD_KEY);
+    const raw = await readActive(scenes, drawings);
     return raw ? parseScene(raw) : null;
   } catch {
     return null;
   }
 }
 
-function store(scene) {
+async function store(scene) {
   try {
-    storage.setItem(KEY, serializeScene(scene));
-    storage.removeItem(OLD_KEY);
+    await scenes.set(drawings.active, serializeScene(scene));
   } catch {
     notify(t('Could not save in this browser. Use "Save" so you do not lose the drawing.'));
   }
 }
-
-// The drawings kept in this browser (see drawings.js). Storage that can't be read (blocked site data) leaves just
-// the one drawing open, as before.
-const ls = (() => { try { return localStorage; } catch { return null; } })();
-const memory = new Map();
-const storage = ls || { getItem: (k) => memory.get(k) ?? null, setItem: (k, v) => memory.set(k, v), removeItem: (k) => memory.delete(k) };
-const drawings = loadIndex(storage, `${t('Drawing')} 1`);
-try { saveIndex(storage, drawings); } catch { /* full storage: the open drawing still works */ }
 // The file name for Save and exports: the open drawing's name.
 const fileName = () => (activeOf(drawings)?.name || 'drawing').replace(/[\\/:*?"<>|]+/g, '-');
 
 let timer = 0;
+let pending = null; // the scene waiting to be saved
+// The canvas ignores input until the stored drawing is in place (a few milliseconds), so nothing drawn is lost.
+$('canvas').inert = true;
 const editor = createEditor($('canvas'), {
-  scene: saved() || emptyScene(),
+  scene: emptyScene(),
   onChange: (scene) => {
     clearTimeout(timer);
-    timer = setTimeout(() => {
-      store(scene);
-      try { touch(storage, drawings); } catch { /* see store() */ }
-    }, 400);
+    pending = scene;
+    timer = setTimeout(flush, 400);
   },
   // The G key: remembered like the menu's switch.
   onGridChange: (on) => setGridPref(on),
+  // The library lives with the drawings (in IndexedDB), under an id no drawing can have.
+  library: {
+    load: async () => (scenes ? scenes.get(LIBRARY_ID) : null),
+    save: async (text) => { if (scenes) await scenes.set(LIBRARY_ID, text); },
+  },
+  onNotice: (text) => notify(text),
   t,
 });
 editor.focus();
@@ -91,16 +99,39 @@ function download(data, name, type) {
 }
 
 // Saves the open drawing now (not 400 ms later), before another one takes its place.
-function flush() {
+async function flush() {
   clearTimeout(timer);
-  store(editor.getScene());
+  if (!pending || !scenes) return;
+  const scene = pending;
+  pending = null;
+  await store(scene);
+  try { touch(storage, drawings); } catch { /* see store() */ }
 }
 // Shows the drawing that is open now (after creating, opening or deleting one).
-function showActive() {
-  editor.setScene(saved() || emptyScene());
+async function showActive() {
+  editor.setScene((await saved()) || emptyScene());
   renderDrawings();
   editor.focus();
 }
+
+// Opens the scene store, moves what older versions kept in localStorage into it, and shows the open drawing.
+(async () => {
+  scenes = await openSceneStore((() => { try { return globalThis.indexedDB; } catch { return null; } })(), ls);
+  try { await migrate(storage, scenes, drawings); } catch { /* left for next time; the old copy stays */ }
+  try { await recover(storage, scenes, drawings, t('Recovered')); } catch { /* nothing to add */ }
+  await showActive();
+  $('canvas').inert = false;
+  editor.focus();
+})();
+// Another tab added, renamed or deleted drawings: this tab's list follows, so its next save doesn't undo them.
+addEventListener('storage', (ev) => {
+  if (ev.key !== INDEX_KEY) return;
+  refreshIndex(storage, drawings);
+  renderDrawings();
+});
+// Leaving the page (or hiding it) saves at once.
+addEventListener('pagehide', () => { flush(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
 
 // Opening a file makes a new drawing with it: the one open stays in the list.
 async function openFile(file) {
@@ -111,20 +142,20 @@ async function openFile(file) {
     return notify(t('That file is not a sketch or Excalidraw drawing.'));
   }
   try {
-    flush();
-    createDrawing(storage, drawings, file.name.replace(/\.(sketch|excalidraw|json)$/i, ''), scene);
-    showActive();
+    await flush();
+    await createDrawing(storage, scenes, drawings, file.name.replace(/\.(sketch|excalidraw|json)$/i, ''), scene);
+    await showActive();
     notify(fill(t('Opened "{name}": {n} elements.'), { name: file.name, n: scene.elements.length }));
   } catch {
     notify(t('Could not keep another drawing in this browser (its storage is full): delete some first.'));
   }
 }
 
-$('new').addEventListener('click', () => {
+$('new').addEventListener('click', async () => {
   try {
-    flush();
-    createDrawing(storage, drawings, nextName(drawings, t('Drawing')));
-    showActive();
+    await flush();
+    await createDrawing(storage, scenes, drawings, nextName(drawings, t('Drawing')));
+    await showActive();
   } catch {
     notify(t('Could not keep another drawing in this browser (its storage is full): delete some first.'));
   }
@@ -139,11 +170,15 @@ function renderDrawings() {
     b.className = 'drawer-item drawing-item';
     b.textContent = d.name;
     if (d.id === drawings.active) b.setAttribute('aria-current', 'true');
-    b.addEventListener('click', () => {
+    b.addEventListener('click', async () => {
       if (d.id === drawings.active) return closeMenu();
-      flush();
-      openDrawing(storage, drawings, d.id);
-      showActive();
+      await flush();
+      try {
+        openDrawing(storage, drawings, d.id);
+      } catch {
+        notify(t('Could not save in this browser. Use "Save" so you do not lose the drawing.'));
+      }
+      await showActive();
       closeMenu();
     });
     const li = document.createElement('li');
@@ -158,12 +193,15 @@ $('rename').addEventListener('click', () => {
   renameDrawing(storage, drawings, d.id, name);
   renderDrawings();
 });
-$('delete').addEventListener('click', () => {
+$('delete').addEventListener('click', async () => {
   const d = activeOf(drawings);
   if (!d || !window.confirm(fill(t('Delete "{name}" from this browser? It can\'t be undone (Save it first if you want to keep a copy).'), { name: d.name }))) return;
   clearTimeout(timer);
-  deleteDrawing(storage, drawings, d.id);
-  showActive();
+  pending = null;
+  try {
+    await deleteDrawing(storage, scenes, drawings, d.id, `${t('Drawing')} 1`);
+  } catch { /* the index already moved on; a scene left behind is harmless */ }
+  await showActive();
 });
 $('open').addEventListener('click', () => $('file').click());
 $('file').addEventListener('change', (ev) => {
@@ -175,16 +213,24 @@ $('save').addEventListener('click', () => {
   download(serializeScene(editor.getScene()), `${fileName()}.sketch`, 'application/json');
   notify(t('Downloaded. You can open it again with "Open…".'));
 });
-// What PNG and SVG export: the whole drawing, or only the selection when that box is ticked.
+// What PNG and SVG export: the whole drawing, or only the selection when that box is ticked. A selected frame
+// exports what is inside it, cut to the frame (without its border and title).
 function exportScene() {
   const scene = editor.getScene();
-  if (!$('only-selection').checked) return scene;
-  return { ...scene, elements: editor.getSelection() };
+  if (!$('only-selection').checked) return { scene };
+  const sel = editor.getSelectionWithFrames();
+  const frames = sel.filter((e) => e.type === 'frame');
+  const elements = sel.filter((e) => e.type !== 'frame');
+  if (frames.length === 1) {
+    const f = frames[0];
+    return { scene: { ...scene, elements }, box: { x: f.x, y: f.y, w: f.w, h: f.h }, padding: 0 };
+  }
+  return { scene: { ...scene, elements: frames.length ? elements : sel } };
 }
 $('png').addEventListener('click', async () => {
-  const scene = exportScene();
-  if (!scene.elements.length) return notify(t($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.'));
-  const png = await toPngBlob(document, scene, { background: !$('transparent').checked });
+  const { scene, box, padding } = exportScene();
+  if (!scene.elements.length && !box) return notify(t($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.'));
+  const png = await toPngBlob(document, scene, { background: !$('transparent').checked, box, padding });
   if (!png) return notify(t('This browser could not make the PNG. Try SVG instead.'));
   download(png, `${fileName()}.png`, 'image/png');
 });
@@ -207,9 +253,9 @@ async function copyPng() {
 $('copy-png').addEventListener('click', copyPng);
 
 $('svg').addEventListener('click', () => {
-  const scene = exportScene();
-  if (!scene.elements.length) return notify(t($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.'));
-  download(toSvgString(scene, { background: !$('transparent').checked }), `${fileName()}.svg`, 'image/svg+xml');
+  const { scene, box, padding } = exportScene();
+  if (!scene.elements.length && !box) return notify(t($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.'));
+  download(toSvgString(scene, { background: !$('transparent').checked, box, padding }), `${fileName()}.svg`, 'image/svg+xml');
 });
 
 // --- The side menu: file actions and options ---
@@ -266,8 +312,7 @@ for (const input of document.querySelectorAll('input[name="lang"]')) {
   input.addEventListener('change', () => {
     prefs = { ...prefs, lang: input.value };
     savePrefs(prefsStorage, prefs);
-    flush();
-    location.reload();
+    flush().then(() => location.reload());
   });
 }
 
@@ -338,7 +383,9 @@ window.addEventListener('drop', (ev) => {
   const [file] = ev.dataTransfer?.files || [];
   if (!file) return;
   ev.preventDefault();
-  openFile(file);
+  // A picture goes into the drawing; anything else is opened as a drawing.
+  if (file.type.startsWith('image/')) editor.insertImage(file);
+  else openFile(file);
 });
 
 // Offline: the site is kept in the browser (service worker). Trusted Types: only sw.js is allowed.

@@ -16,6 +16,36 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — The Tauri CLI's lockfile, made by the Lockfile workflow
+- **Phase / issue:** P08
+- **What:** `desktop/package-lock.json` from the Lockfile workflow's run 44705853015 (artifact `desktop-lockfile`):
+  `@tauri-apps/cli` 2.12.4 and its platform packages, every one from registry.npmjs.org with its sha512.
+- **Why:** the Desktop workflow now installs the CLI with `npm ci`, so each build uses exactly these versions,
+  checked against their hashes; Dependabot watches them.
+- **Rejected:** writing the lockfile by hand from CDN data (npm's registry is not reachable from this machine).
+- **Files:** desktop/package-lock.json
+- **Commits:** 90b32f4
+- **Tested:** the Desktop workflow on 90b32f4 built and smoke-tested Windows, macOS and Linux with it.
+- **Pending:** —
+
+## 2026-11-20 — P08: review, fuzzing, IndexedDB, pictures, frames and a library
+- **Phase / issue:** P08
+- **What:** a security review of P07 (four data-loss findings: two fixed by the new store, two fixed here); fuzz
+  tests (three real bugs found and fixed: crashes on objects with a non-callable toString, attached arrows beyond
+  ±MAX_COORD, a list over 500 after another tab's change); drawings in IndexedDB with migration and recovery;
+  pictures, frames and a library; the Tauri CLI as a pinned dev dependency (`desktop/package.json`); Lockfile and
+  Scorecard workflows prepared for the owner; P02 closed.
+- **Why:** the owner asked for "1,2,3,4,5,6, y funciona que se parezca a exalidraw".
+- **Rejected:** storing a picture inside each element (copies would repeat it; kept once per scene in `files`);
+  SVG pictures (they can carry script); clipping to frames on screen (more cost than value for now); generating the
+  lockfile by hand from a CDN (the registry is unreachable here; a workflow makes it with npm's own integrity).
+- **Files:** js/store.js, js/drawings.js, js/scene.js, js/render.js, js/editor.js, js/app.js, js/i18n.js,
+  css/sketch.css, sw.js, desktop/package.json, tests/, README.md, CHANGELOG.md, docs/
+- **Commits:** a8b5d95, 1daf8ee, bf53fa4, 57a8266 and the docs commit.
+- **Tested:** `npm test` 53 pass; fuzz with seeds 1–6 at 3000 runs; `npm run test:e2e` 17 pass; screenshots on
+  desktop, in Spanish and on a phone-sized screen.
+- **Pending:** the owner's commit of `.github/` changes, then the lockfile; the owner's device checks.
+
 ## 2026-11-19 — Version 1.0.0 and the agent's checks for P02
 - **Phase / issue:** P02
 - **What:** version 1.0.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's

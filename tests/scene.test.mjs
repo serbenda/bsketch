@@ -4,6 +4,7 @@ import * as E from '../js/scene.js';
 import { toSvgString, pngScale, PNG_MAX_SIDE, PNG_MAX_AREA } from '../js/render.js';
 import { loadPrefs, savePrefs, cleanPrefs, BACKGROUNDS, PREFS_KEY } from '../js/prefs.js';
 import * as D from '../js/drawings.js';
+import * as S from '../js/store.js';
 import { pickLang, translator, fill } from '../js/i18n.js';
 import { polylinePath, ellipsePath, toSvgD, hachurePath, MAX_HACHURE_LINES } from '../js/stroke.js';
 
@@ -431,34 +432,84 @@ test('arrow routes: elbows and curves go through the right points, are stored on
   assert.ok(E.drawOps(arrow('elbow')).length === 2 && toSvgString({ ...E.emptyScene(), elements: [arrow('curve')] }).includes('<path'));
 });
 
-test('drawings in the browser: create, switch, rename and delete keep every drawing in its place', () => {
+test('drawings in the browser: create, switch, rename and delete keep every drawing in its place', async () => {
   const mem = new Map();
   const st = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
+  const store = S.memoryStore();
   const scene = (n) => E.serializeScene({ ...E.emptyScene(), elements: Array.from({ length: n }, () => ({ ...E.createElement('rectangle', 0, 0), w: 10, h: 10 })) });
+  const count = async (id) => JSON.parse(await store.get(id)).elements.length;
   mem.set(D.CURRENT_KEY, scene(2));
   const idx = D.loadIndex(st);
   assert.equal(idx.list.length, 1, 'the drawing open before becomes the first');
   const first = idx.active;
-  const second = D.createDrawing(st, idx, 'Plan B');
+  await D.migrate(st, store, idx);
+  assert.equal(await count(first), 2, 'the old sketch.current moves into the store');
+  assert.equal(mem.get(D.CURRENT_KEY), undefined, 'and leaves localStorage');
+  const second = await D.createDrawing(st, store, idx, 'Plan B');
   assert.equal(idx.active, second);
-  assert.equal(JSON.parse(mem.get(D.CURRENT_KEY)).elements.length, 0, 'the new one opens empty');
-  assert.equal(JSON.parse(mem.get(D.itemKey(first))).elements.length, 2, 'the first is kept under its own key');
-  mem.set(D.CURRENT_KEY, scene(1));
+  assert.equal(await count(second), 0, 'the new one opens empty');
+  assert.equal(await count(first), 2, 'the first is kept');
+  await store.set(second, scene(1));
   assert.ok(D.openDrawing(st, idx, first));
-  assert.equal(JSON.parse(mem.get(D.CURRENT_KEY)).elements.length, 2);
-  assert.equal(JSON.parse(mem.get(D.itemKey(second))).elements.length, 1, 'switching keeps the other one’s changes');
-  assert.equal(mem.get(D.itemKey(first)), undefined, 'the open one lives only in sketch.current');
+  assert.equal(await count(D.activeOf(idx).id), 2);
   D.renameDrawing(st, idx, first, '  Roadmap  ');
   assert.equal(D.activeOf(idx).name, 'Roadmap');
-  D.deleteDrawing(st, idx, first);
+  await D.deleteDrawing(st, store, idx, first);
   assert.deepEqual(idx.list.map((d) => d.name), ['Plan B']);
-  assert.equal(JSON.parse(mem.get(D.CURRENT_KEY)).elements.length, 1, 'deleting the open one opens the next');
-  D.deleteDrawing(st, idx, idx.active);
+  assert.equal(await store.get(first), null, 'its scene is gone');
+  assert.equal(await count(idx.active), 1, 'deleting the open one opens the next');
+  await D.deleteDrawing(st, store, idx, idx.active);
   assert.equal(idx.list.length, 1, 'deleting the last leaves a new empty one');
+  assert.equal(await count(idx.active), 0);
   assert.deepEqual(D.loadIndex(st), idx, 'the index is saved');
   mem.set(D.INDEX_KEY, JSON.stringify({ active: '../x', list: [{ id: '../x', name: '<b>' }] }));
   assert.notEqual(D.loadIndex(st).active, '../x', 'a broken or hostile index starts again');
   assert.equal(D.cleanIndex({ active: 'abcd1', list: [{ id: 'abcd1', name: 'x'.repeat(500) }] }).list[0].name.length, 80);
+});
+
+test('drawings: a broken index keeps its list, orphaned scenes come back, and another tab\'s list is followed', async () => {
+  const mem = new Map();
+  const st = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
+  assert.equal(D.cleanIndex({ active: 'nope!', list: [{ id: 'aaaa1', name: 'A' }, { id: 'bbbb2', name: 'B' }] }).active, 'aaaa1', 'an unknown open drawing opens the first');
+  const store = S.memoryStore();
+  const idx = { active: 'aaaa1', list: [{ id: 'aaaa1', name: 'A', updated: 0 }] };
+  await store.set('aaaa1', '{}');
+  await store.set('cccc3', '{}');
+  await store.set('../bad', '{}');
+  assert.equal(await D.recover(st, store, idx), 1);
+  assert.deepEqual(idx.list.map((d) => d.id), ['aaaa1', 'cccc3']);
+  // Another tab deleted A (open here) and added D: this tab takes the new list and keeps A.
+  mem.set(D.INDEX_KEY, JSON.stringify({ active: 'dddd4', list: [{ id: 'dddd4', name: 'D' }, { id: 'cccc3', name: 'C' }] }));
+  assert.ok(D.refreshIndex(st, idx));
+  assert.equal(idx.active, 'aaaa1');
+  assert.deepEqual(idx.list.map((d) => d.id), ['aaaa1', 'dddd4', 'cccc3']);
+  const many = { active: 'aaaa1', list: Array.from({ length: 500 }, (_, i) => ({ id: `x${String(i).padStart(4, '0')}`, name: 'n' })) };
+  many.active = many.list[0].id;
+  await assert.rejects(D.createDrawing(st, store, many, 'one too many'), /too_many/);
+});
+
+test('drawings kept by older versions in localStorage move into IndexedDB; a failing store keeps them', async () => {
+  const mem = new Map();
+  const st = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
+  const one = E.serializeScene({ ...E.emptyScene(), elements: [{ ...E.createElement('ellipse', 0, 0), w: 5, h: 5 }] });
+  mem.set(D.INDEX_KEY, JSON.stringify({ active: 'aaaa1', list: [{ id: 'aaaa1', name: 'A' }, { id: 'bbbb2', name: 'B' }] }));
+  mem.set(D.CURRENT_KEY, one);
+  mem.set(S.itemKey('bbbb2'), one);
+  const idx = D.loadIndex(st);
+  const broken = { ...S.memoryStore(), kind: 'indexeddb', set: async () => { throw new Error('quota'); } };
+  await assert.rejects(D.migrate(st, broken, idx));
+  assert.equal(mem.get(D.CURRENT_KEY), one, 'nothing is removed when the store fails');
+  const store = { ...S.memoryStore(), kind: 'indexeddb' };
+  await D.migrate(st, store, idx);
+  assert.equal(await store.get('aaaa1'), one);
+  assert.equal(await store.get('bbbb2'), one);
+  assert.deepEqual([...mem.keys()], [D.INDEX_KEY], 'only the index is left in localStorage');
+  // Without IndexedDB, the scenes stay in localStorage under their own keys.
+  const web = S.webStore(st);
+  await web.set('cccc3', one);
+  assert.equal(mem.get(S.itemKey('cccc3')), one);
+  assert.equal((await S.openSceneStore(null, st)).kind, 'localstorage');
+  assert.equal((await S.openSceneStore(null, null)).kind, 'memory');
 });
 
 test('languages: the chosen one, else the browser\'s, else English; untranslated text stays English', () => {
@@ -472,4 +523,81 @@ test('languages: the chosen one, else the browser\'s, else English; untranslated
   assert.equal(es('toString'), 'toString', 'only real entries');
   assert.equal(fill(es('Opened "{name}": {n} elements.'), { name: 'a.sketch', n: 3 }), 'Abierto «a.sketch»: 3 elementos.');
   assert.equal(translator('en')('Rectangle'), 'Rectangle');
+});
+
+test('images: only checked pictures are kept, once per scene, and they travel with the elements that use them', () => {
+  const png = 'data:image/png;base64,iVBORw0KGgo=';
+  const raw = {
+    type: 'sketch', version: 1, background: '#ffffff',
+    elements: [
+      { id: 'i1', type: 'image', x: 0, y: 0, w: 100, h: 50, fileId: 'f1' },
+      { id: 'i2', type: 'image', x: 0, y: 0, w: 100, h: 50, fileId: 'svg' },
+      { id: 'i3', type: 'image', x: 0, y: 0, w: 100, h: 50, fileId: 'gone' },
+      { id: 'i4', type: 'image', x: 0, y: 0, w: 100, h: 50 },
+    ],
+    files: { f1: png, svg: 'data:image/svg+xml;base64,PHN2Zz4=', unused: png, remote: 'https://example.com/x.png', html: 'data:text/html;base64,PGI+' },
+  };
+  const s = E.parseScene(JSON.stringify(raw));
+  assert.deepEqual(s.elements.map((e) => e.id), ['i1'], 'an image without an allowed picture is dropped');
+  assert.deepEqual(s.files, { f1: png }, 'SVG, remote and unused pictures are not kept');
+  assert.deepEqual(JSON.parse(E.serializeScene({ ...s, files: { ...s.files, extra: png } })).files, { f1: png }, 'saving keeps only what is used');
+  assert.equal(JSON.parse(E.serializeScene({ ...s, elements: [] })).files, undefined);
+  assert.ok(!E.isImageData(`data:image/png;base64,${'A'.repeat(E.MAX_IMAGE_CHARS)}`), 'too big');
+  // Excalidraw's pictures come in with their files.
+  const ex = E.parseScene(JSON.stringify({ type: 'excalidraw', elements: [{ id: 'x', type: 'image', x: 1, y: 2, width: 30, height: 20, fileId: 'abc' }], files: { abc: { mimeType: 'image/png', dataURL: png } } }));
+  assert.equal(ex.elements[0].type, 'image');
+  assert.equal(ex.files.abc, png);
+  // A merge keeps the pictures either side uses.
+  const theirs = { ...s, elements: [...s.elements, { ...s.elements[0], id: 'j', fileId: 'f2' }], files: { f1: png, f2: png } };
+  const merged = E.mergeScenes(s, s, theirs).scene;
+  assert.deepEqual(Object.keys(merged.files).sort(), ['f1', 'f2']);
+  // Pictures keep their proportions when resized (Shift stretches them).
+  const img = s.elements[0];
+  const r = E.resizeByHandle(img, 'e', { x: 200, y: 25 });
+  assert.equal(r.w / r.h, 2);
+  const stretched = E.resizeByHandle(img, 'e', { x: 200, y: 25 }, { keepRatio: true });
+  assert.equal(stretched.w / stretched.h, 4, 'Shift stretches it');
+  // An SVG export embeds only checked pictures.
+  const svg = toSvgString(s);
+  assert.ok(svg.includes(`<image href="${png}"`));
+  assert.ok(!toSvgString({ ...s, files: { f1: 'javascript:alert(1)' } }).includes('<image'));
+});
+
+test('frames: a title, inside elements move with them, they stay upright and behind', () => {
+  const f = { ...E.createElement('frame', 0, 0), w: 300, h: 200, name: '  Login\n screen  ' };
+  const inside = { ...E.createElement('rectangle', 20, 20), w: 50, h: 50 };
+  const outside = { ...E.createElement('rectangle', 400, 20), w: 50, h: 50 };
+  const s = E.parseScene(E.serializeScene({ ...E.emptyScene(), elements: [f, inside, outside] }));
+  const frame = s.elements[0];
+  assert.equal(frame.name, 'Login screen');
+  assert.deepEqual(E.inFrame(s.elements, frame).map((e) => e.id), [inside.id]);
+  assert.equal(E.rotateElement(frame, { x: 0, y: 0 }, 1), frame, 'frames do not rotate');
+  assert.equal(E.cleanElement({ ...frame, angle: 1 }).angle, undefined);
+  assert.ok(E.hitTest(frame, 10, -10), 'the title picks the frame');
+  assert.ok(!E.hitTest(frame, 150, 100), 'its inside does not (what is drawn there stays easy to pick)');
+  assert.ok(toSvgString(s).includes('>Login screen</text>'));
+  assert.equal(E.cleanElement({ ...frame, name: { toString: 1 } }).name, '');
+});
+
+test('library: our own and Excalidraw\'s libraries are read and checked; saving keeps only what each item uses', () => {
+  const png = 'data:image/png;base64,iVBORw0KGgo=';
+  const rect = { id: 'r', type: 'rectangle', x: 0, y: 0, w: 10, h: 10 };
+  const ours = E.parseLibrary(JSON.stringify({ type: 'bsketchlib', version: 1, items: [
+    { name: ' Box ', elements: [rect] },
+    { name: 'Pic', elements: [{ id: 'i', type: 'image', x: 0, y: 0, w: 5, h: 5, fileId: 'f' }], files: { f: png, other: png } },
+    { name: 'empty', elements: [] },
+    { name: 'bad', elements: [{ type: 'script' }] },
+  ] }));
+  assert.deepEqual(ours.map((i) => i.name), ['Box', 'Pic']);
+  assert.deepEqual(ours[1].files, { f: png });
+  const v2 = E.parseLibrary(JSON.stringify({ type: 'excalidrawlib', version: 2, libraryItems: [{ name: 'Server', elements: [{ id: 'a', type: 'rectangle', x: 0, y: 0, width: 40, height: 20 }] }] }));
+  assert.equal(v2[0].name, 'Server');
+  assert.equal(v2[0].elements[0].w, 40);
+  const v1 = E.parseLibrary(JSON.stringify({ type: 'excalidrawlib', version: 1, library: [[{ id: 'a', type: 'ellipse', x: 0, y: 0, width: 40, height: 20 }]] }));
+  assert.equal(v1[0].elements[0].type, 'ellipse');
+  assert.throws(() => E.parseLibrary('{"type":"sketch"}'), /bad_file/);
+  assert.throws(() => E.parseLibrary('nope'), /bad_file/);
+  const again = E.parseLibrary(E.serializeLibrary(ours));
+  assert.deepEqual(again.map((i) => [i.name, i.elements.length, Object.keys(i.files || {})]), [['Box', 1, []], ['Pic', 1, ['f']]]);
+  assert.equal(E.parseLibrary(JSON.stringify({ type: 'bsketchlib', items: Array.from({ length: 300 }, () => ({ elements: [rect] })) })).length, E.MAX_LIBRARY_ITEMS);
 });

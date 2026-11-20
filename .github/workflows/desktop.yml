@@ -65,13 +65,19 @@ jobs:
       - name: Web app inside the app
         run: node scripts/build-portable.mjs desktop/app/index.html
 
+      # The Tauri CLI, at the versions in desktop/package-lock.json (checked against their hashes), with no
+      # install scripts.
+      - name: Tauri CLI
+        working-directory: desktop
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
       - name: Icons
         working-directory: desktop
-        run: npx --yes @tauri-apps/cli@2.12.4 icon icon.png
+        run: npx --no-install tauri icon icon.png
 
       - name: Build
         working-directory: desktop
-        run: npx --yes @tauri-apps/cli@2.12.4 build ${{ matrix.args }} -- --locked
+        run: npx --no-install tauri build ${{ matrix.args }} -- --locked
 
       - name: Prepare the executable
         shell: bash

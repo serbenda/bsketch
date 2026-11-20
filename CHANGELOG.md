@@ -3,6 +3,29 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioned with [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- **Pictures:** insert a PNG, JPEG, GIF or WebP from the toolbar (or the **I** key), paste it, or drop it on the
+  canvas. It is kept with the drawing (saved in `.sketch` files, read from `.excalidraw` ones), keeps its proportions
+  when resized (Shift stretches it), and arrows attach to it. Very big pictures are scaled down when inserted.
+- **Frames** (the **F** key): a titled area to group part of a drawing. What is inside moves with it; a double click
+  renames it. With "Only the selection", exporting a selected frame gives exactly its area.
+- **Library** (Shift+L): keep a selection to use it again in any drawing, import and export libraries (also
+  Excalidraw's `.excalidrawlib`).
+
+### Changed
+- Drawings are kept in the browser's IndexedDB, with far more room than before; drawings kept by older versions
+  move there on their own the first time.
+
+### Fixed
+- Two tabs open at once no longer undo each other's list of drawings, and a broken list in storage keeps its
+  drawings (any drawing left out of it comes back as "Recovered").
+- Opening a file with odd values (for example objects where numbers or texts should be) is refused instead of
+  stopping the page; an attached arrow far away keeps its place after saving and opening it again.
+
+### Security
+- Pictures are only data: URLs of PNG, JPEG, GIF or WebP, up to about 7.5 MB each and 45 MB per drawing (no SVG,
+  no remote addresses), checked again before they go into an SVG export.
+- Fuzz tests check opening files, the drawings list, preferences and languages against random and hostile input.
 
 ## [1.0.0] - 2026-11-19
 ### Changed

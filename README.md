@@ -9,6 +9,7 @@ Sketch diagrams, flows and wireframes in the browser: no account, nothing to ins
 
 [![CI](https://github.com/serbenda/bsketch/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/serbenda/bsketch/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/serbenda/bsketch/badge)](https://scorecard.dev/viewer/?uri=github.com/serbenda/bsketch)
 ![No network](https://img.shields.io/badge/network-none-brightgreen.svg)
 
 <picture>
@@ -43,6 +44,9 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 - Arrowheads at the end, the start, both ends or none.
 - Three fonts for text: handwriting, normal and code.
 - Arrows and lines straight, **with an elbow** or **curved**.
+- **Pictures:** insert, paste or drop them; arrows attach to them.
+- **Frames** to title and group part of a drawing, and export exactly that part.
+- A **library** of pieces to reuse, which also reads Excalidraw libraries.
 
 **Editing**
 - Select, move, resize, **rotate**, **group**, **align and distribute**, duplicate, reorder and delete.
@@ -79,7 +83,8 @@ the antivirus may block an unsigned executable (use the portable file there). Th
 | --- | --- |
 | V · H | Select · pan the canvas (or hold Space) |
 | R · D · O | Rectangle · diamond · ellipse |
-| A · L · P · T · E | Arrow · line · pencil · text · eraser |
+| A · L · P · T · F · E | Arrow · line · pencil · text · frame · eraser |
+| I · Shift+L | Insert a picture · open the library |
 | Shift | Keep proportions while drawing or resizing; 15° steps for lines and rotation |
 | Ctrl+Z · Ctrl+Y | Undo · redo |
 | Ctrl+D · Ctrl+C · Ctrl+V | Duplicate · copy · paste |
@@ -138,7 +143,10 @@ Everything else (requirements, verifying, building the portable and desktop vers
 ├── js/render.js       # scene → canvas, SVG (text or DOM) and PNG
 ├── js/editor.js       # the interactive editor, mountable in any container
 ├── js/app.js          # the site: the side menu, open, save, export and options
-├── js/prefs.js        # the site's preferences (appearance), validated
+├── js/prefs.js        # the site's preferences (appearance, grid, language), validated
+├── js/drawings.js     # the list of drawings in this browser
+├── js/store.js        # where their scenes are kept (IndexedDB, or localStorage as a fallback)
+├── js/i18n.js         # the interface's languages
 ├── fonts/             # handwriting font (Caveat, OFL)
 ├── desktop/           # desktop version (Tauri): icon, smoke test and src-tauri/
 ├── scripts/           # build-portable.mjs, and the template's setup, sync and check scripts

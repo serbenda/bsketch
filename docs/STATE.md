@@ -3,20 +3,21 @@
 > **Single source of truth for status.** Claude reads it at the start of every session (`/status`) and updates it when closing a phase (`/close-phase`).
 > At most **150 lines**: replace what is outdated instead of piling up, and **link** documents instead of copying them.
 
-Last updated: 2026-11-19
+Last updated: 2026-11-20
 
 ## Where we are
 - **Mode:** full
 - **Current stage:** S3 — Release (see [ROADMAP](ROADMAP.md))
-- **Phase in progress:** [P02 — the owner's tests and v1.0.0](phases/P02-owner-tests-and-release.md)
+- **Phase in progress:** none ([P08](phases/P08-like-excalidraw.md) done on `development`)
 - **Environment:** GitHub Pages (published by the Pages workflow on `main`), the portable file, and desktop builds as CI artifacts
 - **Working branch:** `development`
 
 ## Current work
-- P02: version 1.0.0 prepared; the agent checked the published site in Chrome (desktop and phone emulation). The
-  owner's devices remain, then the `v1.0.0` tag and release.
+- P08 on `development`, its PR to `main` open; the Lockfile and Scorecard workflows wait for the owner's commit.
 
 ## Recently done
+- [P08](phases/P08-like-excalidraw.md): P07 reviewed, fuzz tests, drawings in IndexedDB, pictures, frames, a library.
+- **v1.0.0 released** (2026-11-19) with the three executables ([P02](phases/P02-owner-tests-and-release.md)).
 - [P07](phases/P07-everyday-use.md): several drawings, elbow and curved arrows, export only the selection, the
   grid on resize and rotation, the interface in Spanish.
 - project-template 1.0.1 synced (the security audit's High finding fixed), PR #15.
@@ -38,8 +39,10 @@ Last updated: 2026-11-19
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. Owner: P02's checklist on other browsers and devices ([P02](phases/P02-owner-tests-and-release.md)); then
-   `v1.0.0` (notes drafted outside the repo).
+1. Owner: commit and push the workflow changes (`.github/`: Lockfile, Scorecard, Desktop with `npm ci`, Dependabot
+   for `/desktop`); then the agent commits `desktop/package-lock.json` from the Lockfile run's artifact.
+2. Owner: P02's checklist on Safari, Firefox, a real phone and the desktop apps; anything failing becomes a 1.0.x.
+3. Then `v1.1.0` with P07 and P08.
 
 ## Blocked / awaiting decision
 - Nothing.

@@ -8,8 +8,20 @@ const ES = {
   Select: 'Seleccionar', 'Pan the canvas': 'Mover el lienzo', Rectangle: 'Rectángulo', Diamond: 'Rombo',
   Ellipse: 'Elipse', Arrow: 'Flecha', Line: 'Línea', Pencil: 'Lápiz', Text: 'Texto', Eraser: 'Goma',
   Tools: 'Herramientas', Whiteboard: 'Pizarra', Drawing: 'Dibujo', 'Drawing canvas': 'Lienzo de dibujo',
-  'Tools: V select, R rectangle, D diamond, O ellipse, A arrow, L line, P pencil, T text, E eraser; G shows the grid. Enter creates the chosen shape in the center, or writes inside the selected one. Tab and Shift+Tab go through the elements; arrow keys move them; Alt+arrow keys resize them; [ and ] rotate them; Delete removes them; Escape clears the selection.':
-    'Herramientas: V seleccionar, R rectángulo, D rombo, O elipse, A flecha, L línea, P lápiz, T texto, E goma; G muestra la rejilla. Intro crea la forma elegida en el centro, o escribe dentro de la seleccionada. Tab y Mayús+Tab recorren los elementos; las flechas los mueven; Alt+flechas cambian su tamaño; [ y ] los giran; Supr los borra; Escape quita la selección.',
+  'Tools: V select, R rectangle, D diamond, O ellipse, A arrow, L line, P pencil, T text, F frame, E eraser; I inserts an image; G shows the grid. Enter creates the chosen shape in the center, or writes inside the selected one. Tab and Shift+Tab go through the elements; arrow keys move them; Alt+arrow keys resize them; [ and ] rotate them; Delete removes them; Escape clears the selection.':
+    'Herramientas: V seleccionar, R rectángulo, D rombo, O elipse, A flecha, L línea, P lápiz, T texto, F marco, E goma; I inserta una imagen; G muestra la rejilla. Intro crea la forma elegida en el centro, o escribe dentro de la seleccionada. Tab y Mayús+Tab recorren los elementos; las flechas los mueven; Alt+flechas cambian su tamaño; [ y ] los giran; Supr los borra; Escape quita la selección.',
+  // Editor: frames, images and the library
+  Frame: 'Marco', 'Name of this frame:': 'Nombre de este marco:', 'Insert an image': 'Insertar una imagen',
+  'That file is not a picture bsketch can use (PNG, JPEG, GIF or WebP).': 'Ese archivo no es una imagen que bsketch pueda usar (PNG, JPEG, GIF o WebP).',
+  Library: 'Biblioteca', 'Close the library': 'Cerrar la biblioteca', 'Import a library': 'Importar una biblioteca',
+  'Export the library': 'Exportar la biblioteca', Add: 'Añadir', 'Library items': 'Elementos de la biblioteca',
+  'Select something and press "Add" to keep it here.': 'Selecciona algo y pulsa «Añadir» para guardarlo aquí.',
+  Item: 'Elemento', Insert: 'Insertar', 'Remove from the library': 'Quitar de la biblioteca',
+  'Could not keep the library in this browser.': 'No se ha podido guardar la biblioteca en este navegador.',
+  'Select what you want to keep in the library first.': 'Selecciona antes lo que quieras guardar en la biblioteca.',
+  'The library is full: remove something first.': 'La biblioteca está llena: quita algo antes.',
+  'The library is empty.': 'La biblioteca está vacía.', 'That file is not a library.': 'Ese archivo no es una biblioteca.',
+  'Added to the library: {n}.': 'Añadido a la biblioteca: {n}.', image: 'imagen', frame: 'marco',
   // Editor: style panel
   Style: 'Estilo', Stroke: 'Trazo', Fill: 'Relleno', 'No fill': 'Sin relleno', 'Other stroke color': 'Otro color de trazo',
   'Other fill color': 'Otro color de relleno', 'Fill style': 'Tipo de relleno', Hachure: 'Rayado', Solid: 'Sólido',
@@ -44,7 +56,7 @@ const ES = {
   'That file is not a sketch or Excalidraw drawing.': 'Ese archivo no es un dibujo de bsketch ni de Excalidraw.',
   'Opened "{name}": {n} elements.': 'Abierto «{name}»: {n} elementos.',
   'Could not keep another drawing in this browser (its storage is full): delete some first.': 'No caben más dibujos en este navegador (su almacenamiento está lleno): borra alguno antes.',
-  'Name of this drawing:': 'Nombre de este dibujo:',
+  'Name of this drawing:': 'Nombre de este dibujo:', Recovered: 'Recuperado',
   'Delete "{name}" from this browser? It can\'t be undone (Save it first if you want to keep a copy).': '¿Borrar «{name}» de este navegador? No se puede deshacer (guárdalo antes si quieres una copia).',
   'Downloaded. You can open it again with "Open…".': 'Descargado. Puedes volver a abrirlo con «Abrir…».',
   'Nothing is selected.': 'No hay nada seleccionado.', 'The drawing is empty.': 'El dibujo está vacío.',
