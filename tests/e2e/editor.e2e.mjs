@@ -880,3 +880,107 @@ test('quick diagrams: Ctrl+arrow keys chain the next shape; a template opens as 
     await page.close();
   }
 });
+
+test('animated arrows: chosen in the panel, moving on screen, still with reduced motion', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('a');
+    await page.click('[aria-label="Flow"] button', 'Animated');
+    await page.drag(at(-150, 0), at(150, 0));
+    let s = await scene(page);
+    assert.equal(s.elements[0].animated, true, 'drawn animated');
+    // The canvas changes on its own while it flows.
+    const pixels = () => page.eval('(() => { const c = document.querySelector(".sk-canvas"); return c.toDataURL().length + ":" + c.toDataURL().slice(-200); })()');
+    const a = await pixels();
+    await new Promise((r) => setTimeout(r, 250));
+    assert.notEqual(await pixels(), a, 'the dashes move');
+    // With reduced motion, it stays still.
+    await page.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+    await page.eval('window.dispatchEvent(new Event("resize")); true');
+    await new Promise((r) => setTimeout(r, 200));
+    const b = await pixels();
+    await new Promise((r) => setTimeout(r, 250));
+    assert.equal(await pixels(), b, 'still for reduced motion');
+    // Still: the property goes.
+    await page.press('v');
+    await page.mouseClick(at(0, 0));
+    await page.click('[aria-label="Flow"] button', 'Still');
+    s = await scene(page);
+    assert.equal(s.elements[0].animated, undefined);
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
+test('export to .excalidraw from the menu, and open it again', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    await page.click('#menu-button');
+    await page.click('#templates button', 'Flowchart');
+    await page.waitFor('JSON.parse(localStorage.getItem("sketch.drawings")).list.length === 2');
+    await page.eval('window.__blobs = []; URL.createObjectURL = (b) => { window.__blobs.push(b); return "blob:x"; }; HTMLAnchorElement.prototype.click = function () { window.__name = this.download; }');
+    await page.click('#menu-button');
+    await page.click('#excalidraw');
+    const text = await page.eval('window.__blobs[0].text()');
+    const data = JSON.parse(text);
+    assert.equal(data.type, 'excalidraw');
+    assert.equal(await page.eval('window.__name'), 'Flowchart.excalidraw');
+    const arrows = data.elements.filter((e) => e.type === 'arrow');
+    assert.ok(arrows.length >= 6 && arrows.every((a) => a.startBinding && a.endBinding), 'attached arrows');
+    assert.ok(data.elements.some((e) => e.type === 'diamond'));
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
+test('lock, search and more styles', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    await page.click('#menu-button');
+    await page.click('#text-diagram');
+    await page.fill('#td-text', 'graph LR\nA[Acción] --> B[Plan]\nB --> C[Acción final]');
+    await page.click('#td-insert');
+    // The diagram goes in on the dialog's close event, a moment after it closes: the text box empties then.
+    await page.waitFor('!document.getElementById("td-dialog").open && document.getElementById("td-text").value === ""');
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    // Search: accents and case don't matter; Enter goes to the next match.
+    await page.press('f', { ctrl: true });
+    await page.waitFor('!document.querySelector(".sk-search").hidden');
+    await page.fill('.sk-searchinput', 'ACCION');
+    assert.equal(await page.eval('document.querySelector(".sk-searchcount").textContent'), '1 of 2');
+    await page.eval('document.querySelector(".sk-searchinput").dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); true');
+    assert.equal(await page.eval('document.querySelector(".sk-searchcount").textContent'), '2 of 2');
+    let s = await scene(page);
+    const second = s.elements.find((e) => e.text === 'Acción final').containerId;
+    assert.match(await page.eval('document.querySelector(".sk-sr[aria-live]").textContent'), /rectangle/);
+    await page.eval('document.querySelector(".sk-searchinput").dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); true');
+    assert.equal(await page.eval('document.querySelector(".sk-search").hidden'), true);
+    // Styles on the selected box: dotted, cross-hatch, round corners.
+    await page.click('[aria-label="Line style"] button', 'Dotted');
+    await page.click('[aria-label="Fill style"] button', 'Cross-hatch');
+    await page.click('[aria-label="Corners"] button', 'Round');
+    s = await scene(page);
+    const box = s.elements.find((e) => e.id === second);
+    assert.deepEqual([box.dotted, box.dashed, box.fillStyle, box.rounded], [true, true, 'cross-hatch', true]);
+    // Lock it: it can't be selected any more, Ctrl+A skips it; Unlock all brings it back.
+    await page.press('L', { ctrl: true, shift: true });
+    s = await scene(page);
+    assert.equal(s.elements.find((e) => e.id === second).locked, true);
+    await page.press('a', { ctrl: true });
+    assert.match(await page.eval('document.querySelector(".sk-sr[aria-live]").textContent'), /Selected: 4 elements/, 'two boxes and two arrows, not the locked one');
+    assert.equal(await page.eval('document.querySelector("[aria-label=\\"Unlock all\\"]").hidden'), false);
+    await page.click('[aria-label="Unlock all"]');
+    s = await scene(page);
+    assert.equal(s.elements.find((e) => e.id === second).locked, undefined);
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});

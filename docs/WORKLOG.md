@@ -16,6 +16,62 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — The lock-and-search walkthrough waits for the diagram
+- **Phase / issue:** P13
+- **What:** the e2e walkthrough waits until the text-to-diagram dialog's text box empties (the diagram goes in on
+  the dialog's close event, a moment after it closes) before searching.
+- **Why:** it searched an empty drawing when the whole suite ran (it passed on its own); pushed by mistake with the
+  P13 commit, because the check before the push didn't stop on a failed test.
+- **Rejected:** inserting before closing the dialog (the close event is where Cancel and Escape are told apart).
+- **Files:** tests/e2e/editor.e2e.mjs
+- **Commits:** this one.
+- **Tested:** `npm run test:e2e` 22 pass, twice in a row.
+- **Pending:** —
+
+## 2026-11-20 — P13: lock, search and more styles
+- **Phase / issue:** P13
+- **What:** `locked`, `dotted`, `rounded` and `fillStyle: 'cross-hatch'` in the model (validated, to and from
+  Excalidraw); round outlines and mirrored hachure in `drawOps`; dotted dashes on canvas and SVG; the panel's line
+  style (solid, dashed, dotted), fill (hachure, cross-hatch, solid) and corners; Lock and Unlock all; the search box
+  (Ctrl+F, accent- and case-insensitive, reading order); Spanish strings; fuzz checks for the new fields; service
+  worker v16.
+- **Why:** the 1.2.0 extras the owner chose.
+- **Rejected:** locking with a separate "locked layer" (a field per element is simpler and travels to Excalidraw);
+  search with regular expressions (plain text is what people type).
+- **Files:** js/scene.js, js/render.js, js/editor.js, js/i18n.js, css/sketch.css, sw.js, tests/, README.md,
+  CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 62 pass; fuzz seeds 1–2 at 2000 runs; `npm run test:e2e` 22 pass; a screenshot in Spanish.
+- **Pending:** —
+
+## 2026-11-20 — The canvas locks as soon as a drawing switch starts
+- **Phase / issue:** P11 (CI on PR #23)
+- **What:** New, Open, choosing a drawing, a template and Delete lock the canvas before they start (it unlocked only
+  once the next drawing was loading), and unlock it again if they fail. Also: export to `.excalidraw` (P12) in the
+  ☰ menu, with `toExcalidraw` and a round-trip test.
+- **Why:** CI failed "several drawings…": after Delete the index was saved before the canvas locked, so what was done
+  in that gap (a quick user, or the test) went to the drawing being replaced.
+- **Rejected:** only making the test wait longer (the gap was real).
+- **Files:** js/app.js, js/scene.js, index.html, js/i18n.js, sw.js, tests/
+- **Commits:** this one and 56cdba1.
+- **Tested:** `npm test` 61 pass; `npm run test:e2e` 21 pass; the failing walkthrough three more times.
+- **Pending:** —
+
+## 2026-11-20 — P11: animated flow arrows
+- **Phase / issue:** P11
+- **What:** `animated: true` on arrows and lines (validated, stored only when on); their line's draw op is marked
+  `flow` and painted dashed with a moving offset; both SVG exports add an `<animate>` on `stroke-dashoffset`; a Flow
+  choice in the style panel; a repaint timer (~30 fps) only while something animated is visible, none with
+  `prefers-reduced-motion`; Spanish strings; service worker v14.
+- **Why:** S4's third phase (an idea from Excaliflow): data-flow and architecture diagrams that read at a glance.
+- **Rejected:** moving dots or particles (more drawing per frame, and no simple SVG equivalent); CSS animations in
+  the SVG (a `<style>` element; SMIL `<animate>` needs none).
+- **Files:** js/scene.js, js/render.js, js/editor.js, js/i18n.js, sw.js, tests/scene.test.mjs,
+  tests/e2e/editor.e2e.mjs, README.md, CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 60 pass; `npm run test:e2e` 20 pass; screenshots.
+- **Pending:** —
+
 ## 2026-11-20 — CI on PR #22: the HTML check and two CodeQL findings
 - **Phase / issue:** P09
 - **What:** the text-to-diagram dialog writes `A -&gt; B` (htmlhint refused a raw `>`); picture files read from a

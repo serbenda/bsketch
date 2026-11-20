@@ -436,3 +436,49 @@
     max-height: 45%;
   }
 }
+
+/* Search: a small box at the top right. */
+.sk-search {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  top: 64px;
+  width: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+}
+
+.sk-searchinput {
+  width: 12rem;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--sk-border);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+}
+
+.sk-searchcount {
+  min-width: 4.5rem;
+  font-size: 12px;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .sk-search {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    transform: none;
+  }
+
+  .sk-searchinput {
+    width: 100%;
+    min-width: 0;
+  }
+}

@@ -4,7 +4,7 @@
 // The drawings are kept in this browser (IndexedDB, see store.js) so they are not lost when the tab closes.
 
 import { createEditor } from './editor.js';
-import { emptyScene, parseScene, serializeScene } from './scene.js';
+import { emptyScene, parseScene, serializeScene, toExcalidraw } from './scene.js';
 import { toSvgString, toPngBlob } from './render.js';
 import { loadPrefs, savePrefs, BACKGROUNDS } from './prefs.js';
 import { pickLang, translator, fill } from './i18n.js';
@@ -150,21 +150,25 @@ async function openFile(file) {
     return notify(t('That file is not a sketch or Excalidraw drawing.'));
   }
   try {
+    $('canvas').inert = true;
     await flush();
     await createDrawing(storage, scenes, drawings, file.name.replace(/\.(sketch|excalidraw|json)$/i, ''), scene);
     await showActive();
     notify(fill(t('Opened "{name}": {n} elements.'), { name: file.name, n: scene.elements.length }));
   } catch {
+    $('canvas').inert = false;
     notify(t('Could not keep another drawing in this browser (its storage is full): delete some first.'));
   }
 }
 
 $('new').addEventListener('click', async () => {
   try {
+    $('canvas').inert = true;
     await flush();
     await createDrawing(storage, scenes, drawings, nextName(drawings, t('Drawing')));
     await showActive();
   } catch {
+    $('canvas').inert = false;
     notify(t('Could not keep another drawing in this browser (its storage is full): delete some first.'));
   }
 });
@@ -180,6 +184,7 @@ function renderDrawings() {
     if (d.id === drawings.active) b.setAttribute('aria-current', 'true');
     b.addEventListener('click', async () => {
       if (d.id === drawings.active) return closeMenu();
+      $('canvas').inert = true;
       await flush();
       try {
         openDrawing(storage, drawings, d.id);
@@ -207,6 +212,7 @@ $('delete').addEventListener('click', async () => {
   clearTimeout(timer);
   pending = null;
   try {
+    $('canvas').inert = true;
     await deleteDrawing(storage, scenes, drawings, d.id, `${t('Drawing')} 1`);
   } catch { /* the index already moved on; a scene left behind is harmless */ }
   await showActive();
@@ -259,6 +265,13 @@ async function copyPng() {
   }
 }
 $('copy-png').addEventListener('click', copyPng);
+
+$('excalidraw').addEventListener('click', () => {
+  const { scene } = exportScene();
+  if (!scene.elements.length) return notify(t($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.'));
+  download(`${JSON.stringify(toExcalidraw(scene))}\n`, `${fileName()}.excalidraw`, 'application/json');
+  notify(t('Downloaded. You can open it in Excalidraw, or again here with "Open…".'));
+});
 
 $('svg').addEventListener('click', () => {
   const { scene, box, padding } = exportScene();
@@ -314,12 +327,14 @@ for (const id of Object.keys(TEMPLATES)) {
   b.addEventListener('click', async () => {
     closeMenu();
     try {
+      $('canvas').inert = true;
       await flush();
       await createDrawing(storage, scenes, drawings, tpl.name);
       await showActive();
       editor.insertText(tpl.text, { direction: tpl.direction, keepSelected: false });
       editor.zoomToFit();
     } catch {
+      $('canvas').inert = false;
       notify(t('Could not keep another drawing in this browser (its storage is full): delete some first.'));
     }
   });
@@ -350,7 +365,7 @@ menu.addEventListener('click', (ev) => {
   if (ev.clientX < r.left || ev.clientX > r.right || ev.clientY < r.top || ev.clientY > r.bottom) closeMenu();
 });
 // The file actions close the menu once done.
-for (const id of ['new', 'save', 'png', 'svg', 'copy-png']) $(id).addEventListener('click', () => setTimeout(closeMenu, 0));
+for (const id of ['new', 'save', 'png', 'svg', 'excalidraw', 'copy-png']) $(id).addEventListener('click', () => setTimeout(closeMenu, 0));
 $('file').addEventListener('change', closeMenu);
 
 // Appearance: system, light or dark, remembered in this browser.
