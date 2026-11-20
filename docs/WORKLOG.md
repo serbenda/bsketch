@@ -16,6 +16,18 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — 1.2.0 released
+- **Phase / issue:** S4
+- **What:** the owner released v1.2.0 with `bsketch-release.sh 1.2.0`: tag on `main` (ce451b0), the three
+  executables and their Sigstore provenance attached. STATE updated.
+- **Why:** S4 (P09–P13) on `main`.
+- **Rejected:** —
+- **Files:** docs/STATE.md
+- **Commits:** this one.
+- **Tested:** `gh attestation verify bsketch-windows.exe --bundle bsketch-windows.exe.intoto.jsonl` passes on the
+  release's own files.
+- **Pending:** —
+
 ## 2026-11-20 — The e2e tests start Chrome reliably on CI
 - **Phase / issue:** — (CI on PR #24, and #21 before)
 - **What:** `tests/e2e/cdp.mjs` starts Chrome with `--disable-dev-shm-usage`, waits up to 45 s, tries three times,
