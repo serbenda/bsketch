@@ -399,7 +399,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const slide = presenting ? presenting.slides[presenting.at] : null;
     const hidden = presenting
-      ? (slide ? { ...scene, elements: [slide, ...E.inFrame(scene.elements, slide)] } : scene)
+      ? { ...scene, elements: E.slideElements(scene.elements, slide) }
       : editingText ? { ...scene, elements: scene.elements.filter((e) => e.id !== editingText) } : scene;
     ctx.fillStyle = scene.background || '#ffffff';
     ctx.fillRect(0, 0, r.width, r.height);
@@ -980,14 +980,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   let timerTick = 0;
   let laser = []; // the pointer's trail: { x, y, t } in drawing coordinates
   let laserTimer = 0;
-  function slidesOf() {
-    const frames = scene.elements.filter((e) => e.type === 'frame');
-    // Frames inside another frame are part of that frame's slide.
-    const top = frames.filter((f) => !frames.some((g) => g !== f && E.inFrame([f], g).length));
-    const pos = (f) => E.bounds(f);
-    top.sort((a, b) => (Math.abs(pos(a).y - pos(b).y) > 40 ? pos(a).y - pos(b).y : pos(a).x - pos(b).x));
-    return top.length ? top : [null];
-  }
+  const slidesOf = () => E.slideFrames(scene.elements);
   function fitSlide() {
     const slide = presenting.slides[presenting.at];
     const r = canvas.getBoundingClientRect();

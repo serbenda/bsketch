@@ -70,7 +70,7 @@ would break that.
 | Phase | What | Who | Status |
 |---|---|---|---|
 | P21 | [Speaker notes per frame (seen only by the presenter) and a timer in presentation mode](phases/P21-speaker-notes.md) | Agent | ✅ |
-| P22 | PDF export with one frame per page, made in the browser with no library (vector where possible) | Agent | ⬜ |
+| P22 | [PDF export with one frame per page, made in the browser with no library](phases/P22-pdf-export.md) | Agent | ✅ |
 | P23 | Smart connectors: elbow arrows that route around the shapes in their way | Agent | ⬜ |
 
 ## S8 — 2.0.0: final

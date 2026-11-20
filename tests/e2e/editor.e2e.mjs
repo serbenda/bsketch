@@ -1169,3 +1169,30 @@ test('speaker notes: written in the frame panel, shown with N while presenting; 
     await page.close();
   }
 });
+
+test('PDF from the menu: one page per frame, in reading order', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    await page.click('#menu-button');
+    await page.click('#text-diagram');
+    await page.fill('#td-text', 'graph LR\nA[One] --> B[Two]\nsubgraph S1 [First]\nA\nend\nsubgraph S2 [Second]\nB\nend');
+    await page.click('#td-insert');
+    await page.waitFor('!document.getElementById("td-dialog").open && document.getElementById("td-text").value === ""');
+    await page.eval('window.__blobs = []; URL.createObjectURL = (b) => { window.__blobs.push(b); return "blob:x"; }; HTMLAnchorElement.prototype.click = function () { window.__name = this.download; }');
+    await page.click('#menu-button');
+    await page.click('#pdf');
+    await page.waitFor('window.__blobs.length === 1', 20000);
+    const b64 = await page.eval('window.__blobs[0].arrayBuffer().then((a) => { let s = ""; const u = new Uint8Array(a); for (let i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); return btoa(s); })');
+    const pdf = Buffer.from(b64, 'base64');
+    const s = pdf.toString('latin1');
+    assert.ok(s.startsWith('%PDF-1.4'));
+    assert.match(s, /\/Count 2 /, 'two frames, two pages');
+    assert.equal((s.match(/\/Subtype \/Image/g) || []).length, 2);
+    assert.match(await page.eval('window.__name'), /\.pdf$/);
+    if (process.env.PDF_OUT) (await import('node:fs')).writeFileSync(process.env.PDF_OUT, pdf);
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});

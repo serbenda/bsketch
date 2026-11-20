@@ -4,6 +4,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
 
 ## [Unreleased]
 ### Added
+- **PDF export** (☰ menu): one page per frame, in the presentation's order (or the whole drawing on one page),
+  made in the browser with no library.
 - **Speaker notes and a timer:** a selected frame shows a panel with its name and speaker notes; while presenting,
   N shows or hides the current slide's notes (only for you), and the bar shows the time since the start.
 

@@ -16,6 +16,21 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — P22: PDF with one frame per page
+- **Phase / issue:** P22
+- **What:** `js/pdf.js` (a PDF 1.4 writer: one JPEG per page, `DCTDecode`, pages sized to their slide with the long
+  side 842 pt); `slideFrames`/`slideElements` in `js/scene.js`, shared with presentation mode; `toImageBlob` in
+  `js/render.js` (JPEG, `hideFrames`); a PDF button in the ☰ menu; strings in the five languages; service worker v22.
+- **Why:** S7's second phase.
+- **Rejected:** vector pages (they need the fonts embedded and a path writer; images at 2× print sharply); a PDF
+  library (a dependency, against the project's no-dependency rule).
+- **Files:** js/pdf.js, js/scene.js, js/render.js, js/editor.js, js/app.js, js/i18n.js, index.html, sw.js, tests/,
+  README.md, CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 68 pass; `npm run test:e2e` 30 pass; a PDF made in Chrome and rendered by macOS; the portable
+  build.
+- **Pending:** —
+
 ## 2026-11-21 — P21: speaker notes and a timer
 - **Phase / issue:** P21
 - **What:** `notes` on frames (validated, up to `MAX_NOTES`); a frame panel (name and notes, one undo step per edit);

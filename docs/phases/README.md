@@ -29,3 +29,4 @@ Each block of work has a phase file `PNN-short-title.md` created with `/new-phas
 | [P18](P18-snowlog-library-templates.md) | S6 | Library and templates in Snowlog | ✅ |
 | [P20](P20-languages.md) | S6 | Catalan, French and Portuguese | ✅ |
 | [P21](P21-speaker-notes.md) | S7 | Speaker notes and a timer | ✅ |
+| [P22](P22-pdf-export.md) | S7 | PDF with one frame per page | ✅ |

@@ -13,9 +13,10 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- S7 in progress: [P21](phases/P21-speaker-notes.md) done; next P22 (PDF, a frame per page) and P23 (smart connectors).
+- S7 in progress: P21 and [P22](phases/P22-pdf-export.md) done; next P23 (smart connectors).
 
 ## Recently done
+- [P22](phases/P22-pdf-export.md): PDF with one frame per page.
 - [P21](phases/P21-speaker-notes.md): speaker notes and a timer.
 - **v1.4.0 released** (2026-11-21), tag on the built commit `f9b95d6`, with signed provenance; Snowlog's update merged (serbenda/snowlog#9).
 - [P20](phases/P20-languages.md): Catalan, French and Portuguese.

@@ -4,8 +4,9 @@
 // The drawings are kept in this browser (IndexedDB, see store.js) so they are not lost when the tab closes.
 
 import { createEditor } from './editor.js';
-import { emptyScene, parseScene, serializeScene, toExcalidraw } from './scene.js';
-import { toSvgString, toPngBlob } from './render.js';
+import { emptyScene, parseScene, serializeScene, toExcalidraw, slideFrames, slideElements, bounds } from './scene.js';
+import { makePdf } from './pdf.js';
+import { toSvgString, toPngBlob, toImageBlob } from './render.js';
 import { loadPrefs, savePrefs, BACKGROUNDS } from './prefs.js';
 import { pickLang, translator, fill } from './i18n.js';
 import { loadIndex, saveIndex, activeOf, createDrawing, openDrawing, renameDrawing, deleteDrawing, touch, nextName, migrate, readActive, recover, refreshIndex, INDEX_KEY } from './drawings.js';
@@ -273,6 +274,29 @@ $('excalidraw').addEventListener('click', () => {
   notify(t('Downloaded. You can open it in Excalidraw, or again here with "Open…".'));
 });
 
+// PDF: one page per frame (as in presentation mode), or the whole drawing on one page.
+$('pdf').addEventListener('click', async () => {
+  const scene = editor.getScene();
+  if (!scene.elements.length) return notify(t('The drawing is empty.'));
+  try {
+    const pages = [];
+    for (const frame of slideFrames(scene.elements)) {
+      const blob = await toImageBlob(document, { ...scene, elements: slideElements(scene.elements, frame) }, {
+        type: 'image/jpeg', quality: 0.9, scale: 2, hideFrames: true, background: true,
+        ...(frame ? { box: bounds(frame), padding: 0 } : {}),
+      });
+      if (!blob) throw new Error('jpeg');
+      const bmp = await createImageBitmap(blob);
+      pages.push({ jpeg: new Uint8Array(await blob.arrayBuffer()), width: bmp.width, height: bmp.height });
+      bmp.close?.();
+    }
+    download(makePdf(pages, { title: fileName() }), `${fileName()}.pdf`, 'application/pdf');
+    notify(fill(t('PDF made: {n} pages.'), { n: pages.length }));
+  } catch {
+    notify(t('This browser could not make the PDF.'));
+  }
+});
+
 $('svg').addEventListener('click', () => {
   const { scene, box, padding } = exportScene();
   if (!scene.elements.length && !box) return notify(t($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.'));
@@ -365,7 +389,7 @@ menu.addEventListener('click', (ev) => {
   if (ev.clientX < r.left || ev.clientX > r.right || ev.clientY < r.top || ev.clientY > r.bottom) closeMenu();
 });
 // The file actions close the menu once done.
-for (const id of ['new', 'save', 'png', 'svg', 'excalidraw', 'copy-png']) $(id).addEventListener('click', () => setTimeout(closeMenu, 0));
+for (const id of ['new', 'save', 'png', 'svg', 'excalidraw', 'pdf', 'copy-png']) $(id).addEventListener('click', () => setTimeout(closeMenu, 0));
 $('file').addEventListener('change', closeMenu);
 
 // Appearance: system, light or dark, remembered in this browser.

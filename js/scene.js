@@ -436,6 +436,22 @@ export function frameOwners(elements) {
   return map;
 }
 
+// The slides of a presentation or a PDF: the frames not inside another frame, in reading order (top to bottom, then
+// left to right); [null] (the whole drawing) when there are none.
+export function slideFrames(elements) {
+  const frames = elements.filter((e) => e.type === 'frame');
+  const top = frames.filter((f) => !frames.some((g) => g !== f && inFrame([f], g).length));
+  top.sort((a, b) => {
+    const pa = bounds(a);
+    const pb = bounds(b);
+    return Math.abs(pa.y - pb.y) > 40 ? pa.y - pb.y : pa.x - pb.x;
+  });
+  return top.length ? top : [null];
+}
+
+// What a slide shows: the frame and what lies on it (or every element when the slide is the whole drawing).
+export const slideElements = (elements, frame) => (frame ? [frame, ...inFrame(elements, frame)] : elements);
+
 // What a frame carries when it moves: the elements on it (also inside frames nested in it) and those frames.
 export function inFrame(elements, frame) {
   const b = bounds(frame);

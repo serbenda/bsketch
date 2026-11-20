@@ -365,7 +365,13 @@ export function pngScale(w, h, scale) {
 
 // Scene → PNG (Blob) at `scale` times its size, or less if it would not fit; null if it cannot be made.
 // `background: false` gives transparent pixels outside the shapes.
-export async function toPngBlob(doc, scene, { padding = 20, scale = 2, background = true, box = null } = {}) {
+export async function toPngBlob(doc, scene, opts = {}) {
+  return toImageBlob(doc, scene, opts);
+}
+
+// Scene → an image Blob (PNG by default, or `type: 'image/jpeg'`), with the same options as toPngBlob, plus
+// `hideFrames` (frames clip but their border and title aren't painted: a slide).
+export async function toImageBlob(doc, scene, { padding = 20, scale = 2, background = true, box = null, type = 'image/png', quality = 0.92, hideFrames = false } = {}) {
   measureWithCanvas(doc);
   await fontReady(doc);
   await imagesReady(scene);
@@ -376,6 +382,6 @@ export async function toPngBlob(doc, scene, { padding = 20, scale = 2, backgroun
   canvas.height = Math.max(1, Math.ceil((b.h + padding * 2) * scale));
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
-  paintScene(ctx, scene, { background, width: canvas.width, height: canvas.height, view: { x: (padding - b.x) * scale, y: (padding - b.y) * scale, zoom: scale } });
-  return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  paintScene(ctx, scene, { background, hideFrames, width: canvas.width, height: canvas.height, view: { x: (padding - b.x) * scale, y: (padding - b.y) * scale, zoom: scale } });
+  return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
 }
