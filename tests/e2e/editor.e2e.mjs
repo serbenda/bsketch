@@ -481,7 +481,7 @@ test('several drawings, elbow arrows, exporting only the selection, resizing on 
     await page.click('#rename');
     assert.equal(await page.eval('document.querySelector("#drawings [aria-current=true]").textContent'), 'Architecture');
     await page.click('#delete');
-    await page.waitFor('JSON.parse(localStorage.getItem("sketch.drawings")).list.length === 1');
+    await page.waitFor('JSON.parse(localStorage.getItem("sketch.drawings")).list.length === 1 && !document.getElementById("canvas").inert');
     await page.press('Escape');
 
     // Resizing on the grid: the dragged edge lands on it.
