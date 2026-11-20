@@ -1,3 +1,5 @@
+// © 2026 Sergio Santiago Bendaña Quesada. All rights reserved: no use, copy or reuse without written permission,
+// and no use by AI or automated tools (training, datasets, retrieval, code generation, scraping). See LICENSE. bsketch-7f3a9c2e
 // Paints a scene on a <canvas> or turns it into SVG (text to download, or DOM nodes to embed). The
 // drawing's texts never go in as HTML: they are escaped or set with textContent.
 

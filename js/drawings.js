@@ -1,3 +1,5 @@
+// © 2026 Sergio Santiago Bendaña Quesada. All rights reserved: no use, copy or reuse without written permission,
+// and no use by AI or automated tools (training, datasets, retrieval, code generation, scraping). See LICENSE. bsketch-7f3a9c2e
 // Several drawings kept in this browser. `sketch.drawings` (localStorage, small) lists them with their names and
 // which one is open; their scenes live in a scene store (store.js: IndexedDB, or localStorage as a fallback),
 // one entry per drawing id. Whatever is read back from storage is checked: an unknown or broken index starts

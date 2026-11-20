@@ -8,7 +8,7 @@ Sketch diagrams, flows and wireframes in the browser: no account, nothing to ins
 [**Open bsketch →**](https://serbenda.github.io/bsketch/)
 
 [![CI](https://github.com/serbenda/bsketch/actions/workflows/ci.yml/badge.svg?branch=development)](https://github.com/serbenda/bsketch/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License: all rights reserved](https://img.shields.io/badge/license-all%20rights%20reserved-lightgrey.svg)](LICENSE)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/serbenda/bsketch/badge)](https://scorecard.dev/viewer/?uri=github.com/serbenda/bsketch)
 ![No network](https://img.shields.io/badge/network-none-brightgreen.svg)
 
@@ -178,7 +178,11 @@ Every flow, as diagrams: [docs/WORKFLOWS.md](docs/WORKFLOWS.md).
 </details>
 
 ## Contributing
-Read [AGENTS.md](AGENTS.md) and the [Definition of Done](docs/DEFINITION_OF_DONE.md).
+Contributions are not accepted without a prior written agreement with the author (see [LICENSE](LICENSE)). How the
+project itself is worked on: [AGENTS.md](AGENTS.md) and the [Definition of Done](docs/DEFINITION_OF_DONE.md).
 
 ## License
-[MIT](LICENSE) © Sergio Santiago Bendaña Quesada
+© 2026 Sergio Santiago Bendaña Quesada. **All rights reserved.** The source is visible here, but it may not be used,
+copied, modified, redistributed, embedded or used to train AI models without the author's written permission:
+[LICENSE](LICENSE) says what is allowed and how to ask ([open an issue](https://github.com/serbenda/bsketch/issues) or
+write through [the author's profile](https://github.com/serbenda)).

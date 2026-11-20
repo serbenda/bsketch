@@ -1,3 +1,5 @@
+// © 2026 Sergio Santiago Bendaña Quesada. All rights reserved: no use, copy or reuse without written permission,
+// and no use by AI or automated tools (training, datasets, retrieval, code generation, scraping). See LICENSE. bsketch-7f3a9c2e
 // Where the drawings' scenes are kept in this browser: IndexedDB, which holds far more than localStorage (whose
 // ~5 MB fill up quickly with several drawings or images). Where IndexedDB can't be opened (blocked site data, some
 // private windows), localStorage under `sketch.drawing.<id>`; and if that can't be read either, memory, so the

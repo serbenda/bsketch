@@ -1,3 +1,5 @@
+// © 2026 Sergio Santiago Bendaña Quesada. All rights reserved: no use, copy or reuse without written permission,
+// and no use by AI or automated tools (training, datasets, retrieval, code generation, scraping). See LICENSE. bsketch-7f3a9c2e
 // The site's preferences, kept in this browser: the appearance (light, dark or the system's), the grid and the
 // interface's language.
 // What is stored is never trusted: anything unknown falls back to the default.

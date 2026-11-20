@@ -5,6 +5,12 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
 ## [Unreleased]
 
 ## [1.1.0] - 2026-11-20
+### License
+- **All rights reserved:** from this version on, bsketch is proprietary. The code can be viewed, and the
+  official site and releases used for personal evaluation; anything else needs the author's written permission, and
+  no use by AI or automated tools is allowed ([LICENSE](LICENSE), [ADR 0006](docs/decisions/0006-proprietary-license.md)).
+  The 1.0.0 release has been withdrawn.
+
 ### Added
 - **Pictures:** insert a PNG, JPEG, GIF or WebP from the toolbar (or the **I** key), paste it, or drop it on the
   canvas. It is kept with the drawing (saved in `.sketch` files, read from `.excalidraw` ones), keeps its proportions

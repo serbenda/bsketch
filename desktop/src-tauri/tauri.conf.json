@@ -23,6 +23,7 @@
     }
   },
   "bundle": {
+    "copyright": "© 2026 Sergio Santiago Bendaña Quesada. All rights reserved.",
     "active": true,
     "targets": [
       "app",

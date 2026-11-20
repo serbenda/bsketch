@@ -1,3 +1,5 @@
+// © 2026 Sergio Santiago Bendaña Quesada. All rights reserved: no use, copy or reuse without written permission,
+// and no use by AI or automated tools (training, datasets, retrieval, code generation, scraping). See LICENSE. bsketch-7f3a9c2e
 // A drawing's scene: a list of elements with their style. Pure functions (no DOM) to create, measure,
 // hit-test, move, rotate, resize, bind, save, open (also .excalidraw) and turn into strokes.
 //
