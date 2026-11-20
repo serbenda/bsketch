@@ -482,3 +482,40 @@
     min-width: 0;
   }
 }
+
+/* Presenting: only the slide and a small bar to move through it. */
+.sk-presenting .sk-toolbar,
+.sk-presenting .sk-panel,
+.sk-presenting .sk-bottom,
+.sk-presenting .sk-library,
+.sk-presenting .sk-search {
+  display: none !important;
+}
+
+.sk-present {
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  opacity: 0.35;
+  transition: opacity 0.2s;
+}
+
+.sk-present:hover,
+.sk-present:focus-within {
+  opacity: 1;
+}
+
+.sk-slidecount {
+  min-width: 3.5rem;
+  text-align: center;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sk-editor.sk-presenting:fullscreen {
+  background: #ffffff;
+}

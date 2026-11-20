@@ -23,3 +23,4 @@ Each block of work has a phase file `PNN-short-title.md` created with `/new-phas
 | [P12](P12-excalidraw-export-snowlog.md) | S4 | Export to Excalidraw; Snowlog with the new engine | ✅ |
 | [P13](P13-lock-search-styles.md) | S4 | Lock, search and more styles | ✅ |
 | [P14](P14-frame-clipping.md) | S5 | Frames clip what they hold | ✅ |
+| [P15](P15-presentation.md) | S5 | Presentation mode with a laser pointer | ✅ |

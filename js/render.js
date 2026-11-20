@@ -166,7 +166,8 @@ let flowTime = 0;
 export const hasFlow = (elements) => elements.some((e) => e.animated === true && (e.type === 'arrow' || e.type === 'line'));
 
 // view: { x, y, zoom } (offset in screen pixels, and scale).
-export function paintScene(ctx, scene, { view = { x: 0, y: 0, zoom: 1 }, width, height, background = true, imageFilter = '', time = 0 } = {}) {
+// `hideFrames`: frames still clip what lies on them but their border and title aren't painted (presenting).
+export function paintScene(ctx, scene, { view = { x: 0, y: 0, zoom: 1 }, width, height, background = true, imageFilter = '', time = 0, hideFrames = false } = {}) {
   flowTime = Number.isFinite(time) ? time : 0;
   ctx.save();
   if (background) {
@@ -183,6 +184,7 @@ export function paintScene(ctx, scene, { view = { x: 0, y: 0, zoom: 1 }, width, 
   const y2 = (height - view.y) / view.zoom + m;
   const clipTo = frameOwners(scene.elements);
   for (const el of scene.elements) {
+    if (hideFrames && el.type === 'frame') continue;
     const b = aabb(el);
     if (b.x > x2 || b.y > y2 || b.x + b.w < x1 || b.y + b.h < y1) continue;
     // What lies on a frame is cut at its border.

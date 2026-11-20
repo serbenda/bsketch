@@ -48,5 +48,5 @@ would break that.
 | Phase | What | Status |
 |---|---|---|
 | P14 | [Frames clip what they hold (on screen and in exports)](phases/P14-frame-clipping.md) | ✅ |
-| P15 | Presentation mode: frames one by one, full screen, with a laser pointer | ⬜ |
+| P15 | [Presentation mode: frames one by one, full screen, with a laser pointer](phases/P15-presentation.md) | ✅ |
 | P16 | Curve an arrow by hand: drag its middle | ⬜ |

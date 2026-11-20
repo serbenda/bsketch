@@ -45,6 +45,7 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 - Three fonts for text: handwriting, normal and code.
 - Arrows and lines straight, **with an elbow** or **curved**.
 - **Pictures:** insert, paste or drop them; arrows attach to them.
+- **Present** a drawing frame by frame, full screen, with a laser pointer.
 - **Frames** to title and group part of a drawing: what lies on them is cut at their border, and a frame exports
   exactly that part.
 - A **library** of pieces to reuse, which also reads Excalidraw libraries.
@@ -91,6 +92,7 @@ the antivirus may block an unsigned executable (use the portable file there). Th
 | R · D · O | Rectangle · diamond · ellipse |
 | A · L · P · T · F · E | Arrow · line · pencil · text · frame · eraser |
 | I · Shift+L | Insert a picture · open the library |
+| Shift+P | Present: the frames one by one, full screen (arrow keys to move, Escape to end) |
 | Ctrl+F · Ctrl+Shift+L | Search the drawing · lock the selection (or unlock all) |
 | Ctrl+arrow keys | With a shape selected: the next shape on that side, joined by an arrow (Cmd on a Mac) |
 | Shift | Keep proportions while drawing or resizing; 15° steps for lines and rotation |

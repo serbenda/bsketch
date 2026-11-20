@@ -34,6 +34,9 @@ const ICONS = {
   minus: 'M5 12h14',
   plus: 'M12 5v14 M5 12h14',
   fit: 'M4 9V4h5 M15 4h5v5 M20 15v5h-5 M9 20H4v-5',
+  present: 'M3 4h18v12H3z M12 16v4 M8 20h8 M10 8l4 2-4 2z',
+  prev: 'M15 6l-6 6 6 6',
+  next: 'M9 6l6 6-6 6',
   front: 'M8 8h12v12H8z M4 4h10v2 M4 4v10h2',
   back: 'M4 4h12v12H4z M18 8h2v12H8v-2',
   alignLeft: 'M4 4v16 M8 7h10v4H8z M8 14h6v4H8z',
@@ -204,7 +207,8 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       btn('minus', 'Zoom out', () => zoomAt(1 / 1.2)),
       zoomLabel,
       btn('plus', 'Zoom in', () => zoomAt(1.2)),
-      btn('fit', 'Fit the whole drawing', () => zoomToFit())),
+      btn('fit', 'Fit the whole drawing', () => zoomToFit()),
+      btn('present', 'Present (Shift+P)', () => startPresenting())),
     ui('div', { class: 'sk-group' },
       btn('undo', 'Undo (Ctrl+Z)', () => doUndo()),
       btn('redo', 'Redo (Ctrl+Y)', () => doRedo()),
@@ -230,9 +234,15 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     btn('up', 'Previous (Shift+Enter)', () => findNext(-1)),
     btn('down', 'Next (Enter)', () => findNext(1)),
     btn('close', 'Close the search (Esc)', () => closeSearch()));
+  const slideCount = ui('span', { class: 'sk-slidecount', 'aria-live': 'polite' });
+  const presentBar = ui('div', { class: 'sk-group sk-present', role: 'toolbar', 'aria-label': 'Presentation', hidden: true },
+    btn('prev', 'Previous slide (←)', () => goSlide(-1)),
+    slideCount,
+    btn('next', 'Next slide (→)', () => goSlide(1)),
+    btn('close', 'End the presentation (Esc)', () => stopPresenting()));
   const stage = ui('div', { class: 'sk-stage' }, canvas, textBox);
   if (readOnly) root.append(stage);
-  else root.append(stage, toolbar, panel, ...(library ? [libPanel] : []), searchBox, bottom, status, help, imageInput);
+  else root.append(stage, toolbar, panel, ...(library ? [libPanel] : []), searchBox, bottom, presentBar, status, help, imageInput);
   container.append(root);
   const ctx = canvas.getContext('2d');
 
@@ -364,14 +374,22 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       canvas.height = H;
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const hidden = editingText ? { ...scene, elements: scene.elements.filter((e) => e.id !== editingText) } : scene;
+    const slide = presenting ? presenting.slides[presenting.at] : null;
+    const hidden = presenting
+      ? (slide ? { ...scene, elements: [slide, ...E.inFrame(scene.elements, slide)] } : scene)
+      : editingText ? { ...scene, elements: scene.elements.filter((e) => e.id !== editingText) } : scene;
     ctx.fillStyle = scene.background || '#ffffff';
     ctx.fillRect(0, 0, r.width, r.height);
     if (grid) paintGrid(r.width, r.height);
     const inverted = getComputedStyle(canvas).filter.includes('invert');
     // Animated lines: paint again ~30 times a second while one is on screen (not for people who ask for less motion).
     const flowing = !stillMotion.matches && hasFlow(hidden.elements);
-    paintScene(ctx, hidden, { view, width: r.width, height: r.height, background: false, imageFilter: inverted ? 'hue-rotate(180deg) invert(100%)' : '', time: flowing ? performance.now() : 0 });
+    paintScene(ctx, hidden, { view, width: r.width, height: r.height, background: false, imageFilter: inverted ? 'hue-rotate(180deg) invert(100%)' : '', time: flowing ? performance.now() : 0, hideFrames: !!presenting });
+    if (presenting) {
+      paintLaser();
+      zoomLabel.textContent = `${Math.round(view.zoom * 100)} %`;
+      return;
+    }
     if (flowing && !flowTimer) flowTimer = setTimeout(() => { flowTimer = 0; if (alive) redraw(); }, 33);
     ctx.save();
     ctx.translate(view.x, view.y);
@@ -907,6 +925,137 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     changed();
   }
 
+  // --- Presenting: the frames one by one (or the whole drawing), full screen, with a laser pointer ---
+  let presenting = null; // { slides: [frame | null], at, view, tool }
+  let laser = []; // the pointer's trail: { x, y, t } in drawing coordinates
+  let laserTimer = 0;
+  function slidesOf() {
+    const frames = scene.elements.filter((e) => e.type === 'frame');
+    // Frames inside another frame are part of that frame's slide.
+    const top = frames.filter((f) => !frames.some((g) => g !== f && E.inFrame([f], g).length));
+    const pos = (f) => E.bounds(f);
+    top.sort((a, b) => (Math.abs(pos(a).y - pos(b).y) > 40 ? pos(a).y - pos(b).y : pos(a).x - pos(b).x));
+    return top.length ? top : [null];
+  }
+  function fitSlide() {
+    const slide = presenting.slides[presenting.at];
+    const r = canvas.getBoundingClientRect();
+    const b = slide ? E.bounds(slide) : E.sceneBounds(scene.elements);
+    if (!b.w && !b.h) {
+      view = { x: r.width / 2, y: r.height / 2, zoom: 1 };
+      return;
+    }
+    const margin = 24;
+    const z = Math.max(0.1, Math.min(8, Math.min((r.width - margin * 2) / (b.w || 1), (r.height - margin * 2) / (b.h || 1))));
+    view = { zoom: z, x: r.width / 2 - (b.x + b.w / 2) * z, y: r.height / 2 - (b.y + b.h / 2) * z };
+  }
+  function showSlide() {
+    const n = presenting.slides.length;
+    slideCount.textContent = `${presenting.at + 1} / ${n}`;
+    // Wait for the full-screen resize before fitting.
+    requestAnimationFrame(() => {
+      if (!presenting) return;
+      fitSlide();
+      redraw();
+    });
+    fitSlide();
+    redraw();
+  }
+  function startPresenting() {
+    if (presenting || readOnly) return;
+    finishText();
+    presenting = { slides: slidesOf(), at: 0, view: { ...view }, tool };
+    selected.clear();
+    announce();
+    setTool('select');
+    root.classList.add('sk-presenting');
+    presentBar.hidden = false;
+    canvas.style.cursor = 'none';
+    try {
+      const p = root.requestFullscreen?.();
+      if (p?.catch) p.catch(() => {});
+    } catch { /* full screen refused: present in the window */ }
+    status.textContent = tr('Presenting. Arrow keys move through the slides; Escape ends.');
+    showSlide();
+    root.focus();
+  }
+  function stopPresenting() {
+    if (!presenting) return;
+    const back = presenting;
+    presenting = null;
+    laser = [];
+    root.classList.remove('sk-presenting');
+    presentBar.hidden = true;
+    if (document.fullscreenElement === root) document.exitFullscreen?.().catch(() => {});
+    view = back.view;
+    zoomLabel.textContent = `${Math.round(view.zoom * 100)} %`;
+    setTool(back.tool);
+    status.textContent = '';
+    redraw();
+    root.focus();
+  }
+  function goSlide(d, to = null) {
+    if (!presenting) return;
+    const n = presenting.slides.length;
+    presenting.at = to ?? Math.max(0, Math.min(n - 1, presenting.at + d));
+    laser = [];
+    showSlide();
+  }
+  function presentKey(ev) {
+    const k = ev.key;
+    if (k === 'Escape') stopPresenting();
+    else if (k === 'ArrowRight' || k === 'ArrowDown' || k === ' ' || k === 'PageDown' || k === 'Enter') goSlide(1);
+    else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp' || k === 'Backspace') goSlide(-1);
+    else if (k === 'Home') goSlide(0, 0);
+    else if (k === 'End') goSlide(0, presenting.slides.length - 1);
+    else return;
+    ev.preventDefault();
+  }
+  document.addEventListener('fullscreenchange', () => {
+    // Leaving full screen (Escape in the browser) ends the presentation too.
+    if (presenting && document.fullscreenElement !== root && presenting.wasFull) stopPresenting();
+    else if (presenting && document.fullscreenElement === root) {
+      presenting.wasFull = true;
+      showSlide();
+    }
+  });
+  // The laser: a red trail that fades in LASER_MS; repainted while it lasts.
+  const LASER_MS = 900;
+  function laserAt(ev) {
+    const p = toWorld(ev.clientX, ev.clientY);
+    laser.push({ x: p.x, y: p.y, t: performance.now() });
+    if (laser.length > 400) laser.splice(0, laser.length - 400);
+    redraw();
+  }
+  function paintLaser() {
+    const now = performance.now();
+    laser = laser.filter((q) => now - q.t < LASER_MS);
+    if (!laser.length) return;
+    ctx.save();
+    ctx.translate(view.x, view.y);
+    ctx.scale(view.zoom, view.zoom);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (let i = 1; i < laser.length; i++) {
+      const a = laser[i - 1];
+      const b = laser[i];
+      const life = 1 - (now - b.t) / LASER_MS;
+      ctx.strokeStyle = `rgba(230, 30, 30, ${0.85 * life})`;
+      ctx.lineWidth = (2 + 4 * life) / view.zoom;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+    }
+    const head = laser[laser.length - 1];
+    ctx.fillStyle = 'rgba(230, 30, 30, 0.9)';
+    ctx.beginPath();
+    ctx.arc(head.x, head.y, 5 / view.zoom, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    if (!laserTimer) laserTimer = setTimeout(() => { laserTimer = 0; if (alive) redraw(); }, 30);
+  }
+
   // --- Search ---
   // Case and accents don't matter: "accion" finds "Acción".
   const fold = (t) => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -1256,6 +1405,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   const CURSORS = { n: 'ns-resize', s: 'ns-resize', e: 'ew-resize', w: 'ew-resize', nw: 'nwse-resize', se: 'nwse-resize', ne: 'nesw-resize', sw: 'nesw-resize', rot: 'grab', p0: 'move', p1: 'move' };
 
   canvas.addEventListener('pointerdown', (ev) => {
+    if (presenting) { laserAt(ev); return; } // presenting: the pointer is a laser, nothing changes
     if (ev.button === 2) return; // the context menu, not a tool
     if (pointers.size >= 2) return; // a third finger changes nothing
     if (tool !== 'text') root.focus({ preventScroll: true });
@@ -1363,6 +1513,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   }
 
   canvas.addEventListener('pointermove', (ev) => {
+    if (presenting) { laserAt(ev); return; }
     if (pointers.has(ev.pointerId)) pointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
     if (!action) {
       if (tool === 'select') {
@@ -1531,6 +1682,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   canvas.addEventListener('pointercancel', endPointer);
 
   canvas.addEventListener('dblclick', (ev) => {
+    if (presenting) return;
     if (readOnly || tool === 'hand' || tool === 'eraser' || spaceDown) return;
     const p = toWorld(ev.clientX, ev.clientY);
     const hit = E.elementAt(free(), p.x, p.y, 6 / view.zoom);
@@ -1550,6 +1702,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
 
   canvas.addEventListener('wheel', (ev) => {
     ev.preventDefault();
+    if (presenting) return;
     if (ev.ctrlKey || ev.metaKey) zoomAt(Math.exp(-ev.deltaY * 0.01), ev.clientX, ev.clientY);
     else {
       view = { ...view, x: view.x - ev.deltaX, y: view.y - ev.deltaY };
@@ -1567,6 +1720,8 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     if ((ev.key === 'Enter' || ev.key === ' ') && ev.target !== root && ev.target.closest('button, a[href], [role="button"]')) return;
     const mod = ev.ctrlKey || ev.metaKey;
     const k = ev.key.toLowerCase();
+    if (presenting) { presentKey(ev); return; }
+    if (!mod && !ev.altKey && ev.shiftKey && k === 'p' && !readOnly) { ev.preventDefault(); startPresenting(); return; }
     if (ev.key === ' ') { spaceDown = true; canvas.style.cursor = 'grab'; ev.preventDefault(); return; }
     if (readOnly) return;
     if (mod && k === 'z' && !ev.shiftKey) { ev.preventDefault(); doUndo(); return; }
@@ -1760,6 +1915,8 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     getSelectionWithFrames: () => structuredClone(scene.elements.filter((e) => withFrameContents(selected).has(e.id))),
     insertImage,
     insertText,
+    startPresenting,
+    stopPresenting,
     setBackground,
     setGrid,
     setTheme,
@@ -1775,6 +1932,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
       ro.disconnect();
       offImages();
       clearTimeout(flowTimer);
+      clearTimeout(laserTimer);
       cancelAnimationFrame(raf);
       root.remove();
     },

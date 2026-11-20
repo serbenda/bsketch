@@ -1019,3 +1019,50 @@ test('frames clip what lies on them, on screen', { skip }, async () => {
     await page.close();
   }
 });
+
+test('presentation mode: frames one by one, the laser changes nothing, Escape puts things back', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    // Two frames side by side, each with a box; the second one written first, so reading order matters.
+    await page.click('#menu-button');
+    await page.click('#text-diagram');
+    await page.fill('#td-text', 'graph LR\nB[Two] --> A[One]\nsubgraph S2 [Second]\nA\nend\nsubgraph S1 [First]\nB\nend');
+    await page.click('#td-insert');
+    await page.waitFor('!document.getElementById("td-dialog").open && document.getElementById("td-text").value === ""');
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('Escape');
+    const before = await scene(page);
+    const zoom0 = await page.eval('document.querySelector(".sk-zoomlabel").textContent');
+    await page.press('P', { shift: true });
+    await page.waitFor('document.querySelector(".sk-editor").classList.contains("sk-presenting")');
+    assert.equal(await page.eval('document.querySelector(".sk-slidecount").textContent'), '1 / 2');
+    assert.equal(await page.eval('getComputedStyle(document.querySelector(".sk-toolbar")).display'), 'none', 'the toolbar is hidden');
+    // The laser: dragging over the slide draws and changes nothing.
+    const at = await screen(page);
+    await page.drag(at(-100, 0), at(100, 40));
+    assert.deepEqual((await scene(page)).elements, before.elements, 'nothing changed');
+    await page.press('ArrowRight');
+    assert.equal(await page.eval('document.querySelector(".sk-slidecount").textContent'), '2 / 2');
+    await page.press('ArrowRight');
+    assert.equal(await page.eval('document.querySelector(".sk-slidecount").textContent'), '2 / 2', 'it stops at the last');
+    await page.press('ArrowLeft');
+    assert.equal(await page.eval('document.querySelector(".sk-slidecount").textContent'), '1 / 2');
+    await page.press('Escape');
+    assert.equal(await page.eval('document.querySelector(".sk-editor").classList.contains("sk-presenting")'), false);
+    assert.equal(await page.eval('document.querySelector(".sk-zoomlabel").textContent'), zoom0, 'the view is put back');
+    // Without frames, the whole drawing is one slide.
+    await page.press('a', { ctrl: true });
+    await page.press('Delete');
+    await page.press('r');
+    await page.drag(at(-50, -20), at(50, 20));
+    await page.press('P', { shift: true });
+    await page.waitFor('document.querySelector(".sk-editor").classList.contains("sk-presenting")');
+    assert.equal(await page.eval('document.querySelector(".sk-slidecount").textContent'), '1 / 1');
+    await page.click('.sk-present [aria-label="End the presentation"]');
+    assert.equal(await page.eval('document.querySelector(".sk-editor").classList.contains("sk-presenting")'), false);
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});

@@ -16,6 +16,22 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — P15: presentation mode with a laser pointer
+- **Phase / issue:** P15
+- **What:** `startPresenting`/`stopPresenting` in the editor: slides are the top-level frames in reading order (or
+  the whole drawing), each fitted to the screen and painted with `hideFrames` (contents clipped, no border or title);
+  keys and a small bar move through them; full screen when allowed, leaving it ends the talk; the laser keeps a
+  fading trail of pointer positions and repaints only while it lasts; editing, wheel and double click are off while
+  presenting; Spanish strings; service worker v18.
+- **Why:** S5's second phase: frames that work as slides (after P14's clipping).
+- **Rejected:** a separate presentation page or window (the editor already paints and clips frames); a laser tool in
+  the toolbar (it would not fit on a phone, and it is only useful while presenting).
+- **Files:** js/editor.js, js/render.js, js/i18n.js, css/sketch.css, sw.js, tests/e2e/editor.e2e.mjs, README.md,
+  CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 63 pass; `npm run test:e2e` 24 pass, twice; the portable build; a screenshot of a slide.
+- **Pending:** —
+
 ## 2026-11-20 — P14: frames clip what lies on them
 - **Phase / issue:** P14
 - **What:** `frameOwners` (each element belongs to the smallest frame its centre is on; cached per list) and
