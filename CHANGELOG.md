@@ -8,6 +8,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
   made in the browser with no library.
 - **Speaker notes and a timer:** a selected frame shows a panel with its name and speaker notes; while presenting,
   N shows or hides the current slide's notes (only for you), and the bar shows the time since the start.
+- **Smarter elbow arrows:** attached to shapes, they leave from the middle of the facing side and go around the
+  shapes in their way, with right angles only; they re-route as the drawing changes, on screen and in every export.
 
 
 ## [1.4.0] - 2026-11-21

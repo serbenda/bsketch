@@ -13,9 +13,10 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- S7 in progress: P21 and [P22](phases/P22-pdf-export.md) done; next P23 (smart connectors).
+- S7 done on `development` (P21, P22, [P23](phases/P23-smart-connectors.md)); next: release 1.5.0, then P19 and S8.
 
 ## Recently done
+- [P23](phases/P23-smart-connectors.md): elbow connectors that go around shapes.
 - [P22](phases/P22-pdf-export.md): PDF with one frame per page.
 - [P21](phases/P21-speaker-notes.md): speaker notes and a timer.
 - **v1.4.0 released** (2026-11-21), tag on the built commit `f9b95d6`, with signed provenance; Snowlog's update merged (serbenda/snowlog#9).

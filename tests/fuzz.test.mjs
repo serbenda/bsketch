@@ -559,8 +559,13 @@ test('bounds, sceneBounds, routePoints and drawOps: fast and finite for any pars
       if (el.type === 'line' || el.type === 'arrow') {
         const rp = E.routePoints(el);
         assert.ok(rp.length >= 1 && rp.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y)), 'routePoints finite');
-        const expected = !el.route || el.points.length !== 2 ? [el.points.length] : el.route === 'elbow' ? [2, 4] : [2, 17];
-        assert.ok(expected.includes(rp.length), `routePoints length ${rp.length}`);
+        if (el.route === 'elbow' && el.points.length === 2) {
+          // An elbow (plain, or routed around shapes) has only horizontal and vertical segments.
+          if (rp.length > 2) assert.ok(rp.every((p, i) => !i || Math.abs(p.x - rp[i - 1].x) < 1e-6 || Math.abs(p.y - rp[i - 1].y) < 1e-6), 'elbow segments are right-angled');
+        } else {
+          const expected = !el.route || el.points.length !== 2 ? [el.points.length] : [2, 17];
+          assert.ok(expected.includes(rp.length), `routePoints length ${rp.length}`);
+        }
       }
       const ops = E.drawOps(el);
       assert.ok(Array.isArray(ops));

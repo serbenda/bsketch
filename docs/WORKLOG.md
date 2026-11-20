@@ -16,6 +16,20 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — P23: elbow connectors that go around shapes
+- **Phase / issue:** P23
+- **What:** elbow arrows and lines attached to shapes leave from the middle of the facing side and are routed around
+  nearby shapes (`sideOf`, `orthogonalPath`, `routeElbows` in `js/scene.js`); `routePoints` uses the routed path;
+  `js/render.js` routes before painting and in every export; `sw.js` cache v23.
+- **Why:** S7 of the roadmap; with it, bsketch's connectors read like a diagramming tool's.
+- **Rejected:** storing the path in the file (it would go stale when shapes move, and older versions would draw it
+  wrong); caching per arrow (a shape in the way can move while the arrow stays the same).
+- **Files:** js/scene.js, js/render.js, sw.js, tests/scene.test.mjs, tests/fuzz.test.mjs, tests/e2e/editor.e2e.mjs,
+  README.md, CHANGELOG.md, docs/*
+- **Commits:** see the P23 commit on `development`.
+- **Tested:** `npm test` 69 pass; fuzz with seeds 1–3, 2,000 runs each; `npm run test:e2e` 31 pass; a screenshot.
+- **Pending:** release 1.5.0 (owner).
+
 ## 2026-11-21 — P22: PDF with one frame per page
 - **Phase / issue:** P22
 - **What:** `js/pdf.js` (a PDF 1.4 writer: one JPEG per page, `DCTDecode`, pages sized to their slide with the long

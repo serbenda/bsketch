@@ -1196,3 +1196,39 @@ test('PDF from the menu: one page per frame, in reading order', { skip }, async 
     await page.close();
   }
 });
+
+test('elbow arrows go around the shapes in the way, and follow when they move', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('r');
+    await page.drag(at(-300, -30), at(-200, 30));
+    await page.press('r');
+    await page.drag(at(200, -30), at(300, 30));
+    await page.press('r');
+    await page.drag(at(-30, -150), at(30, 150)); // a wall between them
+    await page.press('a');
+    await page.click('[aria-label="Route"] button', 'Elbow');
+    await page.drag(at(-250, 0), at(250, 0));
+    const s = await scene(page);
+    const arrow = s.elements.find((e) => e.type === 'arrow');
+    assert.ok(arrow.startId && arrow.endId, 'bound at both ends');
+    const pts = await page.eval(`import('./js/scene.js').then((E) => {
+      const els = E.syncBindings(${JSON.stringify(s.elements)});
+      return E.routePoints(els.find((e) => e.type === 'arrow'));
+    })`);
+    assert.ok(pts.length > 2, `it bends: ${JSON.stringify(pts)}`);
+    for (let i = 1; i < pts.length; i++) assert.ok(pts[i].x === pts[i - 1].x || pts[i].y === pts[i - 1].y, 'right angles only');
+    assert.ok(pts.every((p, i) => !i || Math.max(p.y, pts[i - 1].y) < -150 || Math.min(p.y, pts[i - 1].y) > 150
+      || Math.max(p.x, pts[i - 1].x) < -30 || Math.min(p.x, pts[i - 1].x) > 30), 'not through the wall');
+    if (process.env.SHOT_OUT) {
+      const png = await page.eval('new Promise((r) => document.querySelector(".sk-canvas").toBlob((b) => b.arrayBuffer().then((a) => { let s = ""; const u = new Uint8Array(a); for (let i = 0; i < u.length; i++) s += String.fromCharCode(u[i]); r(btoa(s)); })))');
+      (await import('node:fs')).writeFileSync(process.env.SHOT_OUT, Buffer.from(png, 'base64'));
+    }
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});

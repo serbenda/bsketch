@@ -144,6 +144,8 @@ export function routePoints(el) {
   const dx = z.x - a.x;
   const dy = z.y - a.y;
   if (el.route === 'elbow') {
+    const smart = routed.get(el);
+    if (smart) return smart;
     if (Math.abs(dx) < 1 || Math.abs(dy) < 1) return pts;
     // Along the longer direction first, turning halfway.
     if (Math.abs(dx) >= Math.abs(dy)) {
@@ -622,7 +624,7 @@ function innerBox(el) {
 // bindings to elements that no longer exist. Does not change the array it receives.
 export function syncBindings(elements) {
   const byId = new Map(elements.map((e) => [e.id, e]));
-  return elements.map((el) => {
+  const result = elements.map((el) => {
     if (el.type === 'text' && el.containerId) {
       const c = byId.get(el.containerId);
       if (!c || !isContainer(c)) {
@@ -658,8 +660,10 @@ export function syncBindings(elements) {
       if (n < 2) return out;
       const refStart = n > 2 ? pts[1] : e ? center(e) : pts[n - 1];
       const refEnd = n > 2 ? pts[n - 2] : s ? center(s) : pts[0];
-      if (s) pts[0] = outlinePoint(s, refStart);
-      if (e) pts[n - 1] = outlinePoint(e, refEnd);
+      // An elbow connector leaves (and reaches) a shape at the middle of the side facing the other end.
+      const elbow = el.route === 'elbow' && n === 2;
+      if (s) pts[0] = elbow ? sideOf(s, refStart).p : outlinePoint(s, refStart);
+      if (e) pts[n - 1] = elbow ? sideOf(e, refEnd).p : outlinePoint(e, refEnd);
       keep(pts);
       out.x = pts[0].x;
       out.y = pts[0].y;
@@ -668,6 +672,136 @@ export function syncBindings(elements) {
     }
     return el;
   });
+  routeElbows(result);
+  return result;
+}
+
+// --- Elbow connectors: right-angled paths around the shapes in the way ---
+// The path of each elbow arrow or line, worked out among the shapes near it and kept per element object (elements are
+// never changed in place) and per list (routeElbows runs once per list). routePoints uses it when there is one.
+const routed = new WeakMap();
+const routedLists = new WeakMap();
+const ROUTE_MARGIN = 18; // the room kept around shapes
+const ROUTE_STUB = 22; // how far a connector goes straight out of a shape before turning
+const ROUTE_TURN = 40; // a turn costs like this many units of length
+const ROUTE_MAX_GRID = 4000; // grid points; bigger cases use the plain elbow
+
+// The middle of the side of `shape` that faces `toward`, just outside it, and the direction out of that side.
+function sideOf(shape, toward) {
+  const b = bounds(shape);
+  const c = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+  const dx = toward.x - c.x;
+  const dy = toward.y - c.y;
+  const g = ARROW_GAP;
+  if (Math.abs(dx) * (b.h || 1) >= Math.abs(dy) * (b.w || 1)) {
+    return dx >= 0 ? { p: { x: b.x + b.w + g, y: c.y }, d: { x: 1, y: 0 } } : { p: { x: b.x - g, y: c.y }, d: { x: -1, y: 0 } };
+  }
+  return dy >= 0 ? { p: { x: c.x, y: b.y + b.h + g }, d: { x: 0, y: 1 } } : { p: { x: c.x, y: b.y - g }, d: { x: 0, y: -1 } };
+}
+
+const isObstacle = (e) => e.type === 'rectangle' || e.type === 'diamond' || e.type === 'ellipse' || e.type === 'image';
+
+// Shortest right-angled path from a to z (each with the direction it must leave/arrive along, or null) that keeps out
+// of the boxes, with a cost per turn. Null when there is none (or the grid would be too big).
+export function orthogonalPath(a, z, boxes, { da = null, dz = null } = {}) {
+  const inflated = boxes.map((b) => ({ x1: b.x - ROUTE_MARGIN + 1, y1: b.y - ROUTE_MARGIN + 1, x2: b.x + b.w + ROUTE_MARGIN - 1, y2: b.y + b.h + ROUTE_MARGIN - 1 }));
+  const s = da ? { x: a.x + da.x * ROUTE_STUB, y: a.y + da.y * ROUTE_STUB } : a;
+  const t = dz ? { x: z.x + dz.x * ROUTE_STUB, y: z.y + dz.y * ROUTE_STUB } : z;
+  const inside = (x, y) => inflated.some((r) => x > r.x1 && x < r.x2 && y > r.y1 && y < r.y2);
+  if (inside(s.x, s.y) || inside(t.x, t.y)) return null;
+  const xs = [...new Set([s.x, t.x, (s.x + t.x) / 2, ...inflated.flatMap((r) => [r.x1 - 1, r.x2 + 1])])].sort((p, q) => p - q);
+  const ys = [...new Set([s.y, t.y, (s.y + t.y) / 2, ...inflated.flatMap((r) => [r.y1 - 1, r.y2 + 1])])].sort((p, q) => p - q);
+  if (xs.length * ys.length > ROUTE_MAX_GRID) return null;
+  // A segment is clear when it doesn't cross any box's inside.
+  const clear = (x1, y1, x2, y2) => !inflated.some((r) => (x1 === x2
+    ? x1 > r.x1 && x1 < r.x2 && Math.max(y1, y2) > r.y1 && Math.min(y1, y2) < r.y2
+    : y1 > r.y1 && y1 < r.y2 && Math.max(x1, x2) > r.x1 && Math.min(x1, x2) < r.x2));
+  const W = xs.length;
+  const key = (i, j, d) => (j * W + i) * 3 + d; // d: 0 none, 1 horizontal, 2 vertical
+  const si = xs.indexOf(s.x);
+  const sj = ys.indexOf(s.y);
+  const ti = xs.indexOf(t.x);
+  const tj = ys.indexOf(t.y);
+  const startDir = da ? (da.x ? 1 : 2) : 0;
+  const endDir = dz ? (dz.x ? 1 : 2) : 0;
+  // Dijkstra over (point, last direction); the grid is small, so a sorted list is enough.
+  const dist = new Map([[key(si, sj, startDir), 0]]);
+  const prev = new Map();
+  const open = [[0, si, sj, startDir]];
+  let found = null;
+  let steps = 0;
+  while (open.length && steps++ < 60000) {
+    open.sort((p, q) => p[0] - q[0]);
+    const [cost, i, j, d] = open.shift();
+    if (cost > (dist.get(key(i, j, d)) ?? Infinity)) continue;
+    if (i === ti && j === tj) {
+      // Arriving along the end's direction is free; otherwise one more turn.
+      found = [i, j, d];
+      if (!endDir || d === endDir || d === 0) break;
+    }
+    for (const [ni, nj, nd] of [[i + 1, j, 1], [i - 1, j, 1], [i, j + 1, 2], [i, j - 1, 2]]) {
+      if (ni < 0 || nj < 0 || ni >= W || nj >= ys.length) continue;
+      if (!clear(xs[i], ys[j], xs[ni], ys[nj])) continue;
+      const turn = d && d !== nd ? ROUTE_TURN : 0;
+      const c = cost + Math.abs(xs[ni] - xs[i]) + Math.abs(ys[nj] - ys[j]) + turn + (ni === ti && nj === tj && endDir && nd !== endDir ? ROUTE_TURN : 0);
+      const k2 = key(ni, nj, nd);
+      if (c < (dist.get(k2) ?? Infinity)) {
+        dist.set(k2, c);
+        prev.set(k2, key(i, j, d));
+        open.push([c, ni, nj, nd]);
+      }
+    }
+  }
+  if (!found) return null;
+  const path = [];
+  for (let k = key(...found); k !== undefined; k = prev.get(k)) {
+    const cell = Math.floor(k / 3);
+    path.unshift({ x: xs[cell % W], y: ys[Math.floor(cell / W)] });
+  }
+  const pts = [a, ...(da ? [s] : []), ...path, ...(dz ? [t] : []), z];
+  // Drop repeated and in-line points.
+  const out = [];
+  for (const p of pts) {
+    if (out.length && out[out.length - 1].x === p.x && out[out.length - 1].y === p.y) continue;
+    if (out.length >= 2) {
+      const q = out[out.length - 1];
+      const r = out[out.length - 2];
+      if ((r.x === q.x && q.x === p.x) || (r.y === q.y && q.y === p.y)) out.pop();
+    }
+    out.push(p);
+  }
+  return out;
+}
+
+// Works out the path of every elbow arrow or line in a list (once per list).
+export function routeElbows(elements) {
+  if (routedLists.has(elements)) return;
+  routedLists.set(elements, true);
+  const byId = new Map(elements.map((e) => [e.id, e]));
+  const shapes = elements.filter(isObstacle);
+  for (const el of elements) {
+    // Worked out again for each new list: a shape in the way may have moved while the arrow stayed the same.
+    if ((el.type !== 'arrow' && el.type !== 'line') || el.route !== 'elbow' || el.points?.length !== 2) continue;
+    const a = { x: el.x + el.points[0].x, y: el.y + el.points[0].y };
+    const z = { x: el.x + el.points[1].x, y: el.y + el.points[1].y };
+    const sShape = el.startId ? byId.get(el.startId) : null;
+    const eShape = el.endId ? byId.get(el.endId) : null;
+    // The shapes near the way from a to z are the ones that can be in it.
+    const pad = 200;
+    const box = { x1: Math.min(a.x, z.x) - pad, y1: Math.min(a.y, z.y) - pad, x2: Math.max(a.x, z.x) + pad, y2: Math.max(a.y, z.y) + pad };
+    const near = shapes.filter((sh) => {
+      if (sh.angle) return false;
+      const b = bounds(sh);
+      return b.x < box.x2 && b.x + b.w > box.x1 && b.y < box.y2 && b.y + b.h > box.y1;
+    }).slice(0, 60).map((sh) => bounds(sh));
+    const dirOf = (shape, other) => (shape && !shape.angle && isObstacle(shape) ? sideOf(shape, other).d : null);
+    const da = dirOf(sShape, eShape ? center(eShape) : z);
+    const dz = dirOf(eShape, sShape ? center(sShape) : a);
+    const path = near.length ? orthogonalPath(a, z, near, { da, dz }) : null;
+    if (path && path.length >= 2) routed.set(el, path);
+    else routed.delete(el);
+    boxes.delete(el); // its box follows the path
+  }
 }
 
 // The element as it was if nothing changed, so the caches kept per object (boxes, prepared strokes)
