@@ -13,9 +13,10 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- Nothing in progress: 1.1.0 released. Next is S4 (1.2.0), starting with P09.
+- [P09](phases/P09-text-to-diagram.md) done on `development`, its PR to `main` open. Next: P10 (Tab to chain, templates).
 
 ## Recently done
+- [P09](phases/P09-text-to-diagram.md): text to diagram (list, Mermaid, arrows), offline; copy and paste between tabs.
 - **v1.1.0 released** (2026-11-20) with the three executables and their signed provenance; proprietary license
   ([ADR 0006](decisions/0006-proprietary-license.md)); the 1.0.0 release and tag withdrawn; AI crawlers kept out of
   `/bsketch/` by bendi.dev's robots.txt.
@@ -43,7 +44,7 @@ Last updated: 2026-11-20
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. P09: text to diagram, offline and without AI ([ROADMAP](ROADMAP.md), S4).
+1. P10: Tab chains the next shape; starter templates ([ROADMAP](ROADMAP.md), S4).
 2. Owner: P02's checklist on Safari, Firefox, a real phone and the desktop apps; anything failing becomes a 1.1.x.
 3. Optional (owner): the OpenSSF best-practices badge (bestpractices.dev); a lawyer's look at the license.
 

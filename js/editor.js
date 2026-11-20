@@ -11,6 +11,7 @@
 
 import * as E from './scene.js';
 import { paintScene, measureWithCanvas, fontReady, onImageReady, toSvgElement } from './render.js';
+import { textToElements } from './textdiagram.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -628,15 +629,81 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     ev.stopPropagation();
     insertImage(file, toWorld(ev.clientX, ev.clientY));
   });
-  // Pasting: a picture from the clipboard goes in; otherwise what was copied in the editor (Ctrl+C) is pasted.
+  // New elements (copies, a diagram, a library piece) with the pictures they use: frames behind, the rest on top,
+  // selected. The caller has already called commit().
+  function addElements(list, files = {}) {
+    const all = { ...(scene.files || {}) };
+    for (const [k, v] of Object.entries(files || {})) if (!Object.hasOwn(all, k)) all[k] = v;
+    if (Object.keys(all).length) scene.files = all;
+    update([...list.filter((e) => e.type === 'frame'), ...scene.elements, ...list.filter((e) => e.type !== 'frame')]);
+    setTool('select');
+    select(list.map((e) => e.id));
+  }
+
+  // Text → a diagram (an indented list, Mermaid or `A -> B` lines) in the middle of the view; null if it isn't one.
+  function insertText(text, { direction } = {}) {
+    if (readOnly) return null;
+    const c = viewCenter();
+    const r = textToElements(text, { at: c, style: { ...style, fill: 'transparent', fillStyle: style.fillStyle }, direction });
+    if (!r) return null;
+    finishText();
+    commit();
+    addElements(r.elements);
+    changed();
+    revealSelection();
+    redraw();
+    return { kind: r.kind, nodes: r.nodes, edges: r.edges };
+  }
+
+  // Copying puts the selection on the system clipboard too (as JSON), so it can be pasted in another tab.
+  const CLIP = 'bsketch-clipboard';
+  root.addEventListener('copy', (ev) => {
+    if (ev.target.closest('input, textarea') || !selected.size || !ev.clipboardData) return;
+    const elements = selection();
+    ev.clipboardData.setData('text/plain', JSON.stringify({ type: CLIP, version: 1, elements, files: E.filesFor(elements, scene.files) }));
+    ev.preventDefault();
+  });
+  // Pasting: a picture goes in; elements copied in bsketch (this tab or another) are pasted as copies; text becomes a
+  // diagram when it reads as one, or a text otherwise. Without a paste event (some browsers), Ctrl+V pastes what
+  // was copied in this tab.
   let pastedPicture = false;
   root.addEventListener('paste', (ev) => {
     if (readOnly || ev.target.closest('input, textarea')) return;
     const file = [...(ev.clipboardData?.items || [])].find((i) => i.kind === 'file' && i.type.startsWith('image/'))?.getAsFile();
-    if (!file) return;
+    if (file) {
+      ev.preventDefault();
+      pastedPicture = true;
+      insertImage(file);
+      return;
+    }
+    const text = ev.clipboardData?.getData('text/plain') || '';
+    if (!text.trim()) return;
     ev.preventDefault();
     pastedPicture = true;
-    insertImage(file);
+    if (text.includes(`"${CLIP}"`)) {
+      let data = null;
+      try {
+        const raw = JSON.parse(text);
+        if (raw?.type === CLIP && Array.isArray(raw.elements)) data = E.parseScene(JSON.stringify({ type: 'sketch', version: 1, elements: raw.elements, files: raw.files }));
+      } catch { /* not ours after all: treated as text below */ }
+      if (data?.elements.length) {
+        finishText();
+        commit();
+        const copies = E.cloneElements(data.elements, 24, 24);
+        addElements(copies, data.files);
+        clipboard = copies.map((e) => structuredClone(e));
+        changed();
+        return;
+      }
+    }
+    if (insertText(text)) return;
+    // Plain text: a text element in the middle of the view.
+    const c = viewCenter();
+    finishText();
+    commit();
+    const t = { ...E.createElement('text', c.x, c.y, { ...style, fill: 'transparent' }), text: text.replace(/\s+$/, '').slice(0, 10000) };
+    addElements([t]);
+    changed();
   });
 
   // --- Library ---
@@ -710,13 +777,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     }
     finishText();
     commit();
-    const copies = E.cloneElements(it.elements, dx, dy);
-    const files = { ...(scene.files || {}) };
-    for (const [k, v] of Object.entries(it.files || {})) if (!Object.hasOwn(files, k)) files[k] = v;
-    scene.files = files;
-    update([...copies.filter((e) => e.type === 'frame'), ...scene.elements, ...copies.filter((e) => e.type !== 'frame')]);
-    setTool('select');
-    select(copies.map((e) => e.id));
+    addElements(E.cloneElements(it.elements, dx, dy), it.files);
     changed();
   }
   function exportLibrary() {
@@ -1517,6 +1578,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     // The selected elements with what is inside the selected frames (for exporting a frame).
     getSelectionWithFrames: () => structuredClone(scene.elements.filter((e) => withFrameContents(selected).has(e.id))),
     insertImage,
+    insertText,
     setBackground,
     setGrid,
     setTheme,

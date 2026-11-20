@@ -757,3 +757,67 @@ test('pictures, frames and the library', { skip }, async () => {
     await page.close();
   }
 });
+
+test('text to diagram: from the menu, by pasting text, and copying between tabs', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    // From the menu: an example, the live count, Insert.
+    await page.click('#menu-button');
+    await page.click('#text-diagram');
+    await page.waitFor('document.getElementById("td-dialog").open');
+    assert.equal(await page.eval('document.getElementById("td-insert").disabled'), true, 'nothing to insert yet');
+    await page.click('.td-example', 'Mermaid');
+    assert.match(await page.eval('document.getElementById("td-count").textContent'), /5 boxes, 4 arrows/);
+    await page.click('#td-insert');
+    await page.waitFor('!document.getElementById("td-dialog").open');
+    let s = await scene(page);
+    assert.equal(s.elements.filter((e) => e.type === 'arrow').length, 4);
+    assert.equal(s.elements[0].type, 'frame', 'the subgraph becomes a frame');
+    assert.ok(s.elements.filter((e) => e.type === 'arrow').every((a) => a.startId && a.endId), 'attached');
+    assert.ok(s.elements.some((e) => e.type === 'diamond'));
+
+    // Pasting text on the canvas.
+    const paste = (text) => page.eval(`(() => {
+      const dt = new DataTransfer();
+      dt.setData('text/plain', ${JSON.stringify(text)});
+      document.querySelector('.sk-editor').focus();
+      document.querySelector('.sk-editor').dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+      return true;
+    })()`);
+    const before = s.elements.length;
+    await paste('Home\n  Docs\n  Blog\n    Post');
+    s = await scene(page);
+    assert.equal(s.elements.length, before + 4 * 2 + 3, 'four boxes with their texts and three arrows');
+    await paste('just a note');
+    s = await scene(page);
+    assert.ok(s.elements.some((e) => e.type === 'text' && e.text === 'just a note' && !e.containerId), 'one line stays text');
+
+    // Copying a selection puts it on the clipboard; another tab pastes it.
+    const copied = await page.eval(`(() => {
+      const dt = new DataTransfer();
+      document.querySelector('.sk-editor').dispatchEvent(new ClipboardEvent('copy', { clipboardData: dt, bubbles: true, cancelable: true }));
+      return dt.getData('text/plain');
+    })()`);
+    assert.match(copied, /"bsketch-clipboard"/);
+    const other = await browser.newPage();
+    try {
+      await open(other);
+      await other.eval(`(() => {
+        const dt = new DataTransfer();
+        dt.setData('text/plain', ${JSON.stringify(copied)});
+        document.querySelector('.sk-editor').focus();
+        document.querySelector('.sk-editor').dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+        return true;
+      })()`);
+      const s2 = await scene(other);
+      assert.ok(s2.elements.some((e) => e.type === 'text' && e.text === 'just a note'), 'pasted in the other tab');
+      assert.deepEqual(other.errors, []);
+    } finally {
+      await other.close();
+    }
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});

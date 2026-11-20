@@ -16,6 +16,21 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — P09: text to diagram, offline and without AI
+- **Phase / issue:** P09
+- **What:** `js/textdiagram.js` reads an indented list, a Mermaid flowchart subset or `A -> B` lines and lays the
+  graph out in layers (cycles broken, barycentre ordering, parents centred, four directions); the editor's
+  `insertText`, paste of text (a diagram, or a text) and of bsketch clipboard JSON (copy now writes it); the menu's
+  "Text to diagram…" dialog with examples, direction and a live count; Spanish strings; service worker v12.
+- **Why:** S4's first phase: what other whiteboards do with a cloud AI, done in the browser.
+- **Rejected:** a Mermaid library (a dependency, and it renders its own SVG, not editable hand-drawn elements);
+  elbow arrows for lists (they zig-zag between siblings); reordering lists (their written order never crosses).
+- **Files:** js/textdiagram.js, js/editor.js, js/app.js, js/i18n.js, index.html, css/styles.css, sw.js,
+  tests/textdiagram.test.mjs, tests/e2e/editor.e2e.mjs, README.md, CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 58 pass; `npm run test:e2e` 18 pass; screenshots of the dialog and the diagrams.
+- **Pending:** —
+
 ## 2026-11-20 — 1.1.0 released
 - **Phase / issue:** —
 - **What:** the owner released v1.1.0 with the release script: tag on `main` (70225f1), the three executables and

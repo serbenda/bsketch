@@ -37,7 +37,7 @@ would break that.
 
 | Phase | What | Status |
 |---|---|---|
-| P09 | Text to diagram, offline and without AI: an indented list or simple Mermaid pasted becomes boxes and arrows | ⬜ |
+| P09 | [Text to diagram, offline and without AI: an indented list or simple Mermaid pasted becomes boxes and arrows](phases/P09-text-to-diagram.md) | ✅ |
 | P10 | Quick diagrams: Tab chains the next shape with an arrow; starter templates | ⬜ |
 | P11 | Animated flow arrows (on screen and in the exported SVG) | ⬜ |
 | P12 | Export to `.excalidraw`; Snowlog updated with the new engine | ⬜ |

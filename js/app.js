@@ -10,6 +10,7 @@ import { loadPrefs, savePrefs, BACKGROUNDS } from './prefs.js';
 import { pickLang, translator, fill } from './i18n.js';
 import { loadIndex, saveIndex, activeOf, createDrawing, openDrawing, renameDrawing, deleteDrawing, touch, nextName, migrate, readActive, recover, refreshIndex, INDEX_KEY } from './drawings.js';
 import { openSceneStore } from './store.js';
+import { parseText } from './textdiagram.js';
 
 const $ = (id) => document.getElementById(id);
 const statusLine = $('status');
@@ -262,6 +263,43 @@ $('svg').addEventListener('click', () => {
   const { scene, box, padding } = exportScene();
   if (!scene.elements.length && !box) return notify(t($('only-selection').checked ? 'Nothing is selected.' : 'The drawing is empty.'));
   download(toSvgString(scene, { background: !$('transparent').checked, box, padding }), `${fileName()}.svg`, 'image/svg+xml');
+});
+
+// --- Text to diagram: a dialog to write or paste the text, with examples and a live count ---
+const EXAMPLES = {
+  list: 'Product\n  Web\n    Editor\n    Side menu\n  Desktop\n    Windows\n    macOS\n  Portable file',
+  mermaid: 'graph LR\n  A[Idea] --> B{Worth it?}\n  B -->|Yes| C[Sketch it]\n  B -- No --> D([Drop it])\n  C --> E[Build it]\n  subgraph Work\n    C\n    E\n  end',
+  arrows: 'Browser -> DNS: lookup\nDNS -> Browser: address\nBrowser -> Server: request\nServer -> Browser: page',
+};
+const tdDialog = $('td-dialog');
+const tdText = $('td-text');
+function tdCount() {
+  const g = tdText.value.trim() ? parseText(tdText.value) : null;
+  $('td-insert').disabled = !g;
+  $('td-count').textContent = g ? fill(t('{n} boxes, {e} arrows'), { n: g.nodes.length, e: g.edges.length }) : tdText.value.trim() ? t('Not a diagram yet: write two lines or more.') : '';
+}
+tdText.addEventListener('input', tdCount);
+for (const b of document.querySelectorAll('.td-example')) {
+  b.addEventListener('click', () => {
+    tdText.value = EXAMPLES[b.dataset.example] || '';
+    tdCount();
+    tdText.focus();
+  });
+}
+$('text-diagram').addEventListener('click', () => {
+  closeMenu();
+  tdCount();
+  tdDialog.showModal();
+  tdText.focus();
+});
+tdDialog.addEventListener('close', () => {
+  if (tdDialog.returnValue !== 'insert') return editor.focus();
+  const r = editor.insertText(tdText.value, { direction: $('td-direction').value || undefined });
+  if (r) {
+    notify(fill(t('Drawn: {n} boxes, {e} arrows.'), { n: r.nodes, e: r.edges }));
+    tdText.value = '';
+  }
+  editor.focus();
 });
 
 // --- The side menu: file actions and options ---

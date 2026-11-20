@@ -3,6 +3,14 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioned with [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- **Text to diagram, offline and without AI:** an indented list, a Mermaid flowchart (shapes, labels, dashed and bold
+  edges, chains, `&` lists, subgraphs as frames) or `A -> B` lines become a laid-out, hand-drawn diagram. From the ☰
+  menu ("Text to diagram…", with examples and a live count) or by pasting the text on the canvas. Nothing is sent
+  anywhere.
+- Pasting plain text on the canvas writes it as a text.
+- **Copy and paste between tabs:** a copied selection also goes to the system clipboard, so another tab (or another
+  bsketch window) can paste it; what is pasted is checked like a file.
 
 ## [1.1.0] - 2026-11-20
 ### License
