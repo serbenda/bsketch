@@ -16,6 +16,19 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — The e2e tests start Chrome reliably on CI
+- **Phase / issue:** — (CI on PR #24, and #21 before)
+- **What:** `tests/e2e/cdp.mjs` starts Chrome with `--disable-dev-shm-usage`, waits up to 45 s, tries three times,
+  and kills Chrome and removes its profile when a try fails.
+- **Why:** on GitHub's runners Chrome sometimes didn't print its DevTools address within 20 s; every walkthrough
+  then failed, and the Chrome left running kept the job alive until it was cancelled at 20 minutes.
+- **Rejected:** only re-running the failed jobs (it came back twice in a row).
+- **Files:** tests/e2e/cdp.mjs
+- **Commits:** this one.
+- **Tested:** `npm run test:e2e` 22 pass; with a "Chrome" that exits at once, `launch` tries three times and rejects
+  without hanging.
+- **Pending:** Snowlog's copy of the same driver could get the same change.
+
 ## 2026-11-20 — Version 1.2.0
 - **Phase / issue:** S4 (P09–P13)
 - **What:** version 1.2.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's
