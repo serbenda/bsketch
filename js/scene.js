@@ -66,31 +66,33 @@ export const MAX_IMAGE_CHARS = 10 * 1024 * 1024; // ~7.5 MB of picture
 export const MAX_FILES_CHARS = 60 * 1024 * 1024; // all the pictures of one drawing
 const MAX_FILES = 500;
 const DATA_URL_RE = /^data:image\/(png|jpeg|gif|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
+// Names an object must never take from a file (they would reach its prototype).
+const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 export const isImageData = (v) => typeof v === 'string' && v.length <= MAX_IMAGE_CHARS && DATA_URL_RE.test(v);
 
 // The files a list of elements uses, taken from `files` (nothing else is kept).
 export function filesFor(elements, files) {
-  const out = {};
-  if (!files) return out;
-  for (const e of elements) if (e.type === 'image' && Object.hasOwn(files, e.fileId) && isImageData(files[e.fileId])) out[e.fileId] = files[e.fileId];
-  return out;
+  if (!files) return {};
+  const used = elements.filter((e) => e.type === 'image' && !UNSAFE_KEYS.has(e.fileId) && Object.hasOwn(files, e.fileId) && isImageData(files[e.fileId]));
+  return Object.fromEntries(used.map((e) => [e.fileId, files[e.fileId]]));
 }
 
 // Validated files from a file or storage: known ids, data: URLs of allowed types, within the limits.
 function cleanFiles(raw) {
-  const out = {};
-  if (!raw || typeof raw !== 'object') return out;
+  const out = [];
+  if (!raw || typeof raw !== 'object') return {};
   let total = 0;
   let n = 0;
   for (const [id, v] of Object.entries(raw)) {
     if (n >= MAX_FILES) break;
     const data = typeof v === 'string' ? v : v?.dataURL; // ours, or Excalidraw's { mimeType, dataURL }
-    if (!ref(id) || !isImageData(data) || total + data.length > MAX_FILES_CHARS) continue;
-    out[id] = data;
+    if (!ref(id) || UNSAFE_KEYS.has(id) || !isImageData(data) || total + data.length > MAX_FILES_CHARS) continue;
+    out.push([id, data]);
     total += data.length;
     n += 1;
   }
-  return out;
+  // Built from pairs (no `obj[name] = …` with a name from the file).
+  return Object.fromEntries(out);
 }
 
 // Arrowheads of an arrow: at its end (the default, not stored), its start, both or none.

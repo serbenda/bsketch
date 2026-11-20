@@ -203,7 +203,9 @@ export function parseText(text) {
   const header = /^(graph|flowchart)\s+(TD|TB|LR|RL|BT)\b/i.exec(first) || (/^(graph|flowchart)\s*$/i.test(first) ? [first, first, 'TD'] : null);
   let g;
   let kind;
-  if (header || lines.some((l) => /-->|---|==>|-\.->/.test(l))) {
+  // Mermaid's edges, looked for as plain text.
+  const EDGE_MARKS = ['-->', '---', '==>', '-.->'];
+  if (header || lines.some((l) => EDGE_MARKS.some((m) => l.includes(m)))) {
     g = parseMermaid(lines, header);
     kind = 'mermaid';
   } else if (lines.some((l) => ARROW_LINE_RE.test(l) && /(->|→|=>|⟶)/.test(l))) {

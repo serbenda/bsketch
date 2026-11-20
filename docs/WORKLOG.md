@@ -16,6 +16,20 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — CI on PR #22: the HTML check and two CodeQL findings
+- **Phase / issue:** P09
+- **What:** the text-to-diagram dialog writes `A -&gt; B` (htmlhint refused a raw `>`); picture files read from a
+  file are built from pairs and refuse `__proto__`, `constructor` and `prototype` as names (CodeQL "remote property
+  injection"); Mermaid edges are detected by plain text search, not a regular expression (CodeQL took `-->` for an
+  HTML comment filter, a false positive).
+- **Why:** the PR's Tests and CodeQL checks failed.
+- **Rejected:** dismissing the CodeQL alerts (the first one is worth closing, and the second is cheaper to avoid).
+- **Files:** index.html, js/scene.js, js/textdiagram.js, tests/scene.test.mjs
+- **Commits:** this one.
+- **Tested:** `npm test` 59 pass (a new regression check for prototype names); fuzz with seeds 1–3 at 2000 runs;
+  `npm run test:e2e` 19 pass; no raw `>` left in the page's text.
+- **Pending:** —
+
 ## 2026-11-20 — P10: chain the next shape, templates
 - **Phase / issue:** P10
 - **What:** Ctrl/Cmd+arrow keys with one shape selected add the same shape on that side (sliding past taken places),
