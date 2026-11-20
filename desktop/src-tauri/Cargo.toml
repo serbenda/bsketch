@@ -2,7 +2,7 @@
 # GitHub Actions builds it (.github/workflows/desktop.yml) for Windows, macOS and Linux.
 [package]
 name = "bsketch"
-version = "1.2.0"
+version = "1.3.0"
 description = "Whiteboard for hand-drawn sketches"
 authors = ["Sergio Santiago Bendaña Quesada"]
 license-file = "../../LICENSE"

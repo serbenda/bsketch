@@ -16,6 +16,18 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — Version 1.3.0
+- **Phase / issue:** S5 (P14–P16)
+- **What:** version 1.3.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's
+  changes become `[1.3.0] - 2026-11-20`; STATE.
+- **Why:** S5 is complete.
+- **Rejected:** —
+- **Files:** package.json, desktop/src-tauri/tauri.conf.json, desktop/src-tauri/Cargo.toml,
+  desktop/src-tauri/Cargo.lock, CHANGELOG.md, docs/STATE.md
+- **Commits:** this one.
+- **Tested:** `npm test` passes.
+- **Pending:** the owner merges PR #25 and releases.
+
 ## 2026-11-20 — P16: curve an arrow by hand
 - **Phase / issue:** P16
 - **What:** `bend` on curved arrows and lines (validated, ±2, the default 0.25 not stored), `bendThrough` and

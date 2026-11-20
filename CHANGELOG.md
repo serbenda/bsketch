@@ -3,6 +3,8 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioned with [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [1.3.0] - 2026-11-20
 ### Added
 - **Presentation mode** (Shift+P or the bottom bar): full screen, the frames one by one in reading order (or the
   whole drawing), each filling the screen without its border; arrow keys, Space, PageUp/PageDown, Home and End move
