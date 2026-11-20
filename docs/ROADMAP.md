@@ -13,7 +13,7 @@
 | S4 | 1.2.0: what only bsketch does | Text to diagram offline, quick flowcharts, animated arrows, Excalidraw export, lock, search, styles; released | ✅ |
 | S5 | 1.3.0: frames you can present | Frame clipping, presentation mode with a laser, arrows curved by hand; released | ✅ |
 | S6 | 1.4.0: everywhere it's used | Snowlog on the 1.3 engine with library and templates; the owner's device checklist green (or fixed); three more languages | ⏳ |
-| S7 | 1.5.0: presenting and sharing | Speaker notes and timer; PDF with a frame per page; elbow connectors that go around shapes | ⬜ |
+| S7 | 1.5.0: presenting and sharing | Speaker notes and timer; PDF with a frame per page; elbow connectors that go around shapes | ⏳ |
 | S8 | 2.0.0: final | Signed apps; full security, accessibility and performance audits with no open findings; help inside the app; the `.sketch` format frozen with a compatibility promise | ⬜ |
 
 Legend: ⬜ not started · ⏳ in progress · ✅ done
@@ -69,7 +69,7 @@ would break that.
 
 | Phase | What | Who | Status |
 |---|---|---|---|
-| P21 | Speaker notes per frame (seen only by the presenter) and a timer in presentation mode | Agent | ⬜ |
+| P21 | [Speaker notes per frame (seen only by the presenter) and a timer in presentation mode](phases/P21-speaker-notes.md) | Agent | ✅ |
 | P22 | PDF export with one frame per page, made in the browser with no library (vector where possible) | Agent | ⬜ |
 | P23 | Smart connectors: elbow arrows that route around the shapes in their way | Agent | ⬜ |
 

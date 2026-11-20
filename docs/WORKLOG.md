@@ -16,6 +16,19 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — P21: speaker notes and a timer
+- **Phase / issue:** P21
+- **What:** `notes` on frames (validated, up to `MAX_NOTES`); a frame panel (name and notes, one undo step per edit);
+  in presentation mode a notes box (N or a button, hidden by default) and a timer in the bar; strings in the five
+  languages; fuzz checks for `notes`; service worker v21.
+- **Why:** S7's first phase.
+- **Rejected:** a presenter window on a second screen (out of scope for now); notes on any element (slides are frames).
+- **Files:** js/scene.js, js/editor.js, js/i18n.js, css/sketch.css, sw.js, tests/, README.md, CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 66 pass; fuzz seeds 1–2 at 2000 runs; `npm run test:e2e` 29 pass; the portable build;
+  screenshots.
+- **Pending:** —
+
 ## 2026-11-21 — 1.4.0 released
 - **Phase / issue:** S6
 - **What:** the owner released v1.4.0 (tag on `f9b95d6`, the built commit) with the three executables and their

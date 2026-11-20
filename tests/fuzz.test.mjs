@@ -324,7 +324,7 @@ function forAll(name, gen, prop, runs = RUNS) {
 
 const KEYS = new Set(['id', 'type', 'x', 'y', 'w', 'h', 'seed', 'stroke', 'fill', 'fillStyle', 'width', 'dashed', 'roughness',
   'opacity', 'fontSize', 'points', 'angle', 'text', 'font', 'containerId', 'align', 'startId', 'endId', 'heads', 'route', 'group',
-  'fileId', 'name', 'animated', 'dotted', 'rounded', 'locked', 'bend']); // image, frame, flow, line and corner styles, lock
+  'fileId', 'name', 'animated', 'dotted', 'rounded', 'locked', 'bend', 'notes']); // image, frame, flow, line and corner styles, lock
 const TAU = Math.PI * 2;
 const M = E.MAX_COORD;
 const inRange = (v, a, b) => typeof v === 'number' && Number.isFinite(v) && v >= a && v <= b;

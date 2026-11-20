@@ -1132,3 +1132,40 @@ for (const [lang, newDrawing, style] of [['ca', 'Dibuix nou', 'Estil'], ['fr', '
     }
   });
 }
+
+test('speaker notes: written in the frame panel, shown with N while presenting; a timer runs', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const at = await screen(page);
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('f');
+    await page.drag(at(-200, -120), at(200, 120));
+    // The new frame is selected: its panel shows; write notes and leave the field.
+    await page.waitFor('!document.querySelector(".sk-framepanel").hidden');
+    await page.fill('.sk-framenotes', 'Welcome everyone.\nThen the plan.');
+    await page.eval('document.querySelector(".sk-framenotes").dispatchEvent(new Event("change")); true');
+    let s = await scene(page);
+    assert.equal(s.elements[0].notes, 'Welcome everyone.\nThen the plan.');
+    // Undo takes them away in one step; redo brings them back.
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('z', { ctrl: true });
+    assert.equal((await scene(page)).elements[0].notes, undefined);
+    await page.press('y', { ctrl: true });
+    // Presenting: the notes are hidden until N.
+    await page.press('P', { shift: true });
+    await page.waitFor('document.querySelector(".sk-editor").classList.contains("sk-presenting")');
+    assert.equal(await page.eval('document.querySelector(".sk-notesview").hidden'), true);
+    await page.press('n');
+    assert.equal(await page.eval('document.querySelector(".sk-notesview").hidden'), false);
+    assert.equal(await page.eval('document.querySelector(".sk-notesview").textContent'), 'Welcome everyone.\nThen the plan.');
+    assert.equal(await page.eval('getComputedStyle(document.querySelector(".sk-notesview")).display'), 'block');
+    await new Promise((r) => setTimeout(r, 1200));
+    assert.match(await page.eval('document.querySelector(".sk-timer").textContent'), /^0:0[1-9]$/, 'the timer runs');
+    await page.press('Escape');
+    assert.equal(await page.eval('document.querySelector(".sk-notesview").hidden'), true, 'hidden again after');
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});

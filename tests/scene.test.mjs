@@ -739,3 +739,13 @@ test('languages: Catalan, French and Portuguese translate what Spanish does, hol
     }
   }
 });
+
+test('speaker notes: kept on frames only, trimmed, capped and never HTML', () => {
+  const f = E.cleanElement({ id: 'f', type: 'frame', x: 0, y: 0, w: 100, h: 100, name: 'One', notes: '  Say hello\r\nthen <b>this</b>  ' });
+  assert.equal(f.notes, 'Say hello\nthen <b>this</b>', 'kept as text');
+  assert.equal(E.cleanElement({ ...f, notes: 'x'.repeat(5000) }).notes.length, E.MAX_NOTES);
+  assert.equal(E.cleanElement({ ...f, notes: '   ' }).notes, undefined, 'empty notes are not stored');
+  assert.equal(E.cleanElement({ ...f, notes: { toString: 1 } }).notes, undefined);
+  assert.equal(E.cleanElement({ id: 'r', type: 'rectangle', x: 0, y: 0, w: 5, h: 5, notes: 'no' }).notes, undefined, 'only frames');
+  assert.equal(E.parseScene(E.serializeScene({ ...E.emptyScene(), elements: [f] })).elements[0].notes, f.notes);
+});

@@ -3,6 +3,10 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioned with [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Added
+- **Speaker notes and a timer:** a selected frame shows a panel with its name and speaker notes; while presenting,
+  N shows or hides the current slide's notes (only for you), and the bar shows the time since the start.
+
 
 ## [1.4.0] - 2026-11-21
 ### Added

@@ -10,6 +10,7 @@
 //   startId/endId (arrow) the shapes each end is attached to
 //   fileId        (image) its picture, kept once per scene in `scene.files` as a data: URL
 //   name          (frame) the frame's title, shown above it
+//   notes         (frame) speaker notes, shown only while presenting
 //   animated      (arrow, line) true: its dashes move along it, showing a flow
 //   dotted        true (with dashed): a dotted line instead of a dashed one
 //   rounded       (rectangle) true: round corners
@@ -37,6 +38,7 @@ export const fontOf = (el) => FONTS[el.font] || FONT;
 const ARROW_GAP = 6;
 // Frames: the height of the title above them, and their colour (a neutral grey that reads on any background).
 export const FRAME_TITLE = 20;
+export const MAX_NOTES = 2000; // speaker notes per frame
 export const FRAME_COLOR = '#868e96';
 export const FRAME_FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 
@@ -780,7 +782,11 @@ export function cleanElement(raw) {
     if (!ref(raw.fileId)) return null;
     el.fileId = raw.fileId;
   }
-  if (el.type === 'frame') el.name = str(raw.name).replace(/\s+/g, ' ').trim().slice(0, 100);
+  if (el.type === 'frame') {
+    el.name = str(raw.name).replace(/\s+/g, ' ').trim().slice(0, 100);
+    const notes = str(raw.notes).replace(/\r\n?/g, '\n').trim().slice(0, MAX_NOTES);
+    if (notes) el.notes = notes;
+  }
   if (isLinear(el)) {
     // Points are relative to x, y; where they land stays within ±MAX_COORD like any coordinate.
     const pts = Array.isArray(raw.points) ? raw.points.slice(0, 5000).map((p) => ({ x: coord(el.x + num(p?.x)) - el.x, y: coord(el.y + num(p?.y)) - el.y })) : [];
