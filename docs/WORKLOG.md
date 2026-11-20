@@ -16,6 +16,19 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — The canvas locks as soon as a drawing switch starts
+- **Phase / issue:** P11 (CI on PR #23)
+- **What:** New, Open, choosing a drawing, a template and Delete lock the canvas before they start (it unlocked only
+  once the next drawing was loading), and unlock it again if they fail. Also: export to `.excalidraw` (P12) in the
+  ☰ menu, with `toExcalidraw` and a round-trip test.
+- **Why:** CI failed "several drawings…": after Delete the index was saved before the canvas locked, so what was done
+  in that gap (a quick user, or the test) went to the drawing being replaced.
+- **Rejected:** only making the test wait longer (the gap was real).
+- **Files:** js/app.js, js/scene.js, index.html, js/i18n.js, sw.js, tests/
+- **Commits:** this one and 56cdba1.
+- **Tested:** `npm test` 61 pass; `npm run test:e2e` 21 pass; the failing walkthrough three more times.
+- **Pending:** —
+
 ## 2026-11-20 — P11: animated flow arrows
 - **Phase / issue:** P11
 - **What:** `animated: true` on arrows and lines (validated, stored only when on); their line's draw op is marked

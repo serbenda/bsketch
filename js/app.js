@@ -150,21 +150,25 @@ async function openFile(file) {
     return notify(t('That file is not a sketch or Excalidraw drawing.'));
   }
   try {
+    $('canvas').inert = true;
     await flush();
     await createDrawing(storage, scenes, drawings, file.name.replace(/\.(sketch|excalidraw|json)$/i, ''), scene);
     await showActive();
     notify(fill(t('Opened "{name}": {n} elements.'), { name: file.name, n: scene.elements.length }));
   } catch {
+    $('canvas').inert = false;
     notify(t('Could not keep another drawing in this browser (its storage is full): delete some first.'));
   }
 }
 
 $('new').addEventListener('click', async () => {
   try {
+    $('canvas').inert = true;
     await flush();
     await createDrawing(storage, scenes, drawings, nextName(drawings, t('Drawing')));
     await showActive();
   } catch {
+    $('canvas').inert = false;
     notify(t('Could not keep another drawing in this browser (its storage is full): delete some first.'));
   }
 });
@@ -180,6 +184,7 @@ function renderDrawings() {
     if (d.id === drawings.active) b.setAttribute('aria-current', 'true');
     b.addEventListener('click', async () => {
       if (d.id === drawings.active) return closeMenu();
+      $('canvas').inert = true;
       await flush();
       try {
         openDrawing(storage, drawings, d.id);
@@ -207,6 +212,7 @@ $('delete').addEventListener('click', async () => {
   clearTimeout(timer);
   pending = null;
   try {
+    $('canvas').inert = true;
     await deleteDrawing(storage, scenes, drawings, d.id, `${t('Drawing')} 1`);
   } catch { /* the index already moved on; a scene left behind is harmless */ }
   await showActive();
@@ -321,12 +327,14 @@ for (const id of Object.keys(TEMPLATES)) {
   b.addEventListener('click', async () => {
     closeMenu();
     try {
+      $('canvas').inert = true;
       await flush();
       await createDrawing(storage, scenes, drawings, tpl.name);
       await showActive();
       editor.insertText(tpl.text, { direction: tpl.direction, keepSelected: false });
       editor.zoomToFit();
     } catch {
+      $('canvas').inert = false;
       notify(t('Could not keep another drawing in this browser (its storage is full): delete some first.'));
     }
   });
