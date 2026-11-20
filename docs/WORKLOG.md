@@ -16,6 +16,18 @@
 - **Pending:**
 -->
 
+## 2026-11-20 — The lock-and-search walkthrough waits for the diagram
+- **Phase / issue:** P13
+- **What:** the e2e walkthrough waits until the text-to-diagram dialog's text box empties (the diagram goes in on
+  the dialog's close event, a moment after it closes) before searching.
+- **Why:** it searched an empty drawing when the whole suite ran (it passed on its own); pushed by mistake with the
+  P13 commit, because the check before the push didn't stop on a failed test.
+- **Rejected:** inserting before closing the dialog (the close event is where Cancel and Escape are told apart).
+- **Files:** tests/e2e/editor.e2e.mjs
+- **Commits:** this one.
+- **Tested:** `npm run test:e2e` 22 pass, twice in a row.
+- **Pending:** —
+
 ## 2026-11-20 — P13: lock, search and more styles
 - **Phase / issue:** P13
 - **What:** `locked`, `dotted`, `rounded` and `fillStyle: 'cross-hatch'` in the model (validated, to and from

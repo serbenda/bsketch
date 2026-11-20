@@ -947,7 +947,8 @@ test('lock, search and more styles', { skip }, async () => {
     await page.click('#text-diagram');
     await page.fill('#td-text', 'graph LR\nA[Acción] --> B[Plan]\nB --> C[Acción final]');
     await page.click('#td-insert');
-    await page.waitFor('!document.getElementById("td-dialog").open');
+    // The diagram goes in on the dialog's close event, a moment after it closes: the text box empties then.
+    await page.waitFor('!document.getElementById("td-dialog").open && document.getElementById("td-text").value === ""');
     await page.eval('document.querySelector(".sk-editor").focus()');
     // Search: accents and case don't matter; Enter goes to the next match.
     await page.press('f', { ctrl: true });
