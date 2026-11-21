@@ -120,7 +120,8 @@ writes inside. **Escape** clears the selection (and then Tab leaves the whiteboa
 - No third-party code at runtime: plain JavaScript modules, no frameworks or CDNs.
 - `.excalidraw` files are read as plain JSON; no Excalidraw code is used.
 
-Found a security problem? See [SECURITY.md](SECURITY.md).
+Found a security problem? See [SECURITY.md](SECURITY.md). Which versions get fixes: [SUPPORT.md](SUPPORT.md).
+Your files keep opening in later versions: [the `.sketch` format and its promise](docs/FORMAT.md).
 
 ## Data sources
 | Source | What it provides | License |

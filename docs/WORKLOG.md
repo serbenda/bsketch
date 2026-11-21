@@ -16,6 +16,19 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — P27: the `.sketch` format frozen (agent part)
+- **Phase / issue:** P27
+- **What:** `docs/FORMAT.md` (format version 1 and its compatibility promise), `SUPPORT.md`, ADR 0007;
+  `scripts/make-format-fixtures.mjs` makes `tests/fixtures/format/sketch-<version>.sketch` with each release's own
+  engine (temporary git worktrees); `tests/format.test.mjs` opens them all.
+- **Why:** S8, 2.0.0's exit criterion "files saved by every release since 1.0 open in 2.0".
+- **Rejected:** fixtures written by hand (they would not be what each release saved); a format version 2 (no gain).
+- **Files:** docs/FORMAT.md, SUPPORT.md, docs/decisions/0007-format-version-1-frozen.md, docs/decisions/README.md,
+  scripts/make-format-fixtures.mjs, tests/format.test.mjs, tests/fixtures/format/*, README.md, CHANGELOG.md, docs/*
+- **Commits:** see the P27 commit on `development`.
+- **Tested:** `npm test` 77 pass; removing `rounded` from the reader fails four fixtures, as it should.
+- **Pending:** the `v2.0.0` release (owner, end of S8); each release adds its fixture.
+
 ## 2026-11-21 — 1.5.0 released
 - **Phase / issue:** S7 (P21, P22, P23)
 - **What:** the owner ran `bsketch-release.sh 1.5.0`: tag `v1.5.0` on `215e4b7` (the commit the Desktop workflow

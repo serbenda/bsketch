@@ -13,9 +13,10 @@ Last updated: 2026-11-21
 - **Working branch:** `development`
 
 ## Current work
-- 1.5.0 released. Next: P19 (the owner's device checklist; fixes in 1.5.x), then S8 (2.0).
+- S8 started: [P27](phases/P27-format-freeze.md)'s agent part done (format frozen and tested); next P26 (help inside the app). P24 needs the owner's Apple and Windows signing accounts; P19 is the owner's device checklist.
 
 ## Recently done
+- [P27](phases/P27-format-freeze.md) (agent part): `docs/FORMAT.md`, a file from each release in the tests, `SUPPORT.md`, ADR 0007.
 - **v1.5.0 released** (2026-11-21), tag on the built commit `215e4b7`, with signed provenance (S7: P21, P22, P23; version in PR #29).
 - [P23](phases/P23-smart-connectors.md): elbow connectors that go around shapes.
 - [P22](phases/P22-pdf-export.md): PDF with one frame per page.
