@@ -3,7 +3,7 @@
 > **Single source of truth for status.** Claude reads it at the start of every session (`/status`) and updates it when closing a phase (`/close-phase`).
 > At most **150 lines**: replace what is outdated instead of piling up, and **link** documents instead of copying them.
 
-Last updated: 2026-11-20
+Last updated: 2026-11-21
 
 ## Where we are
 - **Mode:** full
@@ -13,7 +13,7 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- S7 done on `development` (P21, P22, [P23](phases/P23-smart-connectors.md)); next: release 1.5.0, then P19 and S8.
+- Version 1.5.0 prepared (PR #28, S7: P21, P22, [P23](phases/P23-smart-connectors.md)); the owner releases it with `bsketch-release.sh 1.5.0`.
 
 ## Recently done
 - [P23](phases/P23-smart-connectors.md): elbow connectors that go around shapes.
@@ -62,8 +62,9 @@ Last updated: 2026-11-20
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. P19 (owner first): the device checklist on Safari, Firefox, a real phone and the desktop apps; fixes in 1.4.x.
-2. Then S7 (1.5: speaker notes, PDF, smart connectors) and S8 (2.0) ([ROADMAP](ROADMAP.md)).
+1. Owner: merge PR #28, then `bsketch-release.sh 1.5.0`.
+2. P19 (owner first): the device checklist on Safari, Firefox, a real phone and the desktop apps; fixes in 1.5.x.
+3. Then S8 (2.0: signing, audits, in-app help, format freeze) ([ROADMAP](ROADMAP.md)).
 
 ## Blocked / awaiting decision
 - Nothing.
