@@ -1232,3 +1232,152 @@ test('elbow arrows go around the shapes in the way, and follow when they move', 
     await page.close();
   }
 });
+
+test('help: from the menu or with "?", every shortcut, in the chosen language', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    await page.click('#menu-button');
+    await page.click('#help');
+    await page.waitFor('document.getElementById("help-dialog").open');
+    assert.ok(await page.eval('document.querySelectorAll("#help-dialog tbody tr").length') >= 40, 'every shortcut');
+    assert.equal(await page.eval('document.activeElement.className'), 'drawer-close');
+    await page.press('Escape');
+    await page.waitFor('!document.getElementById("help-dialog").open');
+    // "?" opens it, but not while typing.
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('?', { shift: true });
+    await page.waitFor('document.getElementById("help-dialog").open');
+    await page.press('Escape');
+    await page.waitFor('!document.getElementById("help-dialog").open');
+    // In Spanish, nothing of it is left in English (key letters and symbols aside).
+    await page.click('#menu-button');
+    await page.click('input[name="lang"][value="es"]');
+    await page.waitFor('document.documentElement.lang === "es" && !!document.querySelector(".sk-canvas")');
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('?', { shift: true });
+    await page.waitFor('document.getElementById("help-dialog").open');
+    assert.equal(await page.eval('document.getElementById("help-title").textContent'), 'Ayuda');
+    const english = await page.eval(`[...document.querySelectorAll('#help-dialog li, #help-dialog td, #help-dialog caption, #help-dialog h3, #help-dialog kbd')]
+      .map((n) => n.textContent.trim()).filter((x) => /\\b(the|and|Select|Undo|Save|Shift|Space|Enter|Del|Help|Copy|Paste)\\b/.test(x))`);
+    assert.deepEqual(english, [], `still in English: ${english.join(' | ')}`);
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
+// P25: a big drawing (10,000 elements and 20 big pictures) stays usable. The budgets are generous (CI machines are
+// slow); the times are printed so a change can be compared.
+test('10,000 elements and big pictures: open, pan, select, move, undo, export', { skip, timeout: 240000 }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    const ms = {};
+    const t0 = Date.now();
+    // The file: shapes, arrows and texts in a grid, and 20 photos of 2560×1920.
+    const size = await page.eval(`(async () => {
+      const els = [];
+      const files = {};
+      const c = document.createElement('canvas');
+      c.width = 2560; c.height = 1920;
+      const g = c.getContext('2d');
+      for (let p = 0; p < 20; p++) {
+        const img = g.createImageData(2560, 1920);
+        for (let i = 0; i < img.data.length; i += 4) { const x = (i >> 2) % 2560; const y = (i >> 2) / 2560; img.data[i] = (x / 10 + p * 31) & 255; img.data[i + 1] = (y / 8) & 255; img.data[i + 2] = 128 + Math.sin(x / 40 + y / 60) * 60 + Math.random() * 40; img.data[i + 3] = 255; }
+        g.putImageData(img, 0, 0);
+        files['pic' + p] = c.toDataURL('image/jpeg', 0.85);
+        els.push({ id: 'img' + p, type: 'image', x: (p % 5) * 700, y: -2000 + Math.floor(p / 5) * 500, w: 640, h: 480, seed: p, fileId: 'pic' + p });
+      }
+      for (let i = 0; els.length < 10000; i++) {
+        const x = (i % 100) * 120;
+        const y = Math.floor(i / 100) * 90;
+        const type = ['rectangle', 'ellipse', 'diamond', 'arrow', 'text', 'draw', 'line'][i % 7];
+        const e = { id: 'e' + i, type, x, y, w: 100, h: 60, seed: i, fill: i % 3 ? '#a5d8ff' : 'transparent' };
+        if (type === 'arrow' || type === 'line') e.points = [{ x: 0, y: 0 }, { x: 100, y: 40 }];
+        if (type === 'draw') e.points = Array.from({ length: 30 }, (_, k) => ({ x: k * 3, y: Math.sin(k / 3) * 20 }));
+        if (type === 'text') e.text = 'Text ' + i;
+        if (type === 'arrow' && i % 2) { e.startId = 'e' + (i - 3); e.endId = 'e' + (i + 1); e.route = 'elbow'; }
+        els.push(e);
+      }
+      window.__file = new File([JSON.stringify({ type: 'sketch', version: 1, background: '#ffffff', elements: els, files })], 'big.sketch');
+      return window.__file.size;
+    })()`);
+    ms.make = Date.now() - t0;
+    // Open it.
+    let t = Date.now();
+    await page.eval('(() => { const dt = new DataTransfer(); dt.items.add(window.__file); const f = document.getElementById("file"); f.files = dt.files; f.dispatchEvent(new Event("change")); })()');
+    await page.waitFor('/big\\.sketch/.test(document.getElementById("status").textContent) && !document.getElementById("canvas").inert', 120000);
+    assert.match(await page.eval('document.getElementById("status").textContent'), /10,?000 elements/);
+    ms.open = Date.now() - t;
+    // Panning: average time per frame at 100% and with all of it in view.
+    const frame = (zoomAll) => page.eval(`(async () => {
+      const c = document.querySelector('.sk-canvas');
+      document.querySelector(${zoomAll} ? 'button[aria-label="Fit the whole drawing"]' : 'button[aria-label="Reset to 100%"]').click();
+      const raf = () => new Promise((r) => requestAnimationFrame(r));
+      await raf(); await raf();
+      const t0 = performance.now();
+      for (let i = 0; i < 20; i++) {
+        c.dispatchEvent(new WheelEvent('wheel', { deltaX: 7, deltaY: 5, bubbles: true, cancelable: true }));
+        await raf();
+      }
+      return (performance.now() - t0) / 20;
+    })()`);
+    ms.pan100 = await frame(false);
+    ms.panAll = await frame(true);
+    // Select everything, move it with an arrow key, undo.
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    const timed = (expr) => page.eval(`(async () => { const t0 = performance.now(); ${expr}; await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); return performance.now() - t0; })()`);
+    const key = (k, mods = {}) => `document.querySelector(".sk-editor").dispatchEvent(new KeyboardEvent("keydown", { ...${JSON.stringify({ key: k, bubbles: true, cancelable: true, ...mods })} }))`;
+    ms.selectAll = await timed(key('a', { ctrlKey: true }));
+    ms.move = await timed(key('ArrowRight'));
+    ms.undo = await timed(key('z', { ctrlKey: true }));
+    // Exports.
+    await page.eval('window.__blobs = []; URL.createObjectURL = (b) => { window.__blobs.push(b); return "blob:x"; }; HTMLAnchorElement.prototype.click = function () {}');
+    await page.eval(key('Escape'));
+    for (const [name, id] of [['svg', 'svg'], ['png', 'png']]) {
+      t = Date.now();
+      const n = await page.eval('window.__blobs.length');
+      await page.eval(`document.getElementById("${id}").click()`);
+      await page.waitFor(`window.__blobs.length > ${n}`, 120000);
+      ms[name] = Date.now() - t;
+    }
+    const out = Object.fromEntries(Object.entries(ms).map(([k, v]) => [k, Math.round(v)]));
+    console.log(`10,000 elements, ${(size / 1e6).toFixed(1)} MB file: ${JSON.stringify(out)}`);
+    if (process.env.PERF_OUT) await writeFile(process.env.PERF_OUT, JSON.stringify(out));
+    assert.ok(ms.open < 30000, `open: ${ms.open} ms`);
+    assert.ok(ms.pan100 < 100, `pan at 100%: ${ms.pan100} ms`);
+    assert.ok(ms.panAll < 1000, `pan all: ${ms.panAll} ms`);
+    assert.ok(ms.move < 2000 && ms.undo < 2000 && ms.selectAll < 2000, 'editing');
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});
+
+test('a drawing that stopped the page while being shown is not opened again on the next start', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    // As if the page had crashed while painting the open drawing: its id is still marked as being shown. (Set from
+    // another page of the site, since leaving bsketch normally takes the mark away.)
+    const before = await page.eval('JSON.parse(localStorage.getItem("sketch.drawings")).active');
+    await page.goto(`${base}icon.svg`);
+    await page.eval(`localStorage.setItem("sketch.showing", ${JSON.stringify(before)})`);
+    await page.goto(base);
+    await page.waitFor('!!document.querySelector(".sk-canvas") && !document.getElementById("canvas").inert');
+    await page.waitFor('JSON.parse(localStorage.getItem("sketch.drawings")).list.length === 2');
+    assert.notEqual(await page.eval('JSON.parse(localStorage.getItem("sketch.drawings")).active'), before, 'a new drawing is open');
+    assert.match(await page.eval('document.getElementById("status").textContent'), /could not be shown/);
+    await page.waitFor('localStorage.getItem("sketch.showing") === null', 5000);
+    // An ordinary start leaves nothing behind, nor does reloading before the first paint.
+    await page.eval('location.reload()');
+    await page.reload();
+    await page.waitFor('!!document.querySelector(".sk-canvas") && !document.getElementById("canvas").inert');
+    assert.equal(await page.eval('JSON.parse(localStorage.getItem("sketch.drawings")).list.length'), 2);
+    // (The picture page's favicon.ico isn't there: that 404 isn't bsketch's.)
+    assert.deepEqual(page.errors.filter((e) => !/status of 404/.test(e)), []);
+  } finally {
+    await page.close();
+  }
+});

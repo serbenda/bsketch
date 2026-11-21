@@ -776,3 +776,53 @@ test('elbow connectors go around the shapes in the way, with right angles only',
   E.syncBindings([...many, { ...arrow, startId: 'm0', endId: 'm399' }]);
   assert.ok(Date.now() - t0 < 1500, `fast enough: ${Date.now() - t0} ms`);
 });
+
+test('a file full of giant cross-hatched shapes stays within the drawing\'s hachure budget', () => {
+  const els = Array.from({ length: 20000 }, (_, i) => ({ id: `r${i}`, type: 'rectangle', x: -1e6, y: -1e6, w: 2e6, h: 2e6, fill: '#f00', fillStyle: 'cross-hatch', seed: i }));
+  const s = E.parseScene(JSON.stringify({ type: 'sketch', version: 1, elements: els }));
+  const cap = E.hachureCap(s.elements);
+  assert.ok(cap <= 10, `few lines each: ${cap}`);
+  const t0 = Date.now();
+  let cmds = 0;
+  for (const el of s.elements) for (const op of E.drawOps(el, { maxLines: cap })) cmds += op.path.length;
+  assert.ok(cmds < 2_000_000, `bounded: ${cmds} path commands`);
+  assert.ok(Date.now() - t0 < 5000, `${Date.now() - t0} ms`);
+  // A normal drawing keeps its full hachure.
+  assert.equal(E.hachureCap(s.elements.slice(0, 50)), MAX_HACHURE_LINES);
+  assert.ok(toSvgString({ ...E.emptyScene(), elements: s.elements.slice(0, 50) }).length > 0);
+});
+
+test('hostile files: elbow arrows by the thousand, a library repeating one picture, frames by the thousand, control characters', () => {
+  // Thousands of elbow arrows across a field of boxes: routing stops at its budget instead of freezing.
+  const els = [];
+  for (let i = 0; i < 60; i++) els.push({ id: `r${i}`, type: 'rectangle', x: (i % 6) * 60 + ((i * 7) % 13), y: Math.floor(i / 6) * 60 + ((i * 5) % 11), w: 10, h: 10 });
+  for (let i = 0; i < 20000; i++) els.push({ id: `a${i}`, type: 'arrow', x: -30 - i * 0.01, y: -30, route: 'elbow', points: [{ x: 0, y: 0 }, { x: 420, y: 330 }] });
+  let t0 = Date.now();
+  const s = E.parseScene(JSON.stringify({ type: 'sketch', version: 1, elements: els }));
+  E.routeElbows(s.elements);
+  assert.ok(Date.now() - t0 < 3000, `routing: ${Date.now() - t0} ms`);
+  assert.ok(E.routePoints(s.elements.find((e) => e.id === 'a0')).length > 2, 'the first ones are still routed');
+  // An .excalidrawlib whose 200 items share one big picture: the picture is kept once in memory, and the library
+  // stays within the size of one drawing's pictures.
+  const img = `data:image/png;base64,${'A'.repeat(3 * 1024 * 1024)}`;
+  const libraryItems = Array.from({ length: 200 }, (_, i) => ({ name: `x${i}`, elements: [{ id: `e${i}`, type: 'image', x: 0, y: 0, width: 10, height: 10, fileId: 'f' }] }));
+  const items = E.parseLibrary(JSON.stringify({ type: 'excalidrawlib', libraryItems, files: { f: { mimeType: 'image/png', dataURL: img } } }));
+  assert.ok(items.length > 0 && items.length < 200);
+  assert.ok(items.reduce((k, it) => k + Object.values(it.files).reduce((a, v) => a + v.length, 0), 0) <= E.MAX_FILES_CHARS);
+  assert.ok(E.serializeLibrary(items).length < E.MAX_FILES_CHARS + 1e6);
+  // 10,000 frames: at most MAX_SLIDES slides, quickly.
+  const frames = Array.from({ length: 10000 }, (_, i) => ({ id: `f${i}`, type: 'frame', x: i * 3, y: 0, w: 1, h: 1 }));
+  t0 = Date.now();
+  assert.equal(E.slideFrames(E.parseScene(JSON.stringify({ type: 'sketch', version: 1, elements: frames })).elements).length, E.MAX_SLIDES);
+  assert.ok(Date.now() - t0 < 3000, `slides: ${Date.now() - t0} ms`);
+  // Control characters and lone surrogates don't reach the file or the SVG.
+  const txt = E.parseScene(JSON.stringify({ type: 'sketch', version: 1, elements: [
+    { id: 't', type: 'text', x: 0, y: 0, w: 50, h: 20, text: 'a\u0001b\u0008c\nd\ud800e 😀' },
+    { id: 'f', type: 'frame', x: 0, y: 40, w: 50, h: 50, name: 'n\u001bm', notes: 'x\u0000y' },
+  ] }));
+  assert.equal(txt.elements[0].text, 'abc\nde 😀');
+  assert.equal(txt.elements[1].name, 'nm');
+  assert.equal(txt.elements[1].notes, 'xy');
+  // eslint-disable-next-line no-control-regex
+  assert.ok(!/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(toSvgString({ ...E.emptyScene(), elements: [{ ...txt.elements[0], text: 'p\u0002q' }] })), 'the SVG is well-formed');
+});

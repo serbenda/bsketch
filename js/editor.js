@@ -750,7 +750,17 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
   // selected. The caller has already called commit().
   function addElements(list, files = {}) {
     const all = { ...(scene.files || {}) };
-    for (const [k, v] of Object.entries(files || {})) if (!Object.hasOwn(all, k)) all[k] = v;
+    // A picture whose id is already used by a different one gets a new id (and its elements with it).
+    const renamed = new Map();
+    for (const [k, v] of Object.entries(files || {})) {
+      if (!Object.hasOwn(all, k)) all[k] = v;
+      else if (all[k] !== v) {
+        const id = E.newId();
+        all[id] = v;
+        renamed.set(k, id);
+      }
+    }
+    if (renamed.size) list = list.map((e) => (e.type === 'image' && renamed.has(e.fileId) ? { ...e, fileId: renamed.get(e.fileId) } : e));
     if (Object.keys(all).length) scene.files = all;
     update([...list.filter((e) => e.type === 'frame'), ...scene.elements, ...list.filter((e) => e.type !== 'frame')]);
     setTool('select');
@@ -913,6 +923,7 @@ export function createEditor(container, { scene: initial, onChange = () => {}, o
     const [file] = libFile.files;
     libFile.value = '';
     if (!file) return;
+    if (file.size > E.MAX_FILE_BYTES) return onNotice(tr('That file is too big to open (more than 100 MB).'));
     let items;
     try {
       items = E.parseLibrary(await file.text());

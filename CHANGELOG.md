@@ -3,6 +3,16 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioned with [SemVer](https://semver.org/).
 
 ## [Unreleased]
+### Security
+- Audits before 2.0 ([P25](docs/phases/P25-audits.md)): a hostile file can no longer use up the page's memory or
+  freeze it (a hachure budget per drawing, elbow routing with a budget, at most 500 slides, libraries that share
+  their pictures, linear-time text to diagram, files up to 100 MB); a drawing that stops the page isn't opened again
+  on the next start; exported SVG stays well-formed whatever the text.
+
+### Added
+- **Help inside the app** (☰ menu or **?**): a short guide and every keyboard shortcut, in each language, offline.
+- **The `.sketch` format is frozen** ([docs/FORMAT.md](docs/FORMAT.md)): every file saved by 1.0.0 or later opens in
+  every later version, tested with a file saved by each release; [SUPPORT.md](SUPPORT.md) says which versions get fixes.
 
 ## [1.5.0] - 2026-11-21
 ### Added

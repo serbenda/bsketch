@@ -3,7 +3,7 @@
 // Paints a scene on a <canvas> or turns it into SVG (text to download, or DOM nodes to embed). The
 // drawing's texts never go in as HTML: they are escaped or set with textContent.
 
-import { routeElbows, drawOps, sceneBounds, textLayout, setTextMeasurer, aabb, bounds, center, fontOf, isImageData, frameOwners, FONT, FONT_NAME, FRAME_TITLE, FRAME_COLOR, FRAME_FONT } from './scene.js';
+import { plainText, routeElbows, hachureCap, drawOps, sceneBounds, textLayout, setTextMeasurer, aabb, bounds, center, fontOf, isImageData, frameOwners, FONT, FONT_NAME, FRAME_TITLE, FRAME_COLOR, FRAME_FONT } from './scene.js';
 import { toSvgD, tracePath } from './stroke.js';
 
 // Measures texts with a canvas (the handwriting font is narrower than the no-DOM estimate).
@@ -58,11 +58,12 @@ const frameTitle = (el) => el.name || 'Frame';
 // Strokes prepared once per element (Path2D when available): repainting an unchanged element does not
 // recompute its hand-drawn stroke or hachure. Elements are never changed in place.
 const prepared = new WeakMap();
-function opsOf(el) {
-  let ops = prepared.get(el);
+function opsOf(el, maxLines) {
+  const got = prepared.get(el);
+  let ops = got?.maxLines === maxLines ? got.ops : null;
   if (!ops) {
     const P = globalThis.Path2D;
-    ops = drawOps(el).map((op) => {
+    ops = drawOps(el, { maxLines }).map((op) => {
       if (!P) return op;
       const path = new P();
       tracePath(path, op.path);
@@ -73,14 +74,14 @@ function opsOf(el) {
       }
       return { ...op, p2d: path, clip2d: clip };
     });
-    prepared.set(el, ops);
+    prepared.set(el, { ops, maxLines });
   }
   return ops;
 }
 
 // `imageFilter`: a canvas filter for pictures (the editor's dark appearance inverts the canvas; pictures are
 // inverted back so they keep their colours).
-export function paintElement(ctx, el, files, imageFilter = '') {
+export function paintElement(ctx, el, files, imageFilter = '', maxLines = undefined) {
   ctx.save();
   if (el.type === 'image') {
     const b = bounds(el);
@@ -125,7 +126,7 @@ export function paintElement(ctx, el, files, imageFilter = '') {
     ctx.restore();
     return;
   }
-  for (const op of opsOf(el)) {
+  for (const op of opsOf(el, maxLines)) {
     ctx.save();
     ctx.globalAlpha = op.opacity ?? 1;
     if (op.clip) {
@@ -170,6 +171,7 @@ export const hasFlow = (elements) => elements.some((e) => e.animated === true &&
 export function paintScene(ctx, scene, { view = { x: 0, y: 0, zoom: 1 }, width, height, background = true, imageFilter = '', time = 0, hideFrames = false } = {}) {
   flowTime = Number.isFinite(time) ? time : 0;
   routeElbows(scene.elements);
+  const cap = hachureCap(scene.elements);
   ctx.save();
   if (background) {
     ctx.fillStyle = scene.background || '#ffffff';
@@ -197,7 +199,7 @@ export function paintScene(ctx, scene, { view = { x: 0, y: 0, zoom: 1 }, width, 
       ctx.rect(fb.x, fb.y, fb.w, fb.h);
       ctx.clip();
     }
-    paintElement(ctx, el, scene.files, imageFilter);
+    paintElement(ctx, el, scene.files, imageFilter, cap);
     if (f) ctx.restore();
   }
   ctx.restore();
@@ -206,12 +208,13 @@ export function paintScene(ctx, scene, { view = { x: 0, y: 0, zoom: 1 }, width, 
 // Every number written into SVG markup goes through n(): a scene that skipped parseScene (an embedder's own
 // object) can't slip markup in through a numeric field.
 const n = (v, d = 0) => (Number.isFinite(Number(v)) ? Number(v) : d);
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const esc = (s) => plainText(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 // Scene → SVG as text (to download). `padding` around the drawing.
 // `background: false` leaves it out (a transparent SVG).
 export function toSvgString(scene, { padding = 20, background = true, box = null } = {}) {
   routeElbows(scene.elements);
+  const cap = hachureCap(scene.elements);
   const b = box || sceneBounds(scene.elements);
   const W = Math.ceil(b.w + padding * 2);
   const H = Math.ceil(b.h + padding * 2);
@@ -243,7 +246,7 @@ export function toSvgString(scene, { padding = 20, background = true, box = null
       const fb = bounds(el);
       parts.push(`<text x="${n(fb.x)}" y="${n(fb.y - 4)}" font-size="14" font-family="${esc(FRAME_FONT)}" fill="${FRAME_COLOR}">${esc(frameTitle(el))}</text>`);
     }
-    for (const op of drawOps(el)) {
+    for (const op of drawOps(el, { maxLines: cap })) {
       let clip = '';
       if (op.clip) {
         clipN += 1;
@@ -281,6 +284,7 @@ export function toSvgElement(doc, scene, { padding = 20, maxWidth = null, backgr
   measureWithCanvas(doc);
   const NS = 'http://www.w3.org/2000/svg';
   routeElbows(scene.elements);
+  const cap = hachureCap(scene.elements);
   const b = sceneBounds(scene.elements);
   const W = Math.ceil(b.w + padding * 2);
   const H = Math.ceil(b.h + padding * 2);
@@ -337,7 +341,7 @@ export function toSvgElement(doc, scene, { padding = 20, maxWidth = null, backgr
       t.textContent = frameTitle(el);
       svg.append(t);
     }
-    for (const op of drawOps(el)) {
+    for (const op of drawOps(el, { maxLines: cap })) {
       const attrs = op.fill
         ? { d: toSvgD(op.path), fill: op.fill, stroke: 'none', opacity: op.opacity ?? 1 }
         : { d: toSvgD(op.path), fill: 'none', stroke: op.stroke, 'stroke-width': op.width, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: op.opacity ?? 1 };
