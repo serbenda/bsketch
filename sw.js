@@ -3,7 +3,7 @@
 // sketch's service worker: keeps the site (HTML, CSS, JS, font and icon) so it opens offline.
 // Drawings never go through here: they live in the browser or in the files you save.
 
-const VERSION = 'sketch-v24';
+const VERSION = 'sketch-v25';
 const SHELL = [
   './',
   'index.html',

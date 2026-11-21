@@ -16,6 +16,24 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — P25: audits before 2.0 (agent part)
+- **Phase / issue:** P25
+- **What:** an independent security review (a sub-agent, read-only) found 7 issues and 2 notes; all fixed with tests
+  except the shared origin (R-006, the owner's): hachure budget per drawing and a safe start (`js/scene.js`,
+  `js/stroke.js`, `js/render.js`, `js/app.js`); elbow routing with a heap, a shared budget, a grid and a cache;
+  libraries sharing pictures; linear-time text to diagram (`js/textdiagram.js`); at most 500 slides; control
+  characters dropped (`plainText`); picture ids renamed on clash (`js/editor.js`); 100 MB file limit. A long fuzz
+  campaign; axe-core in 12 states; a 10,000-element e2e test; `sw.js` v25.
+- **Why:** S8, 2.0.0's exit criterion "no open security, accessibility or performance findings".
+- **Rejected:** a lower per-shape hachure limit (would thin real drawings; the problem is the count); refusing files
+  with many elbow arrows (a budget keeps them usable).
+- **Files:** js/scene.js, js/stroke.js, js/render.js, js/app.js, js/editor.js, js/textdiagram.js, js/i18n.js, sw.js,
+  tests/scene.test.mjs, tests/textdiagram.test.mjs, tests/e2e/editor.e2e.mjs, CHANGELOG.md, docs/*
+- **Commits:** see the P25 commit on `development`.
+- **Tested:** `npm test` 80 pass; `npm run test:e2e` 34 pass; fuzz 24 × 20,000 (before) and 6 × 5,000 (after);
+  axe-core with no violations.
+- **Pending:** the owner: a screen-reader check (with P19) and R-006 (own subdomain or accept).
+
 ## 2026-11-21 — P26: help inside the app
 - **Phase / issue:** P26
 - **What:** a Help dialog in `index.html` (guide and every shortcut, in tables), opened from the menu or with "?"

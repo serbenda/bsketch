@@ -13,9 +13,10 @@ Last updated: 2026-11-21
 - **Working branch:** `development`
 
 ## Current work
-- S8 started: [P27](phases/P27-format-freeze.md)'s agent part done (format frozen and tested); [P26](phases/P26-in-app-help.md) done (help inside the app); next P25 (audits). P24 needs the owner's Apple and Windows signing accounts; P19 is the owner's device checklist.
+- S8 started: [P27](phases/P27-format-freeze.md)'s agent part done (format frozen and tested); [P26](phases/P26-in-app-help.md) done (help inside the app); [P25](phases/P25-audits.md)'s agent part done (security, fuzz, accessibility, performance; owner: screen reader and R-006). P24 needs the owner's Apple and Windows signing accounts; P19 is the owner's device checklist.
 
 ## Recently done
+- [P25](phases/P25-audits.md) (agent part): 7 security findings fixed (1 High), R-006 recorded; axe-core clean; 10,000 elements within budget.
 - [P26](phases/P26-in-app-help.md): help inside the app.
 - [P27](phases/P27-format-freeze.md) (agent part): `docs/FORMAT.md`, a file from each release in the tests, `SUPPORT.md`, ADR 0007.
 - **v1.5.0 released** (2026-11-21), tag on the built commit `215e4b7`, with signed provenance (S7: P21, P22, P23; version in PR #29).

@@ -132,6 +132,9 @@ const ES = {
   "Close the help (Esc)": "Cerrar la ayuda (Esc)",
   "Action": "Acción",
   "Keys": "Teclas",
+  // Safety limits
+  "That file is too big to open (more than 100 MB).": "Ese archivo es demasiado grande para abrirlo (más de 100 MB).",
+  "The last drawing could not be shown, so a new one was opened. The other one is still in the menu.": "El último dibujo no se pudo mostrar, así que se ha abierto uno nuevo. El otro sigue en el menú.",
 };
 
 // Catalan
@@ -388,6 +391,9 @@ const CA = {
   "Close the help (Esc)": "Tanca l'ajuda (Esc)",
   "Action": "Acció",
   "Keys": "Tecles",
+  // Safety limits
+  "That file is too big to open (more than 100 MB).": "Aquest fitxer és massa gran per obrir-lo (més de 100 MB).",
+  "The last drawing could not be shown, so a new one was opened. The other one is still in the menu.": "L'últim dibuix no s'ha pogut mostrar, així que se n'ha obert un de nou. L'altre continua al menú.",
 };
 
 // French
@@ -644,6 +650,9 @@ const FR = {
   "Close the help (Esc)": "Fermer l'aide (Échap)",
   "Action": "Action",
   "Keys": "Touches",
+  // Safety limits
+  "That file is too big to open (more than 100 MB).": "Ce fichier est trop volumineux pour être ouvert (plus de 100 Mo).",
+  "The last drawing could not be shown, so a new one was opened. The other one is still in the menu.": "Le dernier dessin n'a pas pu être affiché : un nouveau a été ouvert. L'autre est toujours dans le menu.",
 };
 
 // Portuguese (Portugal)
@@ -900,6 +909,9 @@ const PT = {
   "Close the help (Esc)": "Fechar a ajuda (Esc)",
   "Action": "Ação",
   "Keys": "Teclas",
+  // Safety limits
+  "That file is too big to open (more than 100 MB).": "Esse ficheiro é demasiado grande para ser aberto (mais de 100 MB).",
+  "The last drawing could not be shown, so a new one was opened. The other one is still in the menu.": "Não foi possível mostrar o último desenho, por isso foi aberto um novo. O outro continua no menu.",
 };
 
 const DICTS = { en: {}, es: ES, ca: CA, fr: FR, pt: PT };
