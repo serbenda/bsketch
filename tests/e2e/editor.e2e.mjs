@@ -1328,7 +1328,7 @@ test('10,000 elements and big pictures: open, pan, select, move, undo, export', 
     // Select everything, move it with an arrow key, undo.
     await page.eval('document.querySelector(".sk-editor").focus()');
     const timed = (expr) => page.eval(`(async () => { const t0 = performance.now(); ${expr}; await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); return performance.now() - t0; })()`);
-    const key = (k, mods = {}) => `document.querySelector(".sk-editor").dispatchEvent(new KeyboardEvent("keydown", { key: "${k}", bubbles: true, cancelable: true, ...${JSON.stringify(mods)} }))`;
+    const key = (k, mods = {}) => `document.querySelector(".sk-editor").dispatchEvent(new KeyboardEvent("keydown", { ...${JSON.stringify({ key: k, bubbles: true, cancelable: true, ...mods })} }))`;
     ms.selectAll = await timed(key('a', { ctrlKey: true }));
     ms.move = await timed(key('ArrowRight'));
     ms.undo = await timed(key('z', { ctrlKey: true }));

@@ -16,6 +16,16 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — CodeQL note on the 10,000-element e2e test
+- **Phase / issue:** P25
+- **What:** the test builds its key events with `JSON.stringify` instead of putting the key inside quotes by hand.
+- **Why:** CodeQL "improper code sanitization" on PR #30 (the values were constants; fixed anyway).
+- **Rejected:** dismissing the alert.
+- **Files:** tests/e2e/editor.e2e.mjs, docs/WORKLOG.md
+- **Commits:** this one.
+- **Tested:** the e2e test passes.
+- **Pending:** —
+
 ## 2026-11-21 — P25 follow-up: the safe start no longer trips on a quick reload
 - **Phase / issue:** P25
 - **What:** the "being shown" mark is also taken away on `pagehide`, so reloading before the first paint isn't taken
