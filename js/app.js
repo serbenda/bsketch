@@ -153,7 +153,11 @@ addEventListener('storage', (ev) => {
   renderDrawings();
 });
 // Leaving the page (or hiding it) saves at once.
-addEventListener('pagehide', () => { flush(); });
+addEventListener('pagehide', () => {
+  flush();
+  // Leaving normally (a reload before the first paint, too) isn't a crash: a crash never gets here.
+  try { storage.removeItem(SHOWING_KEY); } catch { /* storage blocked */ }
+});
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
 
 // Opening a file makes a new drawing with it: the one open stays in the list.

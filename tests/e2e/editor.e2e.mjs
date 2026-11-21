@@ -1359,20 +1359,24 @@ test('a drawing that stopped the page while being shown is not opened again on t
   const page = await browser.newPage();
   try {
     await open(page);
-    // As if the page had crashed while painting the open drawing: its id is still marked as being shown.
-    await page.eval('localStorage.setItem("sketch.showing", JSON.parse(localStorage.getItem("sketch.drawings")).active)');
+    // As if the page had crashed while painting the open drawing: its id is still marked as being shown. (Set from
+    // another page of the site, since leaving bsketch normally takes the mark away.)
     const before = await page.eval('JSON.parse(localStorage.getItem("sketch.drawings")).active');
-    await page.reload();
+    await page.goto(`${base}icon.svg`);
+    await page.eval(`localStorage.setItem("sketch.showing", ${JSON.stringify(before)})`);
+    await page.goto(base);
     await page.waitFor('!!document.querySelector(".sk-canvas") && !document.getElementById("canvas").inert');
     await page.waitFor('JSON.parse(localStorage.getItem("sketch.drawings")).list.length === 2');
     assert.notEqual(await page.eval('JSON.parse(localStorage.getItem("sketch.drawings")).active'), before, 'a new drawing is open');
     assert.match(await page.eval('document.getElementById("status").textContent'), /could not be shown/);
     await page.waitFor('localStorage.getItem("sketch.showing") === null', 5000);
-    // An ordinary start leaves nothing behind.
+    // An ordinary start leaves nothing behind, nor does reloading before the first paint.
+    await page.eval('location.reload()');
     await page.reload();
     await page.waitFor('!!document.querySelector(".sk-canvas") && !document.getElementById("canvas").inert');
     assert.equal(await page.eval('JSON.parse(localStorage.getItem("sketch.drawings")).list.length'), 2);
-    assert.deepEqual(page.errors, []);
+    // (The picture page's favicon.ico isn't there: that 404 isn't bsketch's.)
+    assert.deepEqual(page.errors.filter((e) => !/status of 404/.test(e)), []);
   } finally {
     await page.close();
   }

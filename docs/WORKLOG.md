@@ -16,6 +16,18 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — P25 follow-up: the safe start no longer trips on a quick reload
+- **Phase / issue:** P25
+- **What:** the "being shown" mark is also taken away on `pagehide`, so reloading before the first paint isn't taken
+  for a crash (CI caught it: "a drawing saved by an older version is kept" got an empty new drawing); the safe-start
+  e2e now sets the mark from another page of the site.
+- **Why:** CI failed on `b24cc6f`.
+- **Rejected:** a longer delay before taking the mark away (still a race).
+- **Files:** js/app.js, tests/e2e/editor.e2e.mjs, docs/WORKLOG.md
+- **Commits:** this one.
+- **Tested:** `npm test` 80 pass; `npm run test:e2e` 34 pass; the two tests three times in a row.
+- **Pending:** —
+
 ## 2026-11-21 — P25: audits before 2.0 (agent part)
 - **Phase / issue:** P25
 - **What:** an independent security review (a sub-agent, read-only) found 7 issues and 2 notes; all fixed with tests
