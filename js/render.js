@@ -3,7 +3,7 @@
 // Paints a scene on a <canvas> or turns it into SVG (text to download, or DOM nodes to embed). The
 // drawing's texts never go in as HTML: they are escaped or set with textContent.
 
-import { drawOps, sceneBounds, textLayout, setTextMeasurer, aabb, bounds, center, fontOf, isImageData, frameOwners, FONT, FONT_NAME, FRAME_TITLE, FRAME_COLOR, FRAME_FONT } from './scene.js';
+import { routeElbows, drawOps, sceneBounds, textLayout, setTextMeasurer, aabb, bounds, center, fontOf, isImageData, frameOwners, FONT, FONT_NAME, FRAME_TITLE, FRAME_COLOR, FRAME_FONT } from './scene.js';
 import { toSvgD, tracePath } from './stroke.js';
 
 // Measures texts with a canvas (the handwriting font is narrower than the no-DOM estimate).
@@ -169,6 +169,7 @@ export const hasFlow = (elements) => elements.some((e) => e.animated === true &&
 // `hideFrames`: frames still clip what lies on them but their border and title aren't painted (presenting).
 export function paintScene(ctx, scene, { view = { x: 0, y: 0, zoom: 1 }, width, height, background = true, imageFilter = '', time = 0, hideFrames = false } = {}) {
   flowTime = Number.isFinite(time) ? time : 0;
+  routeElbows(scene.elements);
   ctx.save();
   if (background) {
     ctx.fillStyle = scene.background || '#ffffff';
@@ -210,6 +211,7 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 // Scene → SVG as text (to download). `padding` around the drawing.
 // `background: false` leaves it out (a transparent SVG).
 export function toSvgString(scene, { padding = 20, background = true, box = null } = {}) {
+  routeElbows(scene.elements);
   const b = box || sceneBounds(scene.elements);
   const W = Math.ceil(b.w + padding * 2);
   const H = Math.ceil(b.h + padding * 2);
@@ -278,6 +280,7 @@ export function toSvgString(scene, { padding = 20, background = true, box = null
 export function toSvgElement(doc, scene, { padding = 20, maxWidth = null, background = true } = {}) {
   measureWithCanvas(doc);
   const NS = 'http://www.w3.org/2000/svg';
+  routeElbows(scene.elements);
   const b = sceneBounds(scene.elements);
   const W = Math.ceil(b.w + padding * 2);
   const H = Math.ceil(b.h + padding * 2);
@@ -365,10 +368,17 @@ export function pngScale(w, h, scale) {
 
 // Scene → PNG (Blob) at `scale` times its size, or less if it would not fit; null if it cannot be made.
 // `background: false` gives transparent pixels outside the shapes.
-export async function toPngBlob(doc, scene, { padding = 20, scale = 2, background = true, box = null } = {}) {
+export async function toPngBlob(doc, scene, opts = {}) {
+  return toImageBlob(doc, scene, opts);
+}
+
+// Scene → an image Blob (PNG by default, or `type: 'image/jpeg'`), with the same options as toPngBlob, plus
+// `hideFrames` (frames clip but their border and title aren't painted: a slide).
+export async function toImageBlob(doc, scene, { padding = 20, scale = 2, background = true, box = null, type = 'image/png', quality = 0.92, hideFrames = false } = {}) {
   measureWithCanvas(doc);
   await fontReady(doc);
   await imagesReady(scene);
+  routeElbows(scene.elements);
   const b = box || sceneBounds(scene.elements);
   scale = pngScale(b.w + padding * 2, b.h + padding * 2, scale);
   const canvas = doc.createElement('canvas');
@@ -376,6 +386,6 @@ export async function toPngBlob(doc, scene, { padding = 20, scale = 2, backgroun
   canvas.height = Math.max(1, Math.ceil((b.h + padding * 2) * scale));
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
-  paintScene(ctx, scene, { background, width: canvas.width, height: canvas.height, view: { x: (padding - b.x) * scale, y: (padding - b.y) * scale, zoom: scale } });
-  return new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  paintScene(ctx, scene, { background, hideFrames, width: canvas.width, height: canvas.height, view: { x: (padding - b.x) * scale, y: (padding - b.y) * scale, zoom: scale } });
+  return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
 }

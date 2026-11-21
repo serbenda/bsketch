@@ -43,9 +43,9 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 - Hachure or solid fill, colors, stroke width, dashed lines and three levels of sloppiness.
 - Arrowheads at the end, the start, both ends or none.
 - Three fonts for text: handwriting, normal and code.
-- Arrows and lines straight, **with an elbow** or **curved** (drag the middle to bend them as you like).
+- Arrows and lines straight, **with an elbow** (going around the shapes in their way) or **curved** (drag the middle to bend them as you like).
 - **Pictures:** insert, paste or drop them; arrows attach to them.
-- **Present** a drawing frame by frame, full screen, with a laser pointer.
+- **Present** a drawing frame by frame, full screen, with a laser pointer, speaker notes and a timer.
 - **Frames** to title and group part of a drawing: what lies on them is cut at their border, and a frame exports
   exactly that part.
 - A **library** of pieces to reuse, which also reads Excalidraw libraries.
@@ -62,7 +62,7 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 
 **Files and options** (the ☰ menu)
 - **Several drawings** kept in this browser: create, switch, rename and delete them from the menu.
-- Saves and opens `.sketch` files, opens and saves `.excalidraw` files, exports to **PNG** and **SVG**, also with a
+- Saves and opens `.sketch` files, opens and saves `.excalidraw` files, makes a **PDF** with a page per frame, exports to **PNG** and **SVG**, also with a
   transparent background or **only the selection**, and copies the drawing or the selection to the clipboard as a PNG.
 - **Appearance:** light, dark or the system's, whatever the system theme is.
 - **Canvas background:** six light colours, saved with the drawing.

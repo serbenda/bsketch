@@ -739,3 +739,40 @@ test('languages: Catalan, French and Portuguese translate what Spanish does, hol
     }
   }
 });
+
+test('speaker notes: kept on frames only, trimmed, capped and never HTML', () => {
+  const f = E.cleanElement({ id: 'f', type: 'frame', x: 0, y: 0, w: 100, h: 100, name: 'One', notes: '  Say hello\r\nthen <b>this</b>  ' });
+  assert.equal(f.notes, 'Say hello\nthen <b>this</b>', 'kept as text');
+  assert.equal(E.cleanElement({ ...f, notes: 'x'.repeat(5000) }).notes.length, E.MAX_NOTES);
+  assert.equal(E.cleanElement({ ...f, notes: '   ' }).notes, undefined, 'empty notes are not stored');
+  assert.equal(E.cleanElement({ ...f, notes: { toString: 1 } }).notes, undefined);
+  assert.equal(E.cleanElement({ id: 'r', type: 'rectangle', x: 0, y: 0, w: 5, h: 5, notes: 'no' }).notes, undefined, 'only frames');
+  assert.equal(E.parseScene(E.serializeScene({ ...E.emptyScene(), elements: [f] })).elements[0].notes, f.notes);
+});
+
+test('elbow connectors go around the shapes in the way, with right angles only', () => {
+  const box = (id, x, y) => ({ ...E.createElement('rectangle', x, y), id, w: 120, h: 60 });
+  const a = box('a', 0, 0);
+  const b = box('b', 600, 0);
+  const wall = { ...box('wall', 280, -100), w: 60, h: 260 }; // right between them
+  const arrow = { ...E.createElement('arrow', 0, 0, { route: 'elbow' }), id: 'arr', points: [{ x: 0, y: 0 }, { x: 10, y: 0 }], startId: 'a', endId: 'b' };
+  const els = E.syncBindings([a, b, wall, arrow]);
+  const el = els.find((e) => e.id === 'arr');
+  const pts = E.routePoints(el);
+  assert.deepEqual([pts[0], pts.at(-1)], [{ x: 126, y: 30 }, { x: 594, y: 30 }], 'from the facing sides\' middles');
+  for (let i = 1; i < pts.length; i++) assert.ok(pts[i].x === pts[i - 1].x || pts[i].y === pts[i - 1].y, 'right angles only');
+  const crosses = pts.some((p, i) => i && Math.min(p.x, pts[i - 1].x) < 340 && Math.max(p.x, pts[i - 1].x) > 280 && Math.min(p.y, pts[i - 1].y) < 160 && Math.max(p.y, pts[i - 1].y) > -100);
+  assert.ok(!crosses, `goes around the wall: ${JSON.stringify(pts)}`);
+  // Without the wall it is a straight line between the sides; moving the wall away re-routes it.
+  const free = E.routePoints(E.syncBindings([a, b, arrow]).find((e) => e.id === 'arr'));
+  assert.equal(free.length, 2);
+  const moved = E.syncBindings([a, b, { ...wall, y: 400 }, el]);
+  assert.equal(E.routePoints(moved.find((e) => e.id === 'arr')).length, 2, 're-routed when the wall moves');
+  // The SVG export draws the same path.
+  assert.ok(toSvgString({ ...E.emptyScene(), elements: structuredClone(els) }).length > 0);
+  // A crowded drawing doesn't hang.
+  const many = Array.from({ length: 400 }, (_, i) => box(`m${i}`, (i % 20) * 150, Math.floor(i / 20) * 100));
+  const t0 = Date.now();
+  E.syncBindings([...many, { ...arrow, startId: 'm0', endId: 'm399' }]);
+  assert.ok(Date.now() - t0 < 1500, `fast enough: ${Date.now() - t0} ms`);
+});

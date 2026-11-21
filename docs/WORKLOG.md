@@ -16,6 +16,59 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — P23: elbow connectors that go around shapes
+- **Phase / issue:** P23
+- **What:** elbow arrows and lines attached to shapes leave from the middle of the facing side and are routed around
+  nearby shapes (`sideOf`, `orthogonalPath`, `routeElbows` in `js/scene.js`); `routePoints` uses the routed path;
+  `js/render.js` routes before painting and in every export; `sw.js` cache v23.
+- **Why:** S7 of the roadmap; with it, bsketch's connectors read like a diagramming tool's.
+- **Rejected:** storing the path in the file (it would go stale when shapes move, and older versions would draw it
+  wrong); caching per arrow (a shape in the way can move while the arrow stays the same).
+- **Files:** js/scene.js, js/render.js, sw.js, tests/scene.test.mjs, tests/fuzz.test.mjs, tests/e2e/editor.e2e.mjs,
+  README.md, CHANGELOG.md, docs/*
+- **Commits:** see the P23 commit on `development`.
+- **Tested:** `npm test` 69 pass; fuzz with seeds 1–3, 2,000 runs each; `npm run test:e2e` 31 pass; a screenshot.
+- **Pending:** release 1.5.0 (owner).
+
+## 2026-11-21 — P22: PDF with one frame per page
+- **Phase / issue:** P22
+- **What:** `js/pdf.js` (a PDF 1.4 writer: one JPEG per page, `DCTDecode`, pages sized to their slide with the long
+  side 842 pt); `slideFrames`/`slideElements` in `js/scene.js`, shared with presentation mode; `toImageBlob` in
+  `js/render.js` (JPEG, `hideFrames`); a PDF button in the ☰ menu; strings in the five languages; service worker v22.
+- **Why:** S7's second phase.
+- **Rejected:** vector pages (they need the fonts embedded and a path writer; images at 2× print sharply); a PDF
+  library (a dependency, against the project's no-dependency rule).
+- **Files:** js/pdf.js, js/scene.js, js/render.js, js/editor.js, js/app.js, js/i18n.js, index.html, sw.js, tests/,
+  README.md, CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 68 pass; `npm run test:e2e` 30 pass; a PDF made in Chrome and rendered by macOS; the portable
+  build.
+- **Pending:** —
+
+## 2026-11-21 — P21: speaker notes and a timer
+- **Phase / issue:** P21
+- **What:** `notes` on frames (validated, up to `MAX_NOTES`); a frame panel (name and notes, one undo step per edit);
+  in presentation mode a notes box (N or a button, hidden by default) and a timer in the bar; strings in the five
+  languages; fuzz checks for `notes`; service worker v21.
+- **Why:** S7's first phase.
+- **Rejected:** a presenter window on a second screen (out of scope for now); notes on any element (slides are frames).
+- **Files:** js/scene.js, js/editor.js, js/i18n.js, css/sketch.css, sw.js, tests/, README.md, CHANGELOG.md, docs/
+- **Commits:** this one.
+- **Tested:** `npm test` 66 pass; fuzz seeds 1–2 at 2000 runs; `npm run test:e2e` 29 pass; the portable build;
+  screenshots.
+- **Pending:** —
+
+## 2026-11-21 — 1.4.0 released
+- **Phase / issue:** S6
+- **What:** the owner released v1.4.0 (tag on `f9b95d6`, the built commit) with the three executables and their
+  Sigstore provenance; Snowlog's PR #9 merged. STATE updated.
+- **Why:** S6's agent phases done.
+- **Rejected:** —
+- **Files:** docs/STATE.md
+- **Commits:** this one.
+- **Tested:** `gh attestation verify` passes on the release's own Windows executable.
+- **Pending:** P19.
+
 ## 2026-11-21 — Version 1.4.0
 - **Phase / issue:** S6 (P17, P18, P20; P19 continues after the release)
 - **What:** version 1.4.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's

@@ -13,9 +13,13 @@ Last updated: 2026-11-20
 - **Working branch:** `development`
 
 ## Current work
-- Version 1.4.0 prepared (PR #27); the owner releases it with `bsketch-release.sh 1.4.0`. P19 (the owner's device checklist) goes on after it: what it finds becomes 1.4.x.
+- S7 done on `development` (P21, P22, [P23](phases/P23-smart-connectors.md)); next: release 1.5.0, then P19 and S8.
 
 ## Recently done
+- [P23](phases/P23-smart-connectors.md): elbow connectors that go around shapes.
+- [P22](phases/P22-pdf-export.md): PDF with one frame per page.
+- [P21](phases/P21-speaker-notes.md): speaker notes and a timer.
+- **v1.4.0 released** (2026-11-21), tag on the built commit `f9b95d6`, with signed provenance; Snowlog's update merged (serbenda/snowlog#9).
 - [P20](phases/P20-languages.md): Catalan, French and Portuguese.
 - [P18](phases/P18-snowlog-library-templates.md): library and templates in Snowlog.
 - **v1.3.0 released** (2026-11-20), tag on the built commit `fe1613f`, with signed provenance.
@@ -58,9 +62,8 @@ Last updated: 2026-11-20
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. Owner: merge PR #27 (and serbenda/snowlog#9), then `bsketch-release.sh 1.4.0`.
-2. P19 (owner first): the device checklist on Safari, Firefox, a real phone and the desktop apps; fixes in 1.4.x.
-3. Then S7 (1.5: speaker notes, PDF, smart connectors) and S8 (2.0) ([ROADMAP](ROADMAP.md)).
+1. P19 (owner first): the device checklist on Safari, Firefox, a real phone and the desktop apps; fixes in 1.4.x.
+2. Then S7 (1.5: speaker notes, PDF, smart connectors) and S8 (2.0) ([ROADMAP](ROADMAP.md)).
 
 ## Blocked / awaiting decision
 - Nothing.
