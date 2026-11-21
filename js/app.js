@@ -340,6 +340,26 @@ tdDialog.addEventListener('close', () => {
   editor.focus();
 });
 
+// --- Help: a short guide and every shortcut, from the menu or with "?" ---
+const helpDialog = $('help-dialog');
+function openHelp() {
+  if (helpDialog.open || document.fullscreenElement || document.querySelector('dialog[open]')) return;
+  helpDialog.showModal();
+  helpDialog.querySelector('.drawer-close').focus();
+}
+$('help').addEventListener('click', () => {
+  closeMenu();
+  openHelp();
+});
+helpDialog.addEventListener('close', () => editor.focus());
+document.addEventListener('keydown', (ev) => {
+  if (ev.key !== '?' || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+  const el = ev.target;
+  if (el instanceof Element && (el.closest('input, textarea, select') || el.isContentEditable)) return;
+  ev.preventDefault();
+  openHelp();
+});
+
 // --- Templates: each opens as a new drawing, drawn from its text ---
 for (const id of Object.keys(TEMPLATES)) {
   const tpl = template(id, lang);

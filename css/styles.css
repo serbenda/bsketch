@@ -480,3 +480,71 @@ fieldset.drawer-section legend {
   border-color: var(--border);
   border-radius: 999px;
 }
+
+/* Help: the guide and the shortcuts, in the same kind of dialog as text to diagram. */
+.help-dialog {
+  width: min(40rem, 100vw - 2rem);
+  overflow: auto;
+}
+
+.help-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.help-dialog h3 {
+  margin: 1rem 0 0.4rem;
+  font-size: 1rem;
+}
+
+.help-guide {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.help-guide li + li {
+  margin-top: 0.3rem;
+}
+
+.help-keys {
+  width: 100%;
+  margin-bottom: 0.6rem;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.help-keys caption {
+  padding: 0.3rem 0;
+  font-weight: 600;
+  text-align: left;
+  color: var(--muted);
+}
+
+.help-keys td {
+  padding: 0.25rem 0;
+  border-top: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.help-keys td + td {
+  padding-left: 0.75rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.help-keys kbd {
+  padding: 0 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+@media (max-width: 30rem) {
+  .help-keys td + td {
+    white-space: normal;
+  }
+}

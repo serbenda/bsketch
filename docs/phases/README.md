@@ -31,4 +31,5 @@ Each block of work has a phase file `PNN-short-title.md` created with `/new-phas
 | [P21](P21-speaker-notes.md) | S7 | Speaker notes and a timer | ✅ |
 | [P22](P22-pdf-export.md) | S7 | PDF with one frame per page | ✅ |
 | [P23](P23-smart-connectors.md) | S7 | Elbow connectors that go around shapes | ✅ |
+| [P26](P26-in-app-help.md) | S8 | Help inside the app | ✅ |
 | [P27](P27-format-freeze.md) | S8 | The `.sketch` format frozen, and 2.0.0 | ⏳ |

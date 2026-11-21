@@ -58,7 +58,7 @@ Your drawing is also kept in the browser, so closing the tab doesn't lose it.
 **Editing**
 - Select, move, resize, **rotate**, **group**, **align and distribute**, duplicate, reorder and delete.
 - Undo and redo; zoom and pan, also with two fingers on a phone.
-- Fully usable with the keyboard, with descriptions for screen readers.
+- Fully usable with the keyboard, with descriptions for screen readers; **?** shows a short guide and every shortcut.
 
 **Files and options** (the ☰ menu)
 - **Several drawings** kept in this browser: create, switch, rename and delete them from the menu.

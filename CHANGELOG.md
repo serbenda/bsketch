@@ -4,6 +4,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versio
 
 ## [Unreleased]
 ### Added
+- **Help inside the app** (☰ menu or **?**): a short guide and every keyboard shortcut, in each language, offline.
 - **The `.sketch` format is frozen** ([docs/FORMAT.md](docs/FORMAT.md)): every file saved by 1.0.0 or later opens in
   every later version, tested with a file saved by each release; [SUPPORT.md](SUPPORT.md) says which versions get fixes.
 

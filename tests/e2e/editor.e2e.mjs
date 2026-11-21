@@ -1232,3 +1232,37 @@ test('elbow arrows go around the shapes in the way, and follow when they move', 
     await page.close();
   }
 });
+
+test('help: from the menu or with "?", every shortcut, in the chosen language', { skip }, async () => {
+  const page = await browser.newPage();
+  try {
+    await open(page);
+    await page.click('#menu-button');
+    await page.click('#help');
+    await page.waitFor('document.getElementById("help-dialog").open');
+    assert.ok(await page.eval('document.querySelectorAll("#help-dialog tbody tr").length') >= 40, 'every shortcut');
+    assert.equal(await page.eval('document.activeElement.className'), 'drawer-close');
+    await page.press('Escape');
+    await page.waitFor('!document.getElementById("help-dialog").open');
+    // "?" opens it, but not while typing.
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('?', { shift: true });
+    await page.waitFor('document.getElementById("help-dialog").open');
+    await page.press('Escape');
+    await page.waitFor('!document.getElementById("help-dialog").open');
+    // In Spanish, nothing of it is left in English (key letters and symbols aside).
+    await page.click('#menu-button');
+    await page.click('input[name="lang"][value="es"]');
+    await page.waitFor('document.documentElement.lang === "es" && !!document.querySelector(".sk-canvas")');
+    await page.eval('document.querySelector(".sk-editor").focus()');
+    await page.press('?', { shift: true });
+    await page.waitFor('document.getElementById("help-dialog").open');
+    assert.equal(await page.eval('document.getElementById("help-title").textContent'), 'Ayuda');
+    const english = await page.eval(`[...document.querySelectorAll('#help-dialog li, #help-dialog td, #help-dialog caption, #help-dialog h3, #help-dialog kbd')]
+      .map((n) => n.textContent.trim()).filter((x) => /\\b(the|and|Select|Undo|Save|Shift|Space|Enter|Del|Help|Copy|Paste)\\b/.test(x))`);
+    assert.deepEqual(english, [], `still in English: ${english.join(' | ')}`);
+    assert.deepEqual(page.errors, []);
+  } finally {
+    await page.close();
+  }
+});

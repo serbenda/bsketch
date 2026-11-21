@@ -82,7 +82,7 @@ today opens tomorrow. After 2.0 only fixes and small improvements (2.0.x, 2.x).
 |---|---|---|---|
 | P24 | Signed apps: macOS signed and notarized (Apple Developer Program), Windows signed (a code-signing certificate or Azure Trusted Signing) | Owner (accounts, cost), then agent (workflow) | ⬜ |
 | P25 | Audits before 2.0: a full security audit and a long fuzz campaign; accessibility (WCAG 2.2 AA, keyboard and screen reader); performance with 10,000 elements and big pictures; every finding fixed | Agent, owner reviews | ⬜ |
-| P26 | Help inside the app: a short guide and every shortcut, in each language, offline | Agent | ⬜ |
+| P26 | [Help inside the app: a short guide and every shortcut, in each language, offline](phases/P26-in-app-help.md) | Agent | ✅ |
 | P27 | [Freeze: `.sketch` format version 1 documented and promised to open in every later version (tests with saved files from each release); support policy; the `v2.0.0` release](phases/P27-format-freeze.md) | Agent, owner releases | ⏳ |
 
 ### Exit criterion for 2.0.0
@@ -91,4 +91,4 @@ today opens tomorrow. After 2.0 only fixes and small improvements (2.0.x, 2.x).
 - [ ] Apps signed on macOS and Windows (or the owner decides, in a decision record, to ship them unsigned).
 - [ ] No open security, accessibility or performance findings; Dependabot and code scanning with no open alerts.
 - [x] Files saved by every release since 1.0 open in 2.0 (tested: `tests/format.test.mjs`).
-- [ ] Help inside the app in every language.
+- [x] Help inside the app in every language.

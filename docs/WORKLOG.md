@@ -16,6 +16,19 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — P26: help inside the app
+- **Phase / issue:** P26
+- **What:** a Help dialog in `index.html` (guide and every shortcut, in tables), opened from the menu or with "?"
+  (`js/app.js`), styles in `css/styles.css`, 48 strings in each of the four dictionaries (`js/i18n.js`); `sw.js` v24.
+- **Why:** S8, 2.0.0's exit criterion "help inside the app in every language".
+- **Rejected:** building the dialog in JavaScript (static markup is translated by the existing code and works with
+  scripts slow to load); a separate help page (one more file to keep offline).
+- **Files:** index.html, js/app.js, js/i18n.js, css/styles.css, sw.js, tests/e2e/editor.e2e.mjs, README.md,
+  CHANGELOG.md, docs/*
+- **Commits:** see the P26 commit on `development`.
+- **Tested:** `npm test` 77 pass; `npm run test:e2e` 32 pass; a look in the browser (Spanish, dark).
+- **Pending:** —
+
 ## 2026-11-21 — P27: the `.sketch` format frozen (agent part)
 - **Phase / issue:** P27
 - **What:** `docs/FORMAT.md` (format version 1 and its compatibility promise), `SUPPORT.md`, ADR 0007;

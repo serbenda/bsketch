@@ -47,6 +47,7 @@
       <button type="button" id="open" class="drawer-item">Open… <kbd>Ctrl+O</kbd></button>
       <button type="button" id="save" class="drawer-item">Save <kbd>Ctrl+S</kbd></button>
       <button type="button" id="text-diagram" class="drawer-item">Text to diagram…</button>
+      <button type="button" id="help" class="drawer-item">Help and shortcuts <kbd>?</kbd></button>
     </section>
     <section class="drawer-section" aria-labelledby="menu-templates">
       <h3 id="menu-templates">Start from a template</h3>
@@ -118,6 +119,97 @@
         <button type="submit" value="insert" id="td-insert" class="drawer-item td-insert" disabled>Insert</button>
       </div>
     </form>
+  </dialog>
+  <dialog id="help-dialog" class="td-dialog help-dialog" aria-labelledby="help-title">
+    <form method="dialog" class="help-head">
+      <h2 id="help-title">Help</h2>
+      <button type="submit" class="drawer-close" title="Close the help (Esc)"><span aria-hidden="true">×</span><span class="visually-hidden">Close the help (Esc)</span></button>
+    </form>
+    <h3>Getting started</h3>
+    <ul class="help-guide">
+      <li>Choose a tool in the bar at the top, or press its key, and drag on the canvas to draw.</li>
+      <li>Double-click a shape to write inside it, a text to change it, or a frame to rename it.</li>
+      <li>Draw an arrow from one shape to another to join them: it follows them when they move. In the style panel it can be straight, with an elbow (going around the shapes in its way) or curved.</li>
+      <li>Your drawing is kept in this browser as you go. Save keeps a .sketch file; the menu exports PNG, SVG and PDF, and has templates and text to diagram.</li>
+      <li>Frames hold a part of the drawing. Present (Shift+P) shows them one by one, with your speaker notes.</li>
+      <li>Nothing leaves your computer: bsketch works offline and cannot send anything over the network.</li>
+      <li>On a Mac, use Cmd where it says Ctrl.</li>
+    </ul>
+    <h3>Keyboard shortcuts</h3>
+    <table class="help-keys">
+      <caption>Tools</caption>
+      <thead class="visually-hidden"><tr><th scope="col">Action</th><th scope="col">Keys</th></tr></thead>
+      <tbody>
+        <tr><td>Select</td><td><kbd>V</kbd></td></tr>
+        <tr><td>Pan the canvas (or hold Space and drag)</td><td><kbd>H</kbd></td></tr>
+        <tr><td>Rectangle</td><td><kbd>R</kbd></td></tr>
+        <tr><td>Diamond</td><td><kbd>D</kbd></td></tr>
+        <tr><td>Ellipse</td><td><kbd>O</kbd></td></tr>
+        <tr><td>Arrow</td><td><kbd>A</kbd></td></tr>
+        <tr><td>Line</td><td><kbd>L</kbd></td></tr>
+        <tr><td>Pencil</td><td><kbd>P</kbd></td></tr>
+        <tr><td>Text</td><td><kbd>T</kbd></td></tr>
+        <tr><td>Frame</td><td><kbd>F</kbd></td></tr>
+        <tr><td>Eraser</td><td><kbd>E</kbd></td></tr>
+        <tr><td>Insert an image</td><td><kbd>I</kbd></td></tr>
+      </tbody>
+    </table>
+    <table class="help-keys">
+      <caption>Editing</caption>
+      <thead class="visually-hidden"><tr><th scope="col">Action</th><th scope="col">Keys</th></tr></thead>
+      <tbody>
+        <tr><td>Undo</td><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td></tr>
+        <tr><td>Redo</td><td><kbd>Ctrl</kbd>+<kbd>Y</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td></tr>
+        <tr><td>Select everything</td><td><kbd>Ctrl</kbd>+<kbd>A</kbd></td></tr>
+        <tr><td>Copy</td><td><kbd>Ctrl</kbd>+<kbd>C</kbd></td></tr>
+        <tr><td>Paste</td><td><kbd>Ctrl</kbd>+<kbd>V</kbd></td></tr>
+        <tr><td>Duplicate</td><td><kbd>Ctrl</kbd>+<kbd>D</kbd></td></tr>
+        <tr><td>Delete the selection</td><td><kbd>Del</kbd></td></tr>
+        <tr><td>Group</td><td><kbd>Ctrl</kbd>+<kbd>G</kbd></td></tr>
+        <tr><td>Ungroup</td><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd></td></tr>
+        <tr><td>Lock the selection, or unlock everything</td><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd></td></tr>
+        <tr><td>Move the selection</td><td><kbd>← ↑ → ↓</kbd></td></tr>
+        <tr><td>Resize the selection</td><td><kbd>Alt</kbd>+<kbd>← ↑ → ↓</kbd></td></tr>
+        <tr><td>Rotate the selection</td><td><kbd>[</kbd> / <kbd>]</kbd></td></tr>
+        <tr><td>Add the next shape, joined by an arrow</td><td><kbd>Ctrl</kbd>+<kbd>← ↑ → ↓</kbd></td></tr>
+        <tr><td>Write inside the selected shape, or create the chosen one in the center</td><td><kbd>Enter</kbd></td></tr>
+        <tr><td>Go through the elements</td><td><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd></td></tr>
+        <tr><td>Clear the selection</td><td><kbd>Esc</kbd></td></tr>
+        <tr><td>Search the drawing</td><td><kbd>Ctrl</kbd>+<kbd>F</kbd></td></tr>
+        <tr><td>Show or hide the library</td><td><kbd>Shift</kbd>+<kbd>L</kbd></td></tr>
+      </tbody>
+    </table>
+    <table class="help-keys">
+      <caption>View</caption>
+      <thead class="visually-hidden"><tr><th scope="col">Action</th><th scope="col">Keys</th></tr></thead>
+      <tbody>
+        <tr><td>Zoom in</td><td><kbd>Ctrl</kbd>+<kbd>+</kbd></td></tr>
+        <tr><td>Zoom out</td><td><kbd>Ctrl</kbd>+<kbd>-</kbd></td></tr>
+        <tr><td>Reset to 100%</td><td><kbd>Ctrl</kbd>+<kbd>0</kbd></td></tr>
+        <tr><td>Show or hide the grid</td><td><kbd>G</kbd></td></tr>
+      </tbody>
+    </table>
+    <table class="help-keys">
+      <caption>File</caption>
+      <thead class="visually-hidden"><tr><th scope="col">Action</th><th scope="col">Keys</th></tr></thead>
+      <tbody>
+        <tr><td>Save</td><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td></tr>
+        <tr><td>Open a file</td><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td></tr>
+        <tr><td>Copy as PNG</td><td><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd></td></tr>
+        <tr><td>Show this help</td><td><kbd>?</kbd></td></tr>
+      </tbody>
+    </table>
+    <table class="help-keys">
+      <caption>Presentation</caption>
+      <thead class="visually-hidden"><tr><th scope="col">Action</th><th scope="col">Keys</th></tr></thead>
+      <tbody>
+        <tr><td>Start presenting</td><td><kbd>Shift</kbd>+<kbd>P</kbd></td></tr>
+        <tr><td>Next slide</td><td><kbd>→</kbd> / <kbd>Space</kbd></td></tr>
+        <tr><td>Previous slide</td><td><kbd>←</kbd></td></tr>
+        <tr><td>Show or hide your speaker notes</td><td><kbd>N</kbd></td></tr>
+        <tr><td>End the presentation</td><td><kbd>Esc</kbd></td></tr>
+      </tbody>
+    </table>
   </dialog>
   <main id="canvas" class="board" aria-label="Whiteboard"></main>
   <p id="status" class="status" aria-live="polite"></p>
