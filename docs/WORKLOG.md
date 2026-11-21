@@ -16,6 +16,18 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — Version 1.5.0
+- **Phase / issue:** S7 (P21, P22, P23)
+- **What:** version 1.5.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's
+  changes become `[1.5.0] - 2026-11-21`; STATE.
+- **Why:** S7 is complete; the owner asked to prepare the release.
+- **Rejected:** waiting for P19 (it depends on the owner's devices; its fixes go in 1.5.x).
+- **Files:** package.json, desktop/src-tauri/tauri.conf.json, desktop/src-tauri/Cargo.toml,
+  desktop/src-tauri/Cargo.lock, CHANGELOG.md, docs/STATE.md
+- **Commits:** this one.
+- **Tested:** `npm test` passes.
+- **Pending:** the owner merges PR #28 and releases.
+
 ## 2026-11-21 — P23: elbow connectors that go around shapes
 - **Phase / issue:** P23
 - **What:** elbow arrows and lines attached to shapes leave from the middle of the facing side and are routed around

@@ -3,6 +3,8 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioned with [SemVer](https://semver.org/).
 
 ## [Unreleased]
+
+## [1.5.0] - 2026-11-21
 ### Added
 - **PDF export** (☰ menu): one page per frame, in the presentation's order (or the whole drawing on one page),
   made in the browser with no library.
