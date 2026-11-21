@@ -13,9 +13,10 @@ Last updated: 2026-11-21
 - **Working branch:** `development`
 
 ## Current work
-- Version 1.5.0 prepared (PR #28, S7: P21, P22, [P23](phases/P23-smart-connectors.md)); the owner releases it with `bsketch-release.sh 1.5.0`.
+- 1.5.0 released. Next: P19 (the owner's device checklist; fixes in 1.5.x), then S8 (2.0).
 
 ## Recently done
+- **v1.5.0 released** (2026-11-21), tag on the built commit `215e4b7`, with signed provenance (S7: P21, P22, P23; version in PR #29).
 - [P23](phases/P23-smart-connectors.md): elbow connectors that go around shapes.
 - [P22](phases/P22-pdf-export.md): PDF with one frame per page.
 - [P21](phases/P21-speaker-notes.md): speaker notes and a timer.
@@ -62,9 +63,8 @@ Last updated: 2026-11-21
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. Owner: merge PR #28, then `bsketch-release.sh 1.5.0`.
-2. P19 (owner first): the device checklist on Safari, Firefox, a real phone and the desktop apps; fixes in 1.5.x.
-3. Then S8 (2.0: signing, audits, in-app help, format freeze) ([ROADMAP](ROADMAP.md)).
+1. P19 (owner first): the device checklist on Safari, Firefox, a real phone and the desktop apps; fixes in 1.5.x.
+2. Then S8 (2.0: signing, audits, in-app help, format freeze) ([ROADMAP](ROADMAP.md)).
 
 ## Blocked / awaiting decision
 - Nothing.

@@ -16,6 +16,18 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — 1.5.0 released
+- **Phase / issue:** S7 (P21, P22, P23)
+- **What:** the owner ran `bsketch-release.sh 1.5.0`: tag `v1.5.0` on `215e4b7` (the commit the Desktop workflow
+  built), release with the Windows, macOS and Linux builds and their signed provenance (`*.intoto.jsonl`); STATE.
+- **Why:** S7 complete.
+- **Rejected:** —
+- **Files:** docs/STATE.md, docs/WORKLOG.md
+- **Commits:** this one.
+- **Tested:** the tag points at `215e4b7`; the release has the three builds and three `.intoto.jsonl` files.
+- **Pending:** P19 (owner), then S8. The version commit missed PR #28 (merged before it was pushed), so it went in
+  PR #29; next time, push the version commit before asking for the merge.
+
 ## 2026-11-21 — Version 1.5.0
 - **Phase / issue:** S7 (P21, P22, P23)
 - **What:** version 1.5.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's
