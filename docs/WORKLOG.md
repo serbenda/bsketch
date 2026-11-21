@@ -16,6 +16,16 @@
 - **Pending:**
 -->
 
+## 2026-11-21 — mcp-builder skill: `mcp>=1.28.1` (known vulnerabilities)
+- **Phase / issue:** —
+- **What:** `.claude/skills/mcp-builder/scripts/requirements.txt` asks for `mcp>=1.28.1` instead of `mcp>=1.1.0`.
+- **Why:** Scorecard's Vulnerabilities check (code scanning alert 10) lists PYSEC-2026-1616, -1617, -1618, -3482 and -3483 for `mcp` below 1.28.1; the file comes from project-template, fixed there too.
+- **Rejected:** dismissing the alert (the floor is what a fresh install could resolve to).
+- **Files:** .claude/skills/mcp-builder/scripts/requirements.txt, docs/WORKLOG.md
+- **Commits:** this one (a guardrail file: committed by the owner with `GUARDRAILS_OWNER_CHANGE=1`).
+- **Tested:** the OSV entries give 1.28.1 as the highest fixed version.
+- **Pending:** —
+
 ## 2026-11-21 — CodeQL note on the 10,000-element e2e test
 - **Phase / issue:** P25
 - **What:** the test builds its key events with `JSON.stringify` instead of putting the key inside quotes by hand.
