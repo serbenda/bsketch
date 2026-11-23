@@ -13,9 +13,13 @@ Last updated: 2026-11-21
 - **Working branch:** `development`
 
 ## Current work
-- Version 1.5.0 prepared (PR #28, S7: P21, P22, [P23](phases/P23-smart-connectors.md)); the owner releases it with `bsketch-release.sh 1.5.0`.
+- S8 started: [P27](phases/P27-format-freeze.md)'s agent part done (format frozen and tested); [P26](phases/P26-in-app-help.md) done (help inside the app); [P25](phases/P25-audits.md)'s agent part done (security, fuzz, accessibility, performance; owner: screen reader and R-006). P24 needs the owner's Apple and Windows signing accounts; P19 is the owner's device checklist.
 
 ## Recently done
+- [P25](phases/P25-audits.md) (agent part): 7 security findings fixed (1 High), R-006 recorded; axe-core clean; 10,000 elements within budget.
+- [P26](phases/P26-in-app-help.md): help inside the app.
+- [P27](phases/P27-format-freeze.md) (agent part): `docs/FORMAT.md`, a file from each release in the tests, `SUPPORT.md`, ADR 0007.
+- **v1.5.0 released** (2026-11-21), tag on the built commit `215e4b7`, with signed provenance (S7: P21, P22, P23; version in PR #29).
 - [P23](phases/P23-smart-connectors.md): elbow connectors that go around shapes.
 - [P22](phases/P22-pdf-export.md): PDF with one frame per page.
 - [P21](phases/P21-speaker-notes.md): speaker notes and a timer.
@@ -62,9 +66,8 @@ Last updated: 2026-11-21
 - Text inside shapes, attached arrows, rotation, groups, alignment, offline use (PR #3).
 
 ## Next
-1. Owner: merge PR #28, then `bsketch-release.sh 1.5.0`.
-2. P19 (owner first): the device checklist on Safari, Firefox, a real phone and the desktop apps; fixes in 1.5.x.
-3. Then S8 (2.0: signing, audits, in-app help, format freeze) ([ROADMAP](ROADMAP.md)).
+1. P19 (owner first): the device checklist on Safari, Firefox, a real phone and the desktop apps; fixes in 1.5.x.
+2. Then S8 (2.0: signing, audits, in-app help, format freeze) ([ROADMAP](ROADMAP.md)).
 
 ## Blocked / awaiting decision
 - Nothing.

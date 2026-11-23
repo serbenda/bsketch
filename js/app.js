@@ -4,7 +4,7 @@
 // The drawings are kept in this browser (IndexedDB, see store.js) so they are not lost when the tab closes.
 
 import { createEditor } from './editor.js';
-import { emptyScene, parseScene, serializeScene, toExcalidraw, slideFrames, slideElements, bounds } from './scene.js';
+import { emptyScene, parseScene, serializeScene, toExcalidraw, slideFrames, slideElements, bounds, MAX_FILE_BYTES } from './scene.js';
 import { makePdf } from './pdf.js';
 import { toSvgString, toPngBlob, toImageBlob } from './render.js';
 import { loadPrefs, savePrefs, BACKGROUNDS } from './prefs.js';
@@ -114,10 +114,16 @@ async function flush() {
 }
 // Shows the drawing that is open now (after creating, opening or deleting one).
 // While the next drawing loads (a few milliseconds) the canvas ignores input, so nothing drawn then is lost.
+// While a drawing is being shown for the first time its id is kept here, and taken away once it has been painted:
+// a drawing that makes the page crash (a hostile file) isn't opened again on the next start.
+const SHOWING_KEY = 'sketch.showing';
 async function showActive() {
   $('canvas').inert = true;
   try {
-    editor.setScene((await saved()) || emptyScene());
+    const scene = (await saved()) || emptyScene();
+    try { storage.setItem(SHOWING_KEY, drawings.active); } catch { /* storage blocked: no guard */ }
+    editor.setScene(scene);
+    requestAnimationFrame(() => requestAnimationFrame(() => { try { storage.removeItem(SHOWING_KEY); } catch { /* as above */ } }));
   } finally {
     $('canvas').inert = false;
   }
@@ -130,6 +136,14 @@ async function showActive() {
   scenes = await openSceneStore((() => { try { return globalThis.indexedDB; } catch { return null; } })(), ls);
   try { await migrate(storage, scenes, drawings); } catch { /* left for next time; the old copy stays */ }
   try { await recover(storage, scenes, drawings, t('Recovered')); } catch { /* nothing to add */ }
+  let stuck = null;
+  try { stuck = storage.getItem(SHOWING_KEY); } catch { /* no guard */ }
+  if (stuck && stuck === drawings.active) {
+    try {
+      await createDrawing(storage, scenes, drawings, nextName(drawings, t('Drawing')));
+      notify(t('The last drawing could not be shown, so a new one was opened. The other one is still in the menu.'));
+    } catch { /* full storage: show it anyway */ }
+  }
   await showActive();
 })();
 // Another tab added, renamed or deleted drawings: this tab's list follows, so its next save doesn't undo them.
@@ -139,12 +153,17 @@ addEventListener('storage', (ev) => {
   renderDrawings();
 });
 // Leaving the page (or hiding it) saves at once.
-addEventListener('pagehide', () => { flush(); });
+addEventListener('pagehide', () => {
+  flush();
+  // Leaving normally (a reload before the first paint, too) isn't a crash: a crash never gets here.
+  try { storage.removeItem(SHOWING_KEY); } catch { /* storage blocked */ }
+});
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
 
 // Opening a file makes a new drawing with it: the one open stays in the list.
 async function openFile(file) {
   let scene;
+  if (file.size > MAX_FILE_BYTES) return notify(t('That file is too big to open (more than 100 MB).'));
   try {
     scene = parseScene(await file.text());
   } catch {
@@ -338,6 +357,26 @@ tdDialog.addEventListener('close', () => {
     tdText.value = '';
   }
   editor.focus();
+});
+
+// --- Help: a short guide and every shortcut, from the menu or with "?" ---
+const helpDialog = $('help-dialog');
+function openHelp() {
+  if (helpDialog.open || document.fullscreenElement || document.querySelector('dialog[open]')) return;
+  helpDialog.showModal();
+  helpDialog.querySelector('.drawer-close').focus();
+}
+$('help').addEventListener('click', () => {
+  closeMenu();
+  openHelp();
+});
+helpDialog.addEventListener('close', () => editor.focus());
+document.addEventListener('keydown', (ev) => {
+  if (ev.key !== '?' || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+  const el = ev.target;
+  if (el instanceof Element && (el.closest('input, textarea, select') || el.isContentEditable)) return;
+  ev.preventDefault();
+  openHelp();
 });
 
 // --- Templates: each opens as a new drawing, drawn from its text ---

@@ -16,6 +16,120 @@
 - **Pending:**
 -->
 
+## 2026-11-23 — Desktop: `url` 2.5.9 and `cookie` 0.18.3 (new advisories)
+- **Phase / issue:** —
+- **What:** `desktop/src-tauri/Cargo.lock`: `url` 2.5.8 → 2.5.9 (RUSTSEC-2026-0592, stack overflow in `Url::origin()`
+  on nested `blob:` URLs), `cookie` 0.18.2 → 0.18.3 (RUSTSEC-2026-0594, private cookie nonces repeating after a
+  fork), and `form_urlencoded` 1.2.2 → 1.2.3, which `url` 2.5.9 needs. Versions and checksums from the crates.io
+  index; no other dependency changes.
+- **Why:** OSV-Scanner (Dependencies job) failed on PR #30 with the two advisories published on 2026-11-20 and -23.
+- **Rejected:** ignoring them in `osv-scanner.toml` (a fixed version exists).
+- **Files:** desktop/src-tauri/Cargo.lock, docs/WORKLOG.md
+- **Commits:** this one.
+- **Tested:** an OSV query of every locked package leaves only the three already ignored (with reasons); the Desktop
+  workflow builds with this lockfile.
+- **Pending:** —
+
+## 2026-11-23 — CodeQL note on the 10,000-element e2e test, second try
+- **Phase / issue:** P25
+- **What:** key presses through a helper defined in the page and called with fixed text; the export buttons and the
+  blob count without interpolated strings.
+- **Why:** the alert stayed open after the `JSON.stringify` change (CodeQL doesn't count it as sanitizing code).
+- **Rejected:** dismissing the alert as a false positive (the change is small).
+- **Files:** tests/e2e/editor.e2e.mjs, docs/WORKLOG.md
+- **Commits:** this one.
+- **Tested:** the 10,000-element e2e test passes.
+- **Pending:** —
+
+## 2026-11-21 — mcp-builder skill: `mcp>=1.28.1` (known vulnerabilities)
+- **Phase / issue:** —
+- **What:** `.claude/skills/mcp-builder/scripts/requirements.txt` asks for `mcp>=1.28.1` instead of `mcp>=1.1.0`.
+- **Why:** Scorecard's Vulnerabilities check (code scanning alert 10) lists PYSEC-2026-1616, -1617, -1618, -3482 and -3483 for `mcp` below 1.28.1; the file comes from project-template, fixed there too.
+- **Rejected:** dismissing the alert (the floor is what a fresh install could resolve to).
+- **Files:** .claude/skills/mcp-builder/scripts/requirements.txt, docs/WORKLOG.md
+- **Commits:** this one (a guardrail file: committed by the owner with `GUARDRAILS_OWNER_CHANGE=1`).
+- **Tested:** the OSV entries give 1.28.1 as the highest fixed version.
+- **Pending:** —
+
+## 2026-11-21 — CodeQL note on the 10,000-element e2e test
+- **Phase / issue:** P25
+- **What:** the test presses keys through a helper defined in the page and called with fixed text, so no code is
+  built from values (a first try with `JSON.stringify` still left the alert open: CodeQL doesn't take it as enough).
+- **Why:** CodeQL "improper code sanitization" on PR #30 (the values were constants; fixed anyway).
+- **Rejected:** dismissing the alert.
+- **Files:** tests/e2e/editor.e2e.mjs, docs/WORKLOG.md
+- **Commits:** this one.
+- **Tested:** the e2e test passes.
+- **Pending:** —
+
+## 2026-11-21 — P25 follow-up: the safe start no longer trips on a quick reload
+- **Phase / issue:** P25
+- **What:** the "being shown" mark is also taken away on `pagehide`, so reloading before the first paint isn't taken
+  for a crash (CI caught it: "a drawing saved by an older version is kept" got an empty new drawing); the safe-start
+  e2e now sets the mark from another page of the site.
+- **Why:** CI failed on `b24cc6f`.
+- **Rejected:** a longer delay before taking the mark away (still a race).
+- **Files:** js/app.js, tests/e2e/editor.e2e.mjs, docs/WORKLOG.md
+- **Commits:** this one.
+- **Tested:** `npm test` 80 pass; `npm run test:e2e` 34 pass; the two tests three times in a row.
+- **Pending:** —
+
+## 2026-11-21 — P25: audits before 2.0 (agent part)
+- **Phase / issue:** P25
+- **What:** an independent security review (a sub-agent, read-only) found 7 issues and 2 notes; all fixed with tests
+  except the shared origin (R-006, the owner's): hachure budget per drawing and a safe start (`js/scene.js`,
+  `js/stroke.js`, `js/render.js`, `js/app.js`); elbow routing with a heap, a shared budget, a grid and a cache;
+  libraries sharing pictures; linear-time text to diagram (`js/textdiagram.js`); at most 500 slides; control
+  characters dropped (`plainText`); picture ids renamed on clash (`js/editor.js`); 100 MB file limit. A long fuzz
+  campaign; axe-core in 12 states; a 10,000-element e2e test; `sw.js` v25.
+- **Why:** S8, 2.0.0's exit criterion "no open security, accessibility or performance findings".
+- **Rejected:** a lower per-shape hachure limit (would thin real drawings; the problem is the count); refusing files
+  with many elbow arrows (a budget keeps them usable).
+- **Files:** js/scene.js, js/stroke.js, js/render.js, js/app.js, js/editor.js, js/textdiagram.js, js/i18n.js, sw.js,
+  tests/scene.test.mjs, tests/textdiagram.test.mjs, tests/e2e/editor.e2e.mjs, CHANGELOG.md, docs/*
+- **Commits:** see the P25 commit on `development`.
+- **Tested:** `npm test` 80 pass; `npm run test:e2e` 34 pass; fuzz 24 × 20,000 (before) and 6 × 5,000 (after);
+  axe-core with no violations.
+- **Pending:** the owner: a screen-reader check (with P19) and R-006 (own subdomain or accept).
+
+## 2026-11-21 — P26: help inside the app
+- **Phase / issue:** P26
+- **What:** a Help dialog in `index.html` (guide and every shortcut, in tables), opened from the menu or with "?"
+  (`js/app.js`), styles in `css/styles.css`, 48 strings in each of the four dictionaries (`js/i18n.js`); `sw.js` v24.
+- **Why:** S8, 2.0.0's exit criterion "help inside the app in every language".
+- **Rejected:** building the dialog in JavaScript (static markup is translated by the existing code and works with
+  scripts slow to load); a separate help page (one more file to keep offline).
+- **Files:** index.html, js/app.js, js/i18n.js, css/styles.css, sw.js, tests/e2e/editor.e2e.mjs, README.md,
+  CHANGELOG.md, docs/*
+- **Commits:** see the P26 commit on `development`.
+- **Tested:** `npm test` 77 pass; `npm run test:e2e` 32 pass; a look in the browser (Spanish, dark).
+- **Pending:** —
+
+## 2026-11-21 — P27: the `.sketch` format frozen (agent part)
+- **Phase / issue:** P27
+- **What:** `docs/FORMAT.md` (format version 1 and its compatibility promise), `SUPPORT.md`, ADR 0007;
+  `scripts/make-format-fixtures.mjs` makes `tests/fixtures/format/sketch-<version>.sketch` with each release's own
+  engine (temporary git worktrees); `tests/format.test.mjs` opens them all.
+- **Why:** S8, 2.0.0's exit criterion "files saved by every release since 1.0 open in 2.0".
+- **Rejected:** fixtures written by hand (they would not be what each release saved); a format version 2 (no gain).
+- **Files:** docs/FORMAT.md, SUPPORT.md, docs/decisions/0007-format-version-1-frozen.md, docs/decisions/README.md,
+  scripts/make-format-fixtures.mjs, tests/format.test.mjs, tests/fixtures/format/*, README.md, CHANGELOG.md, docs/*
+- **Commits:** see the P27 commit on `development`.
+- **Tested:** `npm test` 77 pass; removing `rounded` from the reader fails four fixtures, as it should.
+- **Pending:** the `v2.0.0` release (owner, end of S8); each release adds its fixture.
+
+## 2026-11-21 — 1.5.0 released
+- **Phase / issue:** S7 (P21, P22, P23)
+- **What:** the owner ran `bsketch-release.sh 1.5.0`: tag `v1.5.0` on `215e4b7` (the commit the Desktop workflow
+  built), release with the Windows, macOS and Linux builds and their signed provenance (`*.intoto.jsonl`); STATE.
+- **Why:** S7 complete.
+- **Rejected:** —
+- **Files:** docs/STATE.md, docs/WORKLOG.md
+- **Commits:** this one.
+- **Tested:** the tag points at `215e4b7`; the release has the three builds and three `.intoto.jsonl` files.
+- **Pending:** P19 (owner), then S8. The version commit missed PR #28 (merged before it was pushed), so it went in
+  PR #29; next time, push the version commit before asking for the merge.
+
 ## 2026-11-21 — Version 1.5.0
 - **Phase / issue:** S7 (P21, P22, P23)
 - **What:** version 1.5.0 in `package.json`, `tauri.conf.json`, `Cargo.toml` and `Cargo.lock`; the CHANGELOG's

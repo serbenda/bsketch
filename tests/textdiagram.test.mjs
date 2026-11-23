@@ -125,3 +125,11 @@ test('templates: each one, in each language, is a diagram', () => {
   assert.equal(template('__proto__'), null, 'only real templates');
   assert.equal(template('flowchart', 'es').name, 'Diagrama de flujo');
 });
+
+test('long runs of spaces are read in linear time', () => {
+  for (const text of ['A -> B\nx' + ' '.repeat(49000) + 'y -> z', 'A -> B\nC' + ' '.repeat(49900) + 'D', 'a\n' + ' '.repeat(49000) + 'b']) {
+    const t0 = Date.now();
+    parseText(text);
+    assert.ok(Date.now() - t0 < 300, `${Date.now() - t0} ms`);
+  }
+});
