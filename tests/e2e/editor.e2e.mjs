@@ -1328,18 +1328,19 @@ test('10,000 elements and big pictures: open, pan, select, move, undo, export', 
     // Select everything, move it with an arrow key, undo.
     await page.eval('document.querySelector(".sk-editor").focus()');
     const timed = (expr) => page.eval(`(async () => { const t0 = performance.now(); ${expr}; await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); return performance.now() - t0; })()`);
-    const key = (k, mods = {}) => `document.querySelector(".sk-editor").dispatchEvent(new KeyboardEvent("keydown", { ...${JSON.stringify({ key: k, bubbles: true, cancelable: true, ...mods })} }))`;
-    ms.selectAll = await timed(key('a', { ctrlKey: true }));
-    ms.move = await timed(key('ArrowRight'));
-    ms.undo = await timed(key('z', { ctrlKey: true }));
+    // Key presses through a helper defined in the page, called with fixed text (no code built from values).
+    await page.eval('window.__key = (key, mods = {}) => document.querySelector(".sk-editor").dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true, ...mods }))');
+    ms.selectAll = await timed('__key("a", { ctrlKey: true })');
+    ms.move = await timed('__key("ArrowRight")');
+    ms.undo = await timed('__key("z", { ctrlKey: true })');
     // Exports.
     await page.eval('window.__blobs = []; URL.createObjectURL = (b) => { window.__blobs.push(b); return "blob:x"; }; HTMLAnchorElement.prototype.click = function () {}');
-    await page.eval(key('Escape'));
+    await page.eval('__key("Escape")');
     for (const [name, id] of [['svg', 'svg'], ['png', 'png']]) {
       t = Date.now();
       const n = await page.eval('window.__blobs.length');
-      await page.eval(`document.getElementById("${id}").click()`);
-      await page.waitFor(`window.__blobs.length > ${n}`, 120000);
+      await page.eval(id === 'svg' ? 'document.getElementById("svg").click()' : 'document.getElementById("png").click()');
+      await page.waitFor(`window.__blobs.length > ${Number(n)}`, 120000);
       ms[name] = Date.now() - t;
     }
     const out = Object.fromEntries(Object.entries(ms).map(([k, v]) => [k, Math.round(v)]));

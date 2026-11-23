@@ -16,6 +16,17 @@
 - **Pending:**
 -->
 
+## 2026-11-23 — CodeQL note on the 10,000-element e2e test, second try
+- **Phase / issue:** P25
+- **What:** key presses through a helper defined in the page and called with fixed text; the export buttons and the
+  blob count without interpolated strings.
+- **Why:** the alert stayed open after the `JSON.stringify` change (CodeQL doesn't count it as sanitizing code).
+- **Rejected:** dismissing the alert as a false positive (the change is small).
+- **Files:** tests/e2e/editor.e2e.mjs, docs/WORKLOG.md
+- **Commits:** this one.
+- **Tested:** the 10,000-element e2e test passes.
+- **Pending:** —
+
 ## 2026-11-21 — mcp-builder skill: `mcp>=1.28.1` (known vulnerabilities)
 - **Phase / issue:** —
 - **What:** `.claude/skills/mcp-builder/scripts/requirements.txt` asks for `mcp>=1.28.1` instead of `mcp>=1.1.0`.
@@ -28,7 +39,8 @@
 
 ## 2026-11-21 — CodeQL note on the 10,000-element e2e test
 - **Phase / issue:** P25
-- **What:** the test builds its key events with `JSON.stringify` instead of putting the key inside quotes by hand.
+- **What:** the test presses keys through a helper defined in the page and called with fixed text, so no code is
+  built from values (a first try with `JSON.stringify` still left the alert open: CodeQL doesn't take it as enough).
 - **Why:** CodeQL "improper code sanitization" on PR #30 (the values were constants; fixed anyway).
 - **Rejected:** dismissing the alert.
 - **Files:** tests/e2e/editor.e2e.mjs, docs/WORKLOG.md
