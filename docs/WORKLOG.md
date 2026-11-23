@@ -16,6 +16,20 @@
 - **Pending:**
 -->
 
+## 2026-11-23 — Desktop: `url` 2.5.9 and `cookie` 0.18.3 (new advisories)
+- **Phase / issue:** —
+- **What:** `desktop/src-tauri/Cargo.lock`: `url` 2.5.8 → 2.5.9 (RUSTSEC-2026-0592, stack overflow in `Url::origin()`
+  on nested `blob:` URLs), `cookie` 0.18.2 → 0.18.3 (RUSTSEC-2026-0594, private cookie nonces repeating after a
+  fork), and `form_urlencoded` 1.2.2 → 1.2.3, which `url` 2.5.9 needs. Versions and checksums from the crates.io
+  index; no other dependency changes.
+- **Why:** OSV-Scanner (Dependencies job) failed on PR #30 with the two advisories published on 2026-11-20 and -23.
+- **Rejected:** ignoring them in `osv-scanner.toml` (a fixed version exists).
+- **Files:** desktop/src-tauri/Cargo.lock, docs/WORKLOG.md
+- **Commits:** this one.
+- **Tested:** an OSV query of every locked package leaves only the three already ignored (with reasons); the Desktop
+  workflow builds with this lockfile.
+- **Pending:** —
+
 ## 2026-11-23 — CodeQL note on the 10,000-element e2e test, second try
 - **Phase / issue:** P25
 - **What:** key presses through a helper defined in the page and called with fixed text; the export buttons and the
