@@ -80,7 +80,7 @@ today opens tomorrow. After 2.0 only fixes and small improvements (2.0.x, 2.x).
 
 | Phase | What | Who | Status |
 |---|---|---|---|
-| P24 | Signed apps: macOS signed and notarized (Apple Developer Program), Windows signed (a code-signing certificate or Azure Trusted Signing) | Owner (accounts, cost), then agent (workflow) | ⬜ |
+| P24 | [Signed apps: macOS signed and notarized (Apple Developer Program), Windows signed (a code-signing certificate or Azure Trusted Signing)](phases/P24-signed-apps.md) | Owner (accounts, cost), then agent (workflow) | ⬜ |
 | P25 | [Audits before 2.0: a full security audit and a long fuzz campaign; accessibility (WCAG 2.2 AA, keyboard and screen reader); performance with 10,000 elements and big pictures; every finding fixed](phases/P25-audits.md) | Agent, owner reviews | ⏳ |
 | P26 | [Help inside the app: a short guide and every shortcut, in each language, offline](phases/P26-in-app-help.md) | Agent | ✅ |
 | P27 | [Freeze: `.sketch` format version 1 documented and promised to open in every later version (tests with saved files from each release); support policy; the `v2.0.0` release](phases/P27-format-freeze.md) | Agent, owner releases | ⏳ |
